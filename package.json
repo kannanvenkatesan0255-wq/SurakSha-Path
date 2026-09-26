@@ -1,0 +1,22 @@
+{
+  "name": "suraksha-path",
+  "version": "0.1.0",
+  "description": "Evidence-based, context-aware safe route navigation prototype for Chennai, India",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000",
+    "build:frontend": "npm --prefix frontend run build",
+    "test:backend": "python -m unittest discover -s backend/tests -p \"test_*.py\"",
+    "init:db": "python -c \"from backend.app.database import init_db; init_db()\""
+  },
+  "keywords": [
+    "safe-routing",
+    "chennai",
+    "spatial-intelligence",
+    "risk-assessment",
+    "urban-mobility"
+  ],
+  "author": "Kannan Venkatesan <kannanvenkatesan0255@gmail.com>",
+  "license": "UNLICENSED"
+}
