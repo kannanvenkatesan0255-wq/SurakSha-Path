@@ -1,10 +1,13 @@
 import React from 'react';
 
-export function Badge({ children, variant = 'healthy', pulse = false }) {
-  const variantClass = `status-pill-${variant}`;
+/**
+ * Backward-compatible Badge component mapped to Phase 3 design tokens.
+ */
+export function Badge({ children, variant = 'status', pulse = false }) {
+  const variantClass = `badge badge-${variant}`;
   return (
-    <span className={`status-pill ${variantClass}`}>
-      {pulse && <span className="status-indicator-dot" />}
+    <span className={variantClass}>
+      {pulse && <span className="pulse-dot" />}
       {children}
     </span>
   );

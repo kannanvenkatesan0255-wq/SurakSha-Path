@@ -1,39 +1,61 @@
 import React from 'react';
 import { APP_CONFIG } from '../../config/appConfig';
 
+/**
+ * Footer component.
+ * Displays mandatory ethical disclaimer, prototype limitations, and architecture version.
+ */
 export function Footer() {
   return (
-    <footer style={{
-      marginTop: 'auto',
-      borderTop: '1px solid var(--border-subtle)',
-      background: 'rgba(10, 13, 20, 0.95)',
-      padding: '1.5rem 2rem',
-      fontSize: '0.8rem',
-      color: 'var(--text-muted)',
-    }}>
-      <div style={{
-        maxWidth: 'var(--max-content-width)',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.75rem',
-      }}>
-        <div style={{
-          background: 'rgba(239, 68, 68, 0.08)',
-          borderLeft: '3px solid var(--safety-amber)',
-          padding: '0.75rem 1rem',
-          borderRadius: '4px',
-          color: 'var(--text-secondary)',
-          fontSize: '0.82rem',
-        }}>
-          ⚠️ <strong>Ethical Disclaimer:</strong> {APP_CONFIG.DISCLAIMER}
+    <footer
+      style={{
+        backgroundColor: 'var(--color-surface-panel)',
+        borderTop: '1px solid var(--color-border-subtle)',
+        padding: 'var(--space-4) var(--space-6)',
+        marginTop: 'auto',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 'var(--max-content-width)',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-2)',
+        }}
+      >
+        {/* Ethical Disclaimer Banner */}
+        <div
+          style={{
+            background: 'var(--color-surface-card)',
+            borderLeft: '3px solid var(--color-risk-medium)',
+            padding: 'var(--space-2) var(--space-3)',
+            borderRadius: 'var(--radius-xs)',
+            fontSize: '0.78rem',
+            color: 'var(--color-text-secondary)',
+            lineHeight: 1.45,
+          }}
+        >
+          <strong style={{ color: 'var(--color-risk-medium-text)' }}>⚠️ Ethical Disclaimer: </strong>
+          {APP_CONFIG.DISCLAIMER} Prototype assessment based on available evidence; never claim crime prediction or guaranteed safety.
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 'var(--space-2)',
+            fontSize: '0.76rem',
+            color: 'var(--color-text-muted)',
+          }}
+        >
           <div>
-            <strong>{APP_CONFIG.APP_NAME}</strong> — Chennai Safe Mobility Research Architecture (Phase 2 Foundation).
+            <strong>SURAKSHA PATH</strong> — Context-Aware Route Intelligence for Chennai, India (Phase 3 UI Foundation).
           </div>
           <div>
-            FastAPI Backend • SQLite Spatial Graph • React 19 Frontend
+            FastAPI REST API • React 19 • SQLite Spatial Graph
           </div>
         </div>
       </div>

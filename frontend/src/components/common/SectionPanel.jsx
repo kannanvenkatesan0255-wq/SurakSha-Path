@@ -1,17 +1,27 @@
 import React from 'react';
 
 /**
- * Backward-compatible Card component mapped to Phase 3 design tokens.
+ * SectionPanel component.
+ * Reusable container for Route details, Evidence, Community information, and Contextual explanations.
  */
-export function Card({ title, subtitle, badge, action, children, className = '', ...props }) {
+export function SectionPanel({
+  title,
+  subtitle,
+  badge,
+  action,
+  children,
+  className = '',
+  style = {},
+  ariaLabel,
+}) {
   return (
-    <div
+    <section
       className={`section-panel ${className}`}
-      style={{ padding: 'var(--space-4)' }}
-      {...props}
+      style={style}
+      aria-label={ariaLabel || title}
     >
       {(title || subtitle || badge || action) && (
-        <div className="section-panel-header" style={{ marginBottom: 'var(--space-3)' }}>
+        <div className="section-panel-header">
           <div>
             {title && <h3 className="section-panel-title">{title}</h3>}
             {subtitle && <p className="section-panel-subtitle">{subtitle}</p>}
@@ -22,7 +32,9 @@ export function Card({ title, subtitle, badge, action, children, className = '',
           </div>
         </div>
       )}
-      <div>{children}</div>
-    </div>
+      <div className="section-panel-body">
+        {children}
+      </div>
+    </section>
   );
 }

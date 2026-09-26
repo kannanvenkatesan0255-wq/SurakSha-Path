@@ -1,138 +1,230 @@
 import React, { useState } from 'react';
-import { Card } from '../common/Card';
-import { Badge } from '../common/Badge';
+import { PageHeader } from '../common/PageHeader';
+import { SectionPanel } from '../common/SectionPanel';
+import { StatusBadge } from '../common/StatusBadge';
 import { Button } from '../common/Button';
+import { TextInput, SelectInput } from '../common/Input';
+import { MapWorkspace } from '../map/MapWorkspace';
+import { RouteComparisonPanel } from '../routing/RouteComparisonPanel';
+import { CHENNAI_PRESETS, ROUTE_TYPES } from '../../utils/constants';
 
-export function PlanRouteView() {
-  const [origin, setOrigin] = useState('Chennai Central Railway Station');
-  const [destination, setDestination] = useState('T. Nagar Bus Terminus');
-  const [timeContext, setTimeContext] = useState('21:30 (Night Travel)');
-  const [safetyPref, setSafetyPref] = useState(70);
+/**
+ * PlanRouteView component.
+ * Integrates journey parameter inputs, the MapWorkspace boundary, and RouteAlternative comparisons.
+ */
+export function PlanRouteView({ initialOrigin = '', initialDestination = '', initialCorridor = 'Anna Salai Corridor' }) {
+  const [origin, setOrigin] = useState(initialOrigin || 'Chennai Central Railway Station');
+  const [destination, setDestination] = useState(initialDestination || 'T. Nagar Bus Terminus');
+  const [timeContext, setTimeContext] = useState('night');
+  const [safetyPreference, setSafetyPreference] = useState(70);
+  const [selectedRouteType, setSelectedRouteType] = useState('BALANCED');
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [hasCalculated, setHasCalculated] = useState(true);
+
+  // Structural route alternatives matching Phase 2 schema contract
+  const routeAlternatives = [
+    {
+      routeType: 'FASTEST',
+      title: 'Direct Arterial Route',
+      durationMinutes: 15.0,
+      distanceKm: 5.2,
+      safetyScore: 68.5,
+      confidenceScore: 85.0,
+      riskLevel: 'MEDIUM',
+      mainFactor: 'Unlit flyover underpass segment near Gemini',
+      deltaTimeMinutes: 0,
+      deltaSafety: 0,
+    },
+    {
+      routeType: 'BALANCED',
+      title: 'Balanced Commercial Corridor',
+      durationMinutes: 16.5,
+      distanceKm: 5.5,
+      safetyScore: 81.0,
+      confidenceScore: 88.0,
+      riskLevel: 'LOW',
+      mainFactor: 'Active commercial lighting & police booth at Nandanam',
+      deltaTimeMinutes: 1.5,
+      deltaSafety: 12.5,
+    },
+    {
+      routeType: 'SAFEST',
+      title: 'High-Visibility Protected Path',
+      durationMinutes: 19.5,
+      distanceKm: 6.1,
+      safetyScore: 91.0,
+      confidenceScore: 92.0,
+      riskLevel: 'LOW',
+      mainFactor: 'Continuous LED lighting & Greater Chennai CCTV corridor',
+      deltaTimeMinutes: 4.5,
+      deltaSafety: 22.5,
+    },
+  ];
+
+  const handleCalculateRoutes = () => {
+    setIsCalculating(true);
+    setTimeout(() => {
+      setIsCalculating(false);
+      setHasCalculated(true);
+    }, 450);
+  };
+
+  const handleApplyPreset = (preset) => {
+    setOrigin(preset.origin);
+    setDestination(preset.destination);
+    setHasCalculated(true);
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h2>Plan Safe Route in Chennai</h2>
-          <p>Configure origin, destination, and context preferences for Phase 3 Leaflet map routing.</p>
-        </div>
-        <Badge variant="warning">PHASE 3 ROADMAP TARGET</Badge>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+      {/* Page Header */}
+      <PageHeader
+        title="Plan Safe Route"
+        description="Configure journey origin, destination, and safety preferences to generate context-aware route alternatives across Chennai."
+        badge={<StatusBadge label="INTEGRATED WORKFLOW" variant="info" />}
+        actions={
+          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => handleApplyPreset(CHENNAI_PRESETS[0])}
+            >
+              Preset: Central ➔ T. Nagar
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => handleApplyPreset(CHENNAI_PRESETS[1])}
+            >
+              Preset: Guindy ➔ OMR
+            </Button>
+          </div>
+        }
+      />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem' }}>
-        <Card title="Journey Parameters" subtitle="Origin, destination, and departure context">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div>
-              <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.4rem' }}>
-                Origin Location
-              </label>
-              <input
-                type="text"
+      {/* Main Two-Column Workflow Layout */}
+      <div
+        className="plan-route-layout"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(360px, 420px) 1fr',
+          gap: 'var(--space-6)',
+          alignItems: 'start',
+        }}
+      >
+        {/* Left Column: Parameter Form & Route Alternative Cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+          {/* Journey Parameters Panel */}
+          <SectionPanel
+            title="Journey Parameters"
+            subtitle="Configure journey endpoints and time-of-day context"
+          >
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCalculateRoutes();
+              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
+            >
+              <TextInput
+                label="Origin Location"
+                id="origin-input"
+                icon="📍"
                 value={origin}
                 onChange={(e) => setOrigin(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.65rem 0.85rem',
-                  background: 'var(--bg-surface-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: '0.9rem',
-                }}
+                placeholder="e.g. Chennai Central Railway Station"
+                required
               />
-            </div>
 
-            <div>
-              <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.4rem' }}>
-                Destination Location
-              </label>
-              <input
-                type="text"
+              <TextInput
+                label="Destination Location"
+                id="destination-input"
+                icon="🏁"
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.65rem 0.85rem',
-                  background: 'var(--bg-surface-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: '0.9rem',
-                }}
+                placeholder="e.g. T. Nagar Bus Terminus"
+                required
               />
-            </div>
 
-            <div>
-              <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.4rem' }}>
-                Time-Dependent Context
-              </label>
-              <input
-                type="text"
+              <SelectInput
+                label="Time Context"
+                id="time-context-select"
                 value={timeContext}
                 onChange={(e) => setTimeContext(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.65rem 0.85rem',
-                  background: 'var(--bg-surface-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: '0.9rem',
-                }}
+                options={[
+                  { value: 'day', label: 'Day Travel (08:00 – 18:00) • High Baseline Activity' },
+                  { value: 'dusk', label: 'Dusk Travel (18:00 – 21:00) • Peak Transit Commute' },
+                  { value: 'night', label: 'Night Travel (21:00 – 05:00) • Illumination Weighting Active' },
+                ]}
+                helperText="Time-dependent context adjusts the lighting and crowd-density multiplier."
               />
-            </div>
 
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Safety vs. Speed Preference Weight
-                </label>
-                <span style={{ fontSize: '0.85rem', color: 'var(--accent-teal)', fontWeight: 600 }}>
-                  {safetyPref}% Safety Priority
-                </span>
+              {/* Preference Slider */}
+              <div style={{ marginTop: 'var(--space-2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <label htmlFor="pref-slider" className="form-label" style={{ margin: 0 }}>
+                    Safety vs. Travel Time Preference
+                  </label>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--color-brand-cyan)', fontWeight: 700 }}>
+                    {safetyPreference}% Safety
+                  </span>
+                </div>
+                <input
+                  id="pref-slider"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={safetyPreference}
+                  onChange={(e) => setSafetyPreference(Number(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--color-brand-blue)' }}
+                  aria-label="Safety vs travel time preference slider"
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
+                  <span>0% (Fastest Time)</span>
+                  <span>50% (Balanced)</span>
+                  <span>100% (Maximum Safety)</span>
+                </div>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={safetyPref}
-                onChange={(e) => setSafetyPref(Number(e.target.value))}
-                style={{ width: '100%', accentColor: 'var(--accent-teal)' }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                <span>Fastest Time (0%)</span>
-                <span>Balanced (50%)</span>
-                <span>Maximum Safety (100%)</span>
-              </div>
-            </div>
-          </div>
-        </Card>
 
-        <Card title="Interactive Map Viewport Container" subtitle="Leaflet engine mount point (Phase 3)">
-          <div style={{
-            height: '280px',
-            background: 'radial-gradient(circle at center, #162238 0%, #0c121f 100%)',
-            border: '1px dashed var(--border-active)',
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '2rem',
-            textAlign: 'center',
-            gap: '0.75rem',
-          }}>
-            <div style={{ fontSize: '2.5rem' }}>🗺️</div>
-            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Chennai Cartographic Canvas</div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '320px' }}>
-              Phase 3 will mount an interactive Leaflet map rendering Chennai road polylines, segment-level heatmaps, and route alternatives.
-            </p>
-          </div>
-        </Card>
+              <Button
+                type="submit"
+                variant="primary"
+                loading={isCalculating}
+                style={{ marginTop: 'var(--space-2)', width: '100%' }}
+                icon="⚡"
+              >
+                Calculate Route Alternatives
+              </Button>
+            </form>
+          </SectionPanel>
+
+          {/* Integrated Route Comparisons (Fulfilling Task 5: Integrated workflow) */}
+          <RouteComparisonPanel
+            routes={hasCalculated ? routeAlternatives : []}
+            selectedRouteType={selectedRouteType}
+            onSelectRoute={setSelectedRouteType}
+            onPlanRequest={handleCalculateRoutes}
+          />
+        </div>
+
+        {/* Right Column: Dedicated Map Workspace Viewport */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '620px' }}>
+          <MapWorkspace
+            origin={origin}
+            destination={destination}
+            activeCorridor={initialCorridor}
+            selectedRouteType={selectedRouteType}
+          />
+        </div>
       </div>
+
+      <style>{`
+        @media (max-width: 960px) {
+          .plan-route-layout {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

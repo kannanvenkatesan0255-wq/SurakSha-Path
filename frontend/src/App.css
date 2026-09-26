@@ -1,13 +1,13 @@
-/* App shell and responsive layout specifics */
+/* Suraksha Path: Application Layout & Animation Utilities */
 
 main {
-  animation: fadeIn 0.3s ease-in-out;
+  animation: pageFadeIn 0.2s ease;
 }
 
-@keyframes fadeIn {
+@keyframes pageFadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(3px);
   }
   to {
     opacity: 1;
@@ -15,16 +15,40 @@ main {
   }
 }
 
-@media (max-width: 768px) {
+/* Nav Item Button Hover & Active States */
+.nav-item-btn:hover {
+  background-color: var(--color-surface-elevated) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.nav-item-active {
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Route Alternative Card Hover & Focus States */
+.route-alternative-card:hover {
+  border-color: var(--color-border-strong) !important;
+  transform: translateY(-1px);
+}
+
+.route-alternative-card:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Responsive Layout Adjustments */
+@media (max-width: 960px) {
   main {
-    padding: 1rem !important;
+    padding: var(--space-4) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  main {
+    padding: var(--space-3) !important;
   }
 
-  header {
-    padding: 0 1rem !important;
-  }
-
-  nav {
-    padding: 0 1rem !important;
+  .section-panel {
+    padding: var(--space-4) !important;
   }
 }

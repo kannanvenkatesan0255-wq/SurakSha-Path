@@ -214,23 +214,24 @@ In two separate terminals:
 
 ---
 
-## 11. Current Implementation Status (Phase 2 Foundation)
+## 11. Current Implementation Status
 
-- [x] **Project Scaffolding & Git Workflow:** Clean repository structure initialized on `main` branch with remote origin configured.
-- [x] **Repository Hygiene:** Comprehensive `.gitignore` protecting secrets, databases, build artifacts, and dependencies.
-- [x] **Frontend Architecture:** Modular React 19 application with custom glassmorphic cartographic design system tokens, responsive navigation shell, live telemetry probing, and prepared view containers.
-- [x] **Backend Architecture:** Modular FastAPI application with Pydantic v2 schemas, CORS middleware, lifespan events, and global exception handlers.
-- [x] **Database Connectivity:** SQLite engine with SQLAlchemy 2.0 ORM models for road segments, evidence items, community reports, route evaluations, and journey feedback.
-- [x] **API Communication Layer:** Centralized `ApiClient` with network failure handling, request timeouts, and non-2xx error handling.
-- [x] **Health Check Telemetry:** `GET /api/health` providing live system status, database health, city context, and active service boundaries.
-- [x] **Automated Tests:** 100% passing unit tests covering API endpoints and database table creation.
+- [x] **Phase 1: Project & Git Audit:** Workspace verified, clean slate audited, remote origin configured.
+- [x] **Phase 2: Application Architecture & Project Foundation:** Decoupled FastAPI backend + React 19 frontend, SQLite database with SQLAlchemy domain models, health check endpoint, centralized API client, automated unit tests.
+- [x] **Phase 3: Professional UI Design System & Navigation:**
+  - Distinctive, restrained geospatial design tokens (`index.css`) with dark cartographic canvas, high-contrast semantic risk colors (LOW, MEDIUM, HIGH paired strictly with text labels), and tabular numerals.
+  - Comprehensive reusable domain components: `AppHeader`, `PrimaryNavigation`, `PageHeader`, `StatusBadge`, `RiskBadge`, `MetricDisplay`, `SectionPanel`, `EmptyState`, `ErrorState`, `LoadingState`, `FeedbackMessage`, `Button`, `Input`.
+  - Functional, non-marketing `HomeView` focused on the core principle: **Safety ≠ Distance**.
+  - Integrated `PlanRouteView` combining journey parameters, `MapWorkspace` cartographic boundary, and multi-route alternative comparison cards (`FASTEST`, `BALANCED`, `SAFEST`).
+  - Structured domain views: `EvidenceView`, `CommunityView`, and `ActivityView`.
+  - Accessible, responsive layout for desktop, tablet, and touch-friendly mobile devices.
 
 ---
 
-## 12. Known Limitations & Upcoming Phases
+## 12. Upcoming Roadmap Phases
 
-1. **Interactive Leaflet Map:** Planned for **Phase 3** (interactive map tiles, origin/destination pins, and polyline visualization across Chennai corridors).
-2. **Dynamic Risk Calculation Engine:** Planned for **Phase 4** (mathematical formulas evaluating lighting, footfall, CCTV, and time-of-day modifiers).
-3. **Multi-Route Comparison & Explainability UI:** Planned for **Phase 5** (Fastest, Balanced, and Safest comparative route cards and "Why This Route" explanation drawer).
-4. **Trust-Weighted Community Reporting:** Planned for **Phase 6** (interactive reporting form with corroboration tallies and time-decay algorithms).
-5. **Closed-Loop Feedback Reassessment:** Planned for **Phase 7** (post-journey feedback interface dynamically modifying segment risk scores).
+1. **Phase 4: Chennai Geospatial Data Pipeline & Segment-Level Risk Engine:** Mathematical formulation of lighting, CCTV, police presence, crowd density, time-of-day contextual modifiers, Safety Score (0–100), and separate Confidence Score (0–100).
+2. **Phase 5: Interactive Cartographic Map (Leaflet.js) & Multi-Route Visualizer:** Dynamic vector tiles, origin/destination pin-drop, route polyline rendering, and segment risk heatmaps across Chennai corridors.
+3. **Phase 6: Trust-Weighted Community Intelligence:** Crowd reporting submission, corroboration tallying, and exponential time-decay weighting.
+4. **Phase 7: Closed-Loop Journey Feedback & Dynamic Reassessment:** Post-trip feedback ingestion and automatic segment score re-evaluation.
+5. **Phase 8: End-to-End Verification, Performance Optimization & Final Delivery.**

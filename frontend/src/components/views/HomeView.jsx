@@ -1,121 +1,221 @@
 import React from 'react';
-import { Card } from '../common/Card';
-import { Badge } from '../common/Badge';
+import { PageHeader } from '../common/PageHeader';
+import { SectionPanel } from '../common/SectionPanel';
+import { StatusBadge } from '../common/StatusBadge';
+import { RiskBadge } from '../common/RiskBadge';
 import { Button } from '../common/Button';
-import { CHENNAI_CORRIDORS, NAV_TABS } from '../../utils/constants';
+import { MetricDisplay } from '../common/MetricDisplay';
+import { CHENNAI_PRESETS, NAV_TABS } from '../../utils/constants';
 
-export function HomeView({ onNavigate }) {
+/**
+ * HomeView component.
+ * Functional, disciplined product home prioritizing route-planning action and domain principles.
+ * Not a marketing landing page: zero fake stats, zero testimonials, zero decorative fluff.
+ */
+export function HomeView({ onNavigate, onSelectPreset }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* Hero Section */}
-      <div style={{
-        background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.08) 0%, rgba(16, 185, 129, 0.05) 50%, rgba(10, 13, 20, 0) 100%)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '2.5rem',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <div style={{ maxWidth: '850px' }}>
-          <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-            <Badge variant="healthy">PHASE 2: FOUNDATION READY</Badge>
-            <Badge variant="confidence">CHENNAI URBAN MOBILITY</Badge>
-            <Badge variant="warning">SYNTHETIC DEMO LABELING ACTIVE</Badge>
-          </div>
-          <h2 style={{ fontSize: '2.2rem', marginBottom: '1rem', lineHeight: 1.2 }}>
-            Context-Aware Safe Route Navigation Driven by Evidence
-          </h2>
-          <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.75rem' }}>
-            Suraksha Path addresses urban route safety through transparent, road-segment-level risk modeling.
-            Rather than relying on uninterpretable scores or fear-based heuristics, it empowers travelers to examine
-            real evidence, compare <strong>Fastest</strong>, <strong>Balanced</strong>, and <strong>Safest</strong> alternatives,
-            and contribute trust-weighted community intelligence.
-          </p>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <Button variant="primary" onClick={() => onNavigate(NAV_TABS.PLAN_ROUTE)} icon="🗺️">
-              Explore Route Planning Foundation
-            </Button>
-            <Button variant="secondary" onClick={() => onNavigate(NAV_TABS.COMMUNITY)} icon="👥">
-              View Community Trust Framework
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Three Essential Innovations */}
-      <div>
-        <h3 style={{ fontSize: '1.3rem', marginBottom: '1rem' }}>Three Core Innovations</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
-          <Card
-            title="1. Trust-Weighted Intelligence"
-            subtitle="Recency, corroborations & reporter track record"
-            badge={<Badge variant="healthy">CORE PILLAR</Badge>}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+      {/* Contextual Page Header */}
+      <PageHeader
+        title="Suraksha Path (सुरक्षा पथ)"
+        description="Context-aware route intelligence for urban mobility in Chennai, India."
+        badge={<StatusBadge label="PROTOTYPE FOUNDATION" variant="info" />}
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => onNavigate(NAV_TABS.PLAN_ROUTE)}
+            icon="🗺️"
+            ariaLabel="Plan a Route now"
           >
-            <p style={{ fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-              Crowd reports are not treated equally. Time-decay functions gradually reduce the weight of stale reports,
-              while corroboration counts and reporter reliability factors prevent noise and manipulation.
-            </p>
-            <div style={{ fontSize: '0.8rem', color: 'var(--accent-teal)', fontFamily: 'var(--font-mono)' }}>
-              Weight = Reliability × Corroboration × RecencyDecay(t)
-            </div>
-          </Card>
+            Plan a Route
+          </Button>
+        }
+      />
 
-          <Card
-            title="2. Safety–Time Trade-Off"
-            subtitle="Fastest vs. Balanced vs. Safest comparisons"
-            badge={<Badge variant="warning">TRANSPARENT CHOICES</Badge>}
-          >
-            <p style={{ fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-              Safety is never all-or-nothing. Suraksha Path calculates discrete route options showing the exact extra time
-              needed for a measurable increase in safety score, allowing users to make informed decisions.
-            </p>
-            <div style={{ fontSize: '0.8rem', color: 'var(--safety-amber)', fontFamily: 'var(--font-mono)' }}>
-              ΔSafety vs. ΔTime penalty evaluation
-            </div>
-          </Card>
-
-          <Card
-            title="3. Feedback Reassessment Loop"
-            subtitle="Dynamic post-journey closed loop"
-            badge={<Badge variant="confidence">ADAPTIVE GRAPH</Badge>}
-          >
-            <p style={{ fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-              When travelers finish a journey or submit real-world reports, affected road segments are automatically
-              flagged for reassessment. Route scores adapt in real-time based on actual commuter experience.
-            </p>
-            <div style={{ fontSize: '0.8rem', color: 'var(--confidence-purple)', fontFamily: 'var(--font-mono)' }}>
-              JourneyFeedback → IdentifySegments → ReassessScores
-            </div>
-          </Card>
-        </div>
-      </div>
-
-      {/* Chennai Demonstration Corridors */}
-      <Card
-        title="Demonstration Corridors in Chennai, India"
-        subtitle="Key arterial corridors prepared for spatial graph mapping in Phase 3"
+      {/* Primary Action Hero / Mission Statement */}
+      <div
+        style={{
+          background: 'var(--color-surface-panel)',
+          border: '1px solid var(--color-border-medium)',
+          borderRadius: 'var(--radius-md)',
+          padding: 'var(--space-6)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-4)',
+        }}
       >
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', marginTop: '0.5rem' }}>
-          {CHENNAI_CORRIDORS.map((corridor, idx) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+          <StatusBadge label="CORE PARADIGM" variant="status" />
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+            Spatial Graph Decision Support
+          </span>
+        </div>
+
+        <div>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: 'var(--space-2)', color: 'var(--color-text-primary)' }}>
+            Not Just a Route. An Informed Journey Decision.
+          </h2>
+          <p style={{ fontSize: '1.02rem', color: 'var(--color-text-secondary)', maxWidth: '780px', lineHeight: 1.55 }}>
+            Compare alternative journeys using travel time, contextual safety evidence, and transparent route assessments.
+            Traditional navigation minimizes distance without considering nocturnal lighting, commercial activity, or surveillance.
+            Suraksha Path evaluates risk at the discrete road-segment level.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', alignItems: 'center' }}>
+          <Button
+            variant="primary"
+            onClick={() => onNavigate(NAV_TABS.PLAN_ROUTE)}
+            icon="📍"
+          >
+            Plan Route in Chennai
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => onNavigate(NAV_TABS.EVIDENCE)}
+            icon="🔍"
+          >
+            Explore Safety Evidence
+          </Button>
+        </div>
+      </div>
+
+      {/* Core Principle: Safety ≠ Distance */}
+      <SectionPanel
+        title="Why Safety ≠ Distance"
+        subtitle="The fundamental limitation of distance-minimizing navigation algorithms"
+        badge={<StatusBadge label="ARCHITECTURAL FOUNDATION" variant="status" />}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+          <div
+            style={{
+              background: 'var(--color-surface-card)',
+              border: '1px solid var(--color-border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              padding: 'var(--space-4)',
+            }}
+          >
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-brand-cyan)', marginBottom: 'var(--space-1)' }}>
+              1. Segment-Level Telemetry
+            </div>
+            <p style={{ fontSize: '0.84rem', color: 'var(--color-text-secondary)', lineHeight: 1.45 }}>
+              Risk is evaluated per road segment using street illumination, footfall density, and police booth proximity—not generic neighborhood crime heuristics.
+            </p>
+          </div>
+
+          <div
+            style={{
+              background: 'var(--color-surface-card)',
+              border: '1px solid var(--color-border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              padding: 'var(--space-4)',
+            }}
+          >
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-confidence-text)', marginBottom: 'var(--space-1)' }}>
+              2. Separate Confidence Score
+            </div>
+            <p style={{ fontSize: '0.84rem', color: 'var(--color-text-secondary)', lineHeight: 1.45 }}>
+              The system distinguishes between safety rating (0–100) and data certainty (0–100). Sparse evidence lowers confidence rather than assuming safety.
+            </p>
+          </div>
+
+          <div
+            style={{
+              background: 'var(--color-surface-card)',
+              border: '1px solid var(--color-border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              padding: 'var(--space-4)',
+            }}
+          >
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-risk-medium-text)', marginBottom: 'var(--space-1)' }}>
+              3. Transparent Trade-Offs
+            </div>
+            <p style={{ fontSize: '0.84rem', color: 'var(--color-text-secondary)', lineHeight: 1.45 }}>
+              Travelers can compare Fastest, Balanced, and Safest routes and decide whether a 2-minute time penalty is worth an increase in road illumination.
+            </p>
+          </div>
+        </div>
+      </SectionPanel>
+
+      {/* Quick-Start Chennai Corridor Presets */}
+      <SectionPanel
+        title="Demonstration Corridors in Chennai"
+        subtitle="Select a corridor to load origin and destination into the route planning workspace"
+        badge={<StatusBadge label="CHENNAI DATASET" variant="info" />}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-3)' }}>
+          {CHENNAI_PRESETS.map((preset) => (
             <div
-              key={idx}
+              key={preset.id}
+              onClick={() => onSelectPreset && onSelectPreset(preset)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectPreset && onSelectPreset(preset);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Select corridor preset: ${preset.name}`}
               style={{
-                background: 'var(--bg-surface-elevated)',
-                padding: '0.75rem 1rem',
+                background: 'var(--color-surface-card)',
+                border: '1px solid var(--color-border-medium)',
                 borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-subtle)',
-                fontSize: '0.85rem',
+                padding: 'var(--space-3) var(--space-4)',
+                cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
                 display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
+                flexDirection: 'column',
+                gap: 'var(--space-1)',
               }}
             >
-              <span style={{ color: 'var(--accent-teal)' }}>📍</span>
-              <span>{corridor}</span>
+              <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                {preset.name}
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                Corridor: {preset.corridor}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--space-2)' }}>
+                <span className="tabular-numbers" style={{ fontSize: '0.78rem', color: 'var(--color-brand-cyan)' }}>
+                  Est: {preset.distanceEst}
+                </span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+                  Load Route ➔
+                </span>
+              </div>
             </div>
           ))}
         </div>
-      </Card>
+      </SectionPanel>
+
+      {/* Domain Semantic Standards Banner */}
+      <div
+        style={{
+          background: 'var(--color-surface-panel)',
+          border: '1px solid var(--color-border-subtle)',
+          borderRadius: 'var(--radius-sm)',
+          padding: 'var(--space-4)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 'var(--space-3)',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+            Suraksha Path Semantic Standards
+          </div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+            Risk assessments pair strict color semantics with accessible text labels.
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <RiskBadge level="LOW" />
+          <RiskBadge level="MEDIUM" />
+          <RiskBadge level="HIGH" />
+        </div>
+      </div>
     </div>
   );
 }
