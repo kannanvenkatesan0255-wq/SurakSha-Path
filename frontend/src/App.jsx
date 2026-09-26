@@ -14,8 +14,22 @@ export default function App() {
   const [healthLoading, setHealthLoading] = useState(true);
   const [healthError, setHealthError] = useState(null);
 
-  // Active preset state passed between Home and PlanRoute views
-  const [selectedPreset, setSelectedPreset] = useState(null);
+  // Journey state preserved across navigation between tabs
+  const [journeyState, setJourneyState] = useState({
+    origin: 'Chennai Central Railway Station',
+    destination: 'T. Nagar Bus Terminus',
+    journeyDate: new Date().toISOString().split('T')[0],
+    departureTime: '21:30',
+    routePreference: 'BALANCED',
+    safetyWeight: 0.5,
+  });
+
+  const handleUpdateJourneyState = (updates) => {
+    setJourneyState((prev) => ({
+      ...prev,
+      ...updates,
+    }));
+  };
 
   const checkHealth = async () => {
     setHealthLoading(true);
@@ -36,7 +50,11 @@ export default function App() {
   }, []);
 
   const handleSelectPreset = (preset) => {
-    setSelectedPreset(preset);
+    setJourneyState((prev) => ({
+      ...prev,
+      origin: preset.origin,
+      destination: preset.destination,
+    }));
     setActiveTab(NAV_TABS.PLAN_ROUTE);
   };
 
@@ -52,9 +70,9 @@ export default function App() {
       case NAV_TABS.PLAN_ROUTE:
         return (
           <PlanRouteView
-            initialOrigin={selectedPreset ? selectedPreset.origin : 'Chennai Central Railway Station'}
-            initialDestination={selectedPreset ? selectedPreset.destination : 'T. Nagar Bus Terminus'}
-            initialCorridor={selectedPreset ? selectedPreset.corridor : 'Anna Salai Corridor'}
+            journeyState={journeyState}
+            onUpdateJourneyState={handleUpdateJourneyState}
+            onNavigate={setActiveTab}
           />
         );
       case NAV_TABS.EVIDENCE:

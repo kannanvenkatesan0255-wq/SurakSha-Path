@@ -3,87 +3,145 @@ import { PageHeader } from '../common/PageHeader';
 import { SectionPanel } from '../common/SectionPanel';
 import { StatusBadge } from '../common/StatusBadge';
 import { Button } from '../common/Button';
-import { TextInput, SelectInput } from '../common/Input';
+import { ErrorState } from '../common/ErrorState';
+import { LocationInputWithSuggestions } from '../planner/LocationInputWithSuggestions';
+import { RoutePreferenceSelector } from '../planner/RoutePreferenceSelector';
+import { JourneyDateTimeControls } from '../planner/JourneyDateTimeControls';
+import { JourneyPlanResultCard } from '../planner/JourneyPlanResultCard';
 import { MapWorkspace } from '../map/MapWorkspace';
-import { RouteComparisonPanel } from '../routing/RouteComparisonPanel';
-import { CHENNAI_PRESETS, ROUTE_TYPES } from '../../utils/constants';
+import { submitRoutePlan } from '../../api/routing';
+import { swapLocations } from '../../services/locationService';
+import { CHENNAI_PRESETS, NAV_TABS } from '../../utils/constants';
 
 /**
  * PlanRouteView component.
- * Integrates journey parameter inputs, the MapWorkspace boundary, and RouteAlternative comparisons.
+ * Complete journey-planning interface implementing Task 2 through Task 12 of Phase 4.
  */
-export function PlanRouteView({ initialOrigin = '', initialDestination = '', initialCorridor = 'Anna Salai Corridor' }) {
-  const [origin, setOrigin] = useState(initialOrigin || 'Chennai Central Railway Station');
-  const [destination, setDestination] = useState(initialDestination || 'T. Nagar Bus Terminus');
-  const [timeContext, setTimeContext] = useState('night');
-  const [safetyPreference, setSafetyPreference] = useState(70);
-  const [selectedRouteType, setSelectedRouteType] = useState('BALANCED');
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [hasCalculated, setHasCalculated] = useState(true);
+export function PlanRouteView({
+  journeyState,
+  onUpdateJourneyState,
+  onNavigate,
+}) {
+  const {
+    origin = '',
+    destination = '',
+    journeyDate = new Date().toISOString().split('T')[0],
+    departureTime = '21:30',
+    routePreference = 'BALANCED',
+    safetyWeight = 0.5,
+  } = journeyState || {};
 
-  // Structural route alternatives matching Phase 2 schema contract
-  const routeAlternatives = [
-    {
-      routeType: 'FASTEST',
-      title: 'Direct Arterial Route',
-      durationMinutes: 15.0,
-      distanceKm: 5.2,
-      safetyScore: 68.5,
-      confidenceScore: 85.0,
-      riskLevel: 'MEDIUM',
-      mainFactor: 'Unlit flyover underpass segment near Gemini',
-      deltaTimeMinutes: 0,
-      deltaSafety: 0,
-    },
-    {
-      routeType: 'BALANCED',
-      title: 'Balanced Commercial Corridor',
-      durationMinutes: 16.5,
-      distanceKm: 5.5,
-      safetyScore: 81.0,
-      confidenceScore: 88.0,
-      riskLevel: 'LOW',
-      mainFactor: 'Active commercial lighting & police booth at Nandanam',
-      deltaTimeMinutes: 1.5,
-      deltaSafety: 12.5,
-    },
-    {
-      routeType: 'SAFEST',
-      title: 'High-Visibility Protected Path',
-      durationMinutes: 19.5,
-      distanceKm: 6.1,
-      safetyScore: 91.0,
-      confidenceScore: 92.0,
-      riskLevel: 'LOW',
-      mainFactor: 'Continuous LED lighting & Greater Chennai CCTV corridor',
-      deltaTimeMinutes: 4.5,
-      deltaSafety: 22.5,
-    },
-  ];
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResponse, setSubmissionResponse] = useState(null);
+  const [submissionError, setSubmissionError] = useState(null);
 
-  const handleCalculateRoutes = () => {
-    setIsCalculating(true);
-    setTimeout(() => {
-      setIsCalculating(false);
-      setHasCalculated(true);
-    }, 450);
+  // Validation function
+  const validateForm = () => {
+    const errors = {};
+    const origTrim = (origin || '').trim();
+    const destTrim = (destination || '').trim();
+
+    if (!origTrim) {
+      errors.origin = 'Origin location is required.';
+    } else if (origTrim.length < 2) {
+      errors.origin = 'Please enter at least 2 characters for the origin.';
+    }
+
+    if (!destTrim) {
+      errors.destination = 'Destination location is required.';
+    } else if (destTrim.length < 2) {
+      errors.destination = 'Please enter at least 2 characters for the destination.';
+    }
+
+    if (origTrim && destTrim && origTrim.toLowerCase() === destTrim.toLowerCase()) {
+      errors.destination = 'Destination cannot be identical to the origin location.';
+    }
+
+    if (journeyDate) {
+      const today = new Date().toISOString().split('T')[0];
+      if (journeyDate < today) {
+        errors.journeyDate = 'Journey date cannot be in the past.';
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Swap origin and destination
+  const handleSwap = () => {
+    const { swappedOrigin, swappedDestination } = swapLocations(origin, destination);
+    onUpdateJourneyState({
+      origin: swappedOrigin,
+      destination: swappedDestination,
+    });
+    // Clear cross-field identical errors on swap
+    if (formErrors.destination || formErrors.origin) {
+      setFormErrors({});
+    }
+  };
+
+  // Form submission handler
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmissionError(null);
+
+    try {
+      const response = await submitRoutePlan({
+        originName: origin,
+        destinationName: destination,
+        journeyDate,
+        departureTime,
+        routePreference,
+        safetyWeightPreference: safetyWeight,
+        avoidUnlitAreas: true,
+      });
+
+      setSubmissionResponse(response);
+    } catch (err) {
+      setSubmissionError(
+        err.message || 'Unable to submit route planning request to the backend service.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleApplyPreset = (preset) => {
-    setOrigin(preset.origin);
-    setDestination(preset.destination);
-    setHasCalculated(true);
+    onUpdateJourneyState({
+      origin: preset.origin,
+      destination: preset.destination,
+    });
+    setFormErrors({});
+    setSubmissionResponse(null);
+    setSubmissionError(null);
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-      {/* Page Header */}
+      {/* Page Header (Task 2A) */}
       <PageHeader
-        title="Plan Safe Route"
-        description="Configure journey origin, destination, and safety preferences to generate context-aware route alternatives across Chennai."
-        badge={<StatusBadge label="INTEGRATED WORKFLOW" variant="info" />}
+        title="Plan Your Journey"
+        description="Choose where you're travelling from and to, then compare route options using travel time and available safety evidence."
+        badge={<StatusBadge label="PHASE 4 PLANNER" variant="info" />}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            <Button
+              variant="subtle"
+              size="sm"
+              onClick={() => onNavigate && onNavigate(NAV_TABS.HOME)}
+              icon="←"
+              ariaLabel="Return to Home overview"
+            >
+              Return to Home
+            </Button>
             <Button
               variant="secondary"
               size="sm"
@@ -91,136 +149,190 @@ export function PlanRouteView({ initialOrigin = '', initialDestination = '', ini
             >
               Preset: Central ➔ T. Nagar
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => handleApplyPreset(CHENNAI_PRESETS[1])}
-            >
-              Preset: Guindy ➔ OMR
-            </Button>
           </div>
         }
       />
 
-      {/* Main Two-Column Workflow Layout */}
+      {/* Contextual Information Banner (Task 2C) */}
       <div
-        className="plan-route-layout"
+        style={{
+          background: 'var(--color-surface-panel)',
+          borderLeft: '3px solid var(--color-brand-cyan)',
+          padding: 'var(--space-3) var(--space-4)',
+          borderRadius: 'var(--radius-xs)',
+          fontSize: '0.82rem',
+          color: 'var(--color-text-secondary)',
+          lineHeight: 1.5,
+        }}
+      >
+        <strong style={{ color: 'var(--color-text-primary)' }}>Contextual Information: </strong>
+        Suraksha Path compares routes using available evidence and journey context.
+        Assessments depend on the coverage, quality, and freshness of the available data.
+      </div>
+
+      {/* Main Two-Column Layout */}
+      <div
+        className="planner-layout"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(360px, 420px) 1fr',
+          gridTemplateColumns: 'minmax(380px, 460px) 1fr',
           gap: 'var(--space-6)',
           alignItems: 'start',
         }}
       >
-        {/* Left Column: Parameter Form & Route Alternative Cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-          {/* Journey Parameters Panel */}
-          <SectionPanel
-            title="Journey Parameters"
-            subtitle="Configure journey endpoints and time-of-day context"
-          >
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleCalculateRoutes();
-              }}
-              style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}
+        {/* Left Column: Journey Form or Validation Result Card */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          {submissionResponse ? (
+            /* Result Confirmation Card */
+            <JourneyPlanResultCard
+              response={submissionResponse}
+              onReset={() => setSubmissionResponse(null)}
+              onViewEvidence={() => onNavigate && onNavigate(NAV_TABS.EVIDENCE)}
+            />
+          ) : (
+            /* Journey Planning Form (Task 2B) */
+            <SectionPanel
+              title="Journey Configuration"
+              subtitle="Enter origin and destination points within Chennai"
             >
-              <TextInput
-                label="Origin Location"
-                id="origin-input"
-                icon="📍"
-                value={origin}
-                onChange={(e) => setOrigin(e.target.value)}
-                placeholder="e.g. Chennai Central Railway Station"
-                required
-              />
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                {/* Location Inputs with Swap Button (Task 3) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', position: 'relative' }}>
+                  <LocationInputWithSuggestions
+                    label="Origin Location"
+                    id="planner-origin"
+                    icon="📍"
+                    value={origin}
+                    onChange={(val) => onUpdateJourneyState({ origin: val })}
+                    placeholder="e.g. Chennai Central Railway Station"
+                    error={formErrors.origin}
+                    helperText="Enter a Chennai station, neighbourhood, or landmark"
+                    required
+                  />
 
-              <TextInput
-                label="Destination Location"
-                id="destination-input"
-                icon="🏁"
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                placeholder="e.g. T. Nagar Bus Terminus"
-                required
-              />
+                  {/* Swap Button Action */}
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '-4px 0' }}>
+                    <button
+                      type="button"
+                      onClick={handleSwap}
+                      aria-label="Swap origin and destination locations"
+                      title="Swap origin and destination"
+                      style={{
+                        background: 'var(--color-surface-card)',
+                        border: '1px solid var(--color-border-medium)',
+                        borderRadius: 'var(--radius-pill)',
+                        padding: '4px 12px',
+                        fontSize: '0.8rem',
+                        color: 'var(--color-brand-cyan)',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all var(--transition-fast)',
+                      }}
+                    >
+                      <span aria-hidden="true">⇅</span>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 600 }}>Swap Locations</span>
+                    </button>
+                  </div>
 
-              <SelectInput
-                label="Time Context"
-                id="time-context-select"
-                value={timeContext}
-                onChange={(e) => setTimeContext(e.target.value)}
-                options={[
-                  { value: 'day', label: 'Day Travel (08:00 – 18:00) • High Baseline Activity' },
-                  { value: 'dusk', label: 'Dusk Travel (18:00 – 21:00) • Peak Transit Commute' },
-                  { value: 'night', label: 'Night Travel (21:00 – 05:00) • Illumination Weighting Active' },
-                ]}
-                helperText="Time-dependent context adjusts the lighting and crowd-density multiplier."
-              />
-
-              {/* Preference Slider */}
-              <div style={{ marginTop: 'var(--space-2)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <label htmlFor="pref-slider" className="form-label" style={{ margin: 0 }}>
-                    Safety vs. Travel Time Preference
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--color-brand-cyan)', fontWeight: 700 }}>
-                    {safetyPreference}% Safety
-                  </span>
+                  <LocationInputWithSuggestions
+                    label="Destination Location"
+                    id="planner-destination"
+                    icon="🏁"
+                    value={destination}
+                    onChange={(val) => onUpdateJourneyState({ destination: val })}
+                    placeholder="e.g. T. Nagar Bus Terminus"
+                    error={formErrors.destination}
+                    helperText="Enter your target destination in Chennai"
+                    required
+                  />
                 </div>
-                <input
-                  id="pref-slider"
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={safetyPreference}
-                  onChange={(e) => setSafetyPreference(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: 'var(--color-brand-blue)' }}
-                  aria-label="Safety vs travel time preference slider"
+
+                {/* Journey Date & Time Controls (Task 5) */}
+                <JourneyDateTimeControls
+                  dateValue={journeyDate}
+                  onDateChange={(val) => onUpdateJourneyState({ journeyDate: val })}
+                  timeValue={departureTime}
+                  onTimeChange={(val) => onUpdateJourneyState({ departureTime: val })}
+                  dateError={formErrors.journeyDate}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                  <span>0% (Fastest Time)</span>
-                  <span>50% (Balanced)</span>
-                  <span>100% (Maximum Safety)</span>
-                </div>
-              </div>
 
-              <Button
-                type="submit"
-                variant="primary"
-                loading={isCalculating}
-                style={{ marginTop: 'var(--space-2)', width: '100%' }}
-                icon="⚡"
-              >
-                Calculate Route Alternatives
-              </Button>
-            </form>
+                {/* Safety–Time Preference Selector (Task 6) */}
+                <RoutePreferenceSelector
+                  value={routePreference}
+                  onChange={(val) => onUpdateJourneyState({ routePreference: val })}
+                />
+
+                {/* Submission Error Banner if any */}
+                {submissionError && (
+                  <ErrorState
+                    title="Submission Failed"
+                    message={submissionError}
+                    retryAction={handleSubmit}
+                    retryLabel="Retry Submission"
+                  />
+                )}
+
+                {/* Submit Action */}
+                <Button
+                  type="submit"
+                  variant="primary"
+                  loading={isSubmitting}
+                  icon="⚡"
+                  style={{ width: '100%', padding: '0.75rem', fontSize: '0.95rem' }}
+                >
+                  {isSubmitting ? 'Validating Journey...' : 'Plan Journey'}
+                </Button>
+              </form>
+            </SectionPanel>
+          )}
+
+          {/* Preset Quick Selectors */}
+          <SectionPanel
+            title="Chennai Corridor Presets"
+            subtitle="Quick-fill origins and destinations for testing"
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)' }}>
+              {CHENNAI_PRESETS.slice(0, 4).map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => handleApplyPreset(preset)}
+                  className="btn btn-secondary btn-sm"
+                  style={{
+                    textAlign: 'left',
+                    fontSize: '0.74rem',
+                    padding: 'var(--space-2)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: '2px',
+                    height: 'auto',
+                  }}
+                >
+                  <span style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>{preset.name.split('➔')[0]} ➔</span>
+                  <span style={{ color: 'var(--color-text-muted)' }}>{preset.name.split('➔')[1]}</span>
+                </button>
+              ))}
+            </div>
           </SectionPanel>
-
-          {/* Integrated Route Comparisons (Fulfilling Task 5: Integrated workflow) */}
-          <RouteComparisonPanel
-            routes={hasCalculated ? routeAlternatives : []}
-            selectedRouteType={selectedRouteType}
-            onSelectRoute={setSelectedRouteType}
-            onPlanRequest={handleCalculateRoutes}
-          />
         </div>
 
-        {/* Right Column: Dedicated Map Workspace Viewport */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '620px' }}>
+        {/* Right Column: Cartographic Workspace Viewport (Task 10) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '600px' }}>
           <MapWorkspace
             origin={origin}
             destination={destination}
-            activeCorridor={initialCorridor}
-            selectedRouteType={selectedRouteType}
+            activeCorridor="Chennai Demonstration Corridor"
+            selectedRouteType={routePreference}
           />
         </div>
       </div>
 
       <style>{`
         @media (max-width: 960px) {
-          .plan-route-layout {
+          .planner-layout {
             grid-template-columns: 1fr !important;
           }
         }
