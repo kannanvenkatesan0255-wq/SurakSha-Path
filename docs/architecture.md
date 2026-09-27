@@ -1,141 +1,169 @@
-# SURAKSHA PATH: SYSTEM ARCHITECTURE SPECIFICATION
+# Suraksha Path: System Architecture Specification & Technical Handover
 
-> **Phase 2 Technical Blueprint: Foundation, Service Boundaries, and Geospatial Intelligence Design**  
-> **Demonstration Domain:** Chennai Metro Urban Corridors, Tamil Nadu, India
+> **Document Version:** 2.0.0 (Phase 19 Final Product Handover)  
+> **Target Domain:** Chennai Metropolitan Area (CMA), Tamil Nadu, India  
+> **Status:** Fully Integrated, Stabilized & Verified
 
 ---
 
 ## 1. System Architecture Overview
 
-Suraksha Path implements a decoupled, modern multi-tier geospatial architecture consisting of:
-1. **Frontend Presentation Tier:** React 19 + Vite client with a domain-tailored cartographic design system and responsive application shell.
-2. **Backend Application Tier:** Python 3.13 + FastAPI REST API orchestrating domain services, request validation, and spatial graph algorithms.
-3. **Data Persistence Tier:** SQLAlchemy 2.0 ORM with a local SQLite spatial database engine designed for zero-dependency local execution.
-4. **Domain Services & Engines:** Modular boundaries for Routing, Segment Risk, Confidence, Evidence Auditing, Community Intelligence, and Feedback Reassessment.
+Suraksha Path is an evidence-based, context-aware safe route navigation prototype. It implements a decoupled, modern multi-tier geospatial architecture operating on zero-credential local infrastructure:
 
-```text
-+-----------------------------------------------------------------------------------+
-|                            FRONTEND (React 19 + Vite)                             |
-|                                                                                   |
-|  [Header / Brand]         [ServiceStatusBar]               [Navigation Tabs]      |
-|  [Home / Overview]        [Plan Route (Map)]               [Route Comparison]     |
-|  [Evidence Explorer]      [Community Reports]              [Feedback Reassess]    |
-|                                                                                   |
-|                   Centralized ApiClient (Timeout / Network Failures)              |
-+-----------------------------------------------------------------------------------+
-                                         │
-                                         │ REST API / JSON (CORS Enabled)
-                                         ▼
-+-----------------------------------------------------------------------------------+
-|                             BACKEND API (FastAPI)                                 |
-|                                                                                   |
-|  GET /api/health          POST /api/routes/plan            POST /api/community    |
-|  GET /docs (Swagger)      POST /api/feedback               Pydantic Schemas       |
-+-----------------------------------------------------------------------------------+
-       │                                                         │
-       │ Sessions / Queries                                      │ Service Calls
-       ▼                                                         ▼
-+-----------------------------+        +--------------------------------------------+
-|      DATABASE TIER          |        |          DOMAIN SERVICE BOUNDARIES         |
-|                             |        |                                            |
-|  SQLAlchemy 2.0 ORM Models: |        |  1. RoutingService                         |
-|  - RoadSegment              |        |     (Fastest, Balanced, Safest alternatives)|
-|  - EvidenceItem             |        |  2. RiskService                            |
-|  - CommunityReport          |        |     (Micro-level segment risk evaluation)  |
-|  - RouteEvaluation          |        |  3. ConfidenceEngine                       |
-|  - JourneyFeedback          |        |     (Independent certainty scoring)        |
-|                             |        |  4. EvidenceService                        |
-|  Engine: SQLite /data/      |        |     (Factor audit & provenance tracking)   |
-|                             |        |  5. CommunityService                       |
-|                             |        |     (Trust-weighted crowd reporting)       |
-|                             |        |  6. FeedbackService                        |
-|                             |        |     (Closed-loop segment reassessment)     |
-+-----------------------------+        +--------------------------------------------+
+```mermaid
+graph TD
+    subgraph Client [Frontend Presentation Tier - React 19 + Vite]
+        App[AppShell & Navigation]
+        Home[HomeView & Presets]
+        Planner[PlanRouteView]
+        Map[InteractiveMap - Leaflet]
+        Monitor[JourneyMonitorView & SOS]
+        Insights[JourneyInsightsView]
+        Evidence[EvidenceView]
+        Community[CommunityView]
+        Activity[ActivityView]
+        Store[(Local Browser Storage)]
+    end
+
+    subgraph API [Backend Application Tier - Python 3.13 + FastAPI]
+        Router[API Gateway /api/...]
+        SecMid[Security Headers & Rate Limiting]
+        RouteSvc[RoutingService & OSRM Engine]
+        OptSvc[RouteOptimizationService]
+        RiskEng[RiskAssessmentEngine]
+        ExplSvc[ExplainabilityService]
+        CtxSvc[ContextualService - Solar & Weather]
+        CommSvc[CommunityService]
+        FbSvc[FeedbackService]
+        JrnSvc[JourneyService]
+    end
+
+    subgraph Data [Data Persistence Tier - SQLite & Curated Baselines]
+        DB[(suraksha_path.db)]
+        OSMData[chennai_osm_roads.geojson]
+        EvdData[chennai_safety_evidence.json]
+    end
+
+    subgraph External [External Telemetry & Spatial Services]
+        OSRM[OSRM Public Router]
+        NOAA[NOAA Solar Position Engine]
+        Meteo[Open-Meteo Weather API]
+    end
+
+    App --> Router
+    Router --> SecMid
+    SecMid --> RouteSvc
+    RouteSvc --> OSRM
+    RouteSvc --> OptSvc
+    OptSvc --> RiskEng
+    OptSvc --> ExplSvc
+    Router --> CtxSvc
+    CtxSvc --> NOAA
+    CtxSvc --> Meteo
+    Router --> CommSvc
+    Router --> FbSvc
+    Router --> JrnSvc
+    RiskEng --> DB
+    CommSvc --> DB
+    FbSvc --> DB
+    JrnSvc --> Store
+    Map --> Planner
 ```
 
 ---
 
-## 2. Frontend Responsibilities
+## 2. Component Boundaries & Codebase Directory Map
 
-### Implemented in Phase 2
-- **Application Entry & Shell:** `index.html`, `src/main.jsx`, `src/App.jsx`, providing a responsive layout container, header with Chennai context, and footer with ethical disclaimers.
-- **Visual Design System:** `src/index.css` defining CSS custom properties (color tokens, glassmorphism, fluid typography via Inter & Outfit, elevation shadows, and status badges).
-- **Navigation Coordinator:** `src/components/shell/Navigation.jsx` enabling tabbed navigation between major functional areas.
-- **Live Telemetry & Health Probing:** `src/components/shell/ServiceStatusBar.jsx` periodically calling `GET /api/health` and dynamically rendering connection status, database health, and city context with zero fake data.
-- **Centralized API Client:** `src/api/client.js` with structured non-2xx error extraction, request timeouts, and friendly network failure notifications.
-- **Prepared Modular Views:** Dedicated view components (`HomeView`, `PlanRouteView`, `RouteResultsView`, `EvidenceView`, `CommunityView`, `ActivityView`) configured as extension points for subsequent phases.
+### 2.1 Frontend Presentation Tier (`frontend/`)
 
-### Planned for Later Phases
-- **Phase 3:** Leaflet/MapLibre interactive cartographic map, origin/destination pin-drop, route polyline rendering for Chennai corridors.
-- **Phase 5:** Interactive route alternative comparison drawer (Fastest vs. Balanced vs. Safest) and "Why This Route" explanation panel.
-- **Phase 6:** Community incident reporting modal and live crowd report marker overlays on the map.
-- **Phase 7:** Post-journey feedback form triggering real-time segment score re-evaluations.
+| Subsystem / View | Source File(s) | Primary Responsibility |
+| :--- | :--- | :--- |
+| **Application Shell** | `src/App.jsx`, `src/components/shell/AppShell.jsx`, `AppHeader.jsx` | Navigation router between 7 primary tabs, live backend telemetry probe, mobile menu. |
+| **Design System Tokens** | `src/index.css` | Glassmorphism, semantic colors (`--color-risk-low/medium/high`), accessible typography (Inter & Outfit). |
+| **Home & Presets** | `src/components/views/HomeView.jsx` | Core thesis presentation, Chennai landmark quick-start presets (`CHENNAI_PRESETS`). |
+| **Route Planner** | `src/components/views/PlanRouteView.jsx`, `src/components/planner/` | Origin/destination inputs, preference drawer, multi-route alternatives generation. |
+| **Interactive Map** | `src/components/map/InteractiveMap.jsx`, `MapWorkspace.jsx` | Leaflet cartography, basemap layer switcher (Dark Matter/Voyager/OSM), vector polyline highlighter. |
+| **Explainability Dashboard** | `src/components/routing/RouteExplainabilityDashboard.jsx`, `ExplainabilityModal.jsx` | "Why This Route?", Safety Score vs. Epistemic Confidence separation, category breakdown bars. |
+| **Journey Monitoring & SOS** | `src/components/views/JourneyMonitorView.jsx`, `JourneyMonitoringWorkspace.jsx` | State machine (`NOT_STARTED` -> `ACTIVE` -> `PAUSED` -> `COMPLETED`/`CANCELLED`), check-in timer, in-app SOS modal. |
+| **Journey Insights & Analytics**| `src/components/views/JourneyInsightsView.jsx`, `JourneyInsightsDashboard.jsx` | Completed trip statistics, 7d/30d filters, demo data toggle, address masking, privacy history purge. |
+| **Community Intelligence** | `src/components/views/CommunityView.jsx` | Crowd hazard feed, independent confirmation/dispute voting, administrative moderation console. |
+| **Continuous Feedback** | `src/components/views/ActivityView.jsx` | Closed-loop road condition reports, model recalibration triggers, audit log ledger. |
+| **Local Storage Service** | `src/services/journeyStorage.js` | Zero-telemetry on-device persistence (`localStorage`), corrupted-state auto-healing, metrics computation. |
 
----
+### 2.2 Backend Application Tier (`backend/app/`)
 
-## 3. Backend Responsibilities
-
-### Implemented in Phase 2
-- **FastAPI Core Application:** `backend/app/main.py` configuring CORS middleware, lifespan events, and global exception handlers.
-- **Environment & Configuration:** `backend/app/config.py` using Pydantic and python-dotenv to support environment variables with zero required external API keys.
-- **Health Check API:** `GET /api/health` reporting system status, database connection, city context, and active services.
-- **Pydantic Validation Schemas:** Strict data validation models for health, routing requests, segment risk, community reports, and feedback.
-- **Root Endpoint:** `GET /` providing service metadata, Swagger link, and project disclaimer.
-- **Automated Test Suite:** Built-in Python `unittest` suite (`test_health.py`, `test_database.py`) running in under 0.05 seconds.
-
-### Planned for Later Phases
-- **Phase 3:** OpenStreetMap/OSRM route generation or synthetic Chennai road corridor graph traversal.
-- **Phase 4:** Segment-level risk engine combining lighting levels, CCTV coverage, commercial density, and time-of-day contextual modifiers.
-- **Phase 6:** Trust-weighting decay algorithms (recency exponential decay, corroboration multipliers, and reporter track record scaling).
-- **Phase 7:** Affected-segment identification and spatial graph score reassessment pipeline.
-
----
-
-## 4. API Communication Layer
-
-Frontend-to-backend communication follows strict REST principles:
-- **Base URL:** Defined via `VITE_API_BASE_URL` with a sensible default (`http://127.0.0.1:8000/api`).
-- **Resilience:** If the backend is offline, the frontend displays clear, actionable diagnostic alerts rather than unhandled promise rejections or fake success states.
-- **Timeouts:** All requests automatically abort after 10,000ms if unresponsive.
-- **Security:** Private backend credentials and database paths are never leaked into the frontend client.
+| Service Module | Source File | Primary Responsibility |
+| :--- | :--- | :--- |
+| **FastAPI Core Application** | `backend/app/main.py` | Lifespan database/dataset initialization, security middlewares, exception sanitization. |
+| **Security & Hardening** | `backend/app/core/security.py` | Constant-time key comparison (`secrets.compare_digest`), rate limiters, payload size checks, XSS filters. |
+| **API Endpoints Gateway** | `backend/app/api/routes.py`, `health.py` | Unified route declarations mounted under `/api`. |
+| **Routing Engine** | `backend/app/services/routing_service.py` | OSRM integration with resilient offline corridor fallback (`OFFLINE_BENCHMARK_CORRIDORS`). |
+| **Route Optimization** | `backend/app/services/route_optimization_service.py`| Multi-criteria evaluation generating **Fastest**, **Balanced**, and **Safest** alternatives. |
+| **Segment Risk Engine** | `backend/app/services/risk_service.py` | Evaluates 5 physical evidence categories with temporal half-life decay. |
+| **Confidence Engine** | `backend/app/services/confidence_service.py` | Computes epistemic data density, freshness, and multi-source corroboration ($10.0 - 100.0\%$). |
+| **Route Explainability** | `backend/app/services/explainability_service.py` | Generates "Why This Route?" narratives, trade-off explanations, and bottleneck segment warnings. |
+| **Contextual Service** | `backend/app/services/contextual_service.py` | NOAA solar calculation for nocturnal illumination and Open-Meteo API for real-time weather traction. |
+| **Community Intelligence** | `backend/app/services/community_service.py` | Trust-weighted crowd report ingestion, confirmation tallying, duplicate detection, and moderation. |
+| **Feedback Reassessment** | `backend/app/services/feedback_service.py` | Controlled closed-loop segment reassessment and immutable audit log logging. |
+| **Journey Monitoring Service**| `backend/app/services/journey_service.py` | Server-side journey session validation, verified Chennai helplines catalog, analytics summaries. |
 
 ---
 
-## 5. Database Responsibilities & Domain Schema
+## 3. Mathematical Foundations & Metric Definitions
 
-The database tier is managed via SQLAlchemy 2.0 ORM (`backend/app/database.py`).
-Default local database file: `data/suraksha_path.db` (automatically excluded by `.gitignore`).
+### 3.1 Route Safety Score ($S_{route}$)
+Evaluated across assessed segments using distance-weighted averaging:
+$$S_{route} = \frac{\sum_{i=1}^{N} (S_i \cdot L_i)}{\sum_{i=1}^{N} L_i}$$
+where $S_i \in [15.0, 95.0]$ is the segment safety score and $L_i$ is segment length in meters. An unassessed segment defaults to the neutral baseline anchor of $50.0\text{ pts}$.
 
-### Foundational Domain Models (Implemented in Phase 2)
-1. **`RoadSegment`:** Discrete road segment in Chennai (e.g. Anna Salai, OMR, Guindy). Stores start/end coordinates, GeoJSON geometry, length, lighting level (0–1), crowd density (0–1), police presence (0–1), baseline safety score (0–100), current reassessed safety score, and confidence score (0–100).
-2. **`EvidenceItem`:** Concrete evidence items linked to segments (lighting audit results, police station proximity, CCTV cameras). Includes source type, factor name, impact score, confidence weight, and freshness timestamp.
-3. **`CommunityReport`:** Crowd-sourced reports with category, description, coordinates, reporter ID, reporter reliability (0.1–1.0), confirmation tally, and verification status.
-4. **`RouteEvaluation`:** Stores evaluated route alternatives (Fastest, Balanced, Safest) with distance, duration, composite safety score, confidence score, and explanation summary.
-5. **`JourneyFeedback`:** Post-trip feedback with user safety rating (1–5), felt-safe boolean, comments, and reassessment processing flag.
-
----
-
-## 6. Domain Service Boundaries
-
-Each service encapsulates a distinct business domain without monolithic coupling:
-
-| Service | Module | Status in Phase 2 | Planned Target |
-| :--- | :--- | :--- | :--- |
-| **Routing Service** | `routing_service.py` | Foundational interface & schema contract | Phase 3: Spatial multi-path generator |
-| **Risk Service** | `risk_service.py` | Foundational interface & schema contract | Phase 4: Dynamic mathematical risk formula |
-| **Confidence Engine** | `confidence_engine.py` | Foundational calculation method | Phase 4: Data completeness & recency engine |
-| **Evidence Service** | `evidence_service.py` | Foundational query interface | Phase 4/5: Audit trails & factor breakdown |
-| **Community Service** | `community_service.py` | Foundational trust algorithm | Phase 6: Full crowd ingestion & corroboration |
-| **Feedback Service** | `feedback_service.py` | Foundational ingestion interface | Phase 7: Closed-loop segment reassessment |
-| **Journey & Insights Service** | `journey_service.py` | Active in Phase 14 & 15 | Phase 14-15: Active monitoring, SOS, and historical analytics |
-
+### 3.2 Epistemic Confidence Score ($C_{route}$)
+Confidence reflects empirical data certainty, **never safety itself**:
+$$C_{route} = \min\left(100.0, \, 10.0 + 90.0 \cdot \left[ 0.4 \cdot \text{Coverage} + 0.3 \cdot \text{Recency} + 0.3 \cdot \text{Corroboration} \right]\right)$$
+Where:
+- $\text{Coverage}$: Percentage of route length backed by recorded evidence streams.
+- $\text{Recency}$: Freshness discount computed via exponential half-life decay:
+  $$w(t) = 2^{-\frac{\Delta t}{t_{half}}}$$
+- $\text{Corroboration}$: Multi-source agreement and community confirmation count.
 
 ---
 
-## 7. Ethical Guardrails & Legal Principles
+## 4. Technical Handover Guide
 
-Suraksha Path enforces the following non-negotiable principles throughout all layers:
-1. **No Crime Prediction:** The system does not claim to predict criminal incidents, forecast crime events, or classify neighborhoods as intrinsically criminal.
-2. **No Safety Guarantee:** Route recommendations are contextual advisories intended to inform traveler decisions, never guarantees of personal safety.
-3. **Synthetic Data Labeling:** All demonstration data (road links, baseline scores, sample reports) are explicitly flagged with `is_synthetic = True` across schemas and database rows.
-4. **Confidence Transparency:** A route or segment with sparse evidence must present a lower confidence score regardless of its safety rating.
+### 4.1 Configuration Management
+- **Backend Configuration:** Defined in `backend/app/config.py`. All parameters load from environment variables with sensible local defaults:
+  - `DATABASE_URL`: `sqlite:///./data/suraksha_path.db`
+  - `MODERATOR_KEY`: Administrative key for community moderation.
+  - `DEFAULT_CITY`: `"Chennai, India"`
+  - `OSRM_BASE_URL`: `"https://router.project-osrm.org"`
+- **Frontend Configuration:** Defined in `frontend/src/config/appConfig.js`.
+
+### 4.2 How to Add a New Safety Evidence Source
+1. Define the evidence schema in `backend/app/schemas/evidence.py`.
+2. Add the stream identifier and weight to `backend/app/services/risk_service.py` under `EVIDENCE_CATEGORY_WEIGHTS`.
+3. Provide the baseline dataset in `backend/app/data/` (JSON or GeoJSON format).
+4. Register the ingestion logic in `backend/app/services/evidence_service.py`.
+
+### 4.3 How to Run Tests and Validation
+
+```bash
+# 1. Full Backend Test Suite (132 tests)
+python -m pytest backend/tests -v
+
+# 2. Full Frontend Test Suite (95 tests)
+cd frontend && npm test -- --run
+
+# 3. Frontend Linter (0 errors)
+cd frontend && npm run lint
+
+# 4. Production Bundle Build (0 errors)
+cd frontend && npm run build
+```
+
+---
+
+## 5. Ethical Safety Boundaries & Non-Negotiable Rules
+
+1. **No Predictive Crime Forecasting:** Suraksha Path strictly evaluates physical and environmental infrastructure (lighting, outposts, commercial footfall). It does **not** claim to predict crime events, forecast victimization, or profile neighborhoods.
+2. **No False Safety Guarantees:** A high Safety Score reflects audited environmental factors, **never a guarantee of personal safety**.
+3. **No False Emergency Claims:** In-app SOS provides direct dialable shortcuts to verified Chennai helplines (`100`, `112`, `1091`, `1913`); it does **not** dispatch real police or emergency units.
+4. **Transparent Demonstration Labeling:** All synthetic segments, benchmark corridors, and seeded sample records are explicitly labeled with `is_synthetic: true` or `DEMO SEEDED RECORD`.
