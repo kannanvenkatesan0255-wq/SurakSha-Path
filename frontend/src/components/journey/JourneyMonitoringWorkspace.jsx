@@ -17,6 +17,7 @@ import {
   saveTrustedContacts,
   loadJourneySettings,
   saveJourneySettings,
+  saveJourneyRecord,
 } from '../../services/journeyStorage';
 import {
   fetchChennaiHelplines,
@@ -383,6 +384,29 @@ export function JourneyMonitoringWorkspace({
     setCheckInMissed(false);
     setSosActive(false);
     addEvent('JOURNEY_COMPLETED', 'Journey completed successfully at destination');
+    
+    // Phase 15: Archive into local journey history ledger
+    saveJourneyRecord({
+      journey_id: journeyId || `JRN-${Date.now()}`,
+      status: 'COMPLETED',
+      origin,
+      destination,
+      route_type: routeType,
+      distance_km: distanceKm,
+      duration_minutes: durationMinutes,
+      elapsed_seconds: elapsedSeconds,
+      safety_score: safetyScore,
+      confidence_score: confidenceScore,
+      start_time_ist: getNowIstString(),
+      end_time_ist: getNowIstString(),
+      date_ymd: new Date().toISOString().split('T')[0],
+      is_demo: isDemoMode,
+      events_count: eventHistory.length + 1,
+      check_in_count: eventHistory.filter((e) => e.type === 'CHECK_IN_COMPLETED').length,
+      missed_check_in_count: missedCount,
+      sos_activated: sosActive,
+    });
+
     try {
       if (journeyId) await transitionJourneySession({ journey_id: journeyId, action: 'complete' });
     } catch {}
@@ -395,6 +419,29 @@ export function JourneyMonitoringWorkspace({
     setCheckInMissed(false);
     setSosActive(false);
     addEvent('JOURNEY_CANCELLED', 'Journey cancelled by commuter');
+
+    // Phase 15: Archive into local journey history ledger
+    saveJourneyRecord({
+      journey_id: journeyId || `JRN-${Date.now()}`,
+      status: 'CANCELLED',
+      origin,
+      destination,
+      route_type: routeType,
+      distance_km: distanceKm,
+      duration_minutes: durationMinutes,
+      elapsed_seconds: elapsedSeconds,
+      safety_score: safetyScore,
+      confidence_score: confidenceScore,
+      start_time_ist: getNowIstString(),
+      end_time_ist: getNowIstString(),
+      date_ymd: new Date().toISOString().split('T')[0],
+      is_demo: isDemoMode,
+      events_count: eventHistory.length + 1,
+      check_in_count: eventHistory.filter((e) => e.type === 'CHECK_IN_COMPLETED').length,
+      missed_check_in_count: missedCount,
+      sos_activated: sosActive,
+    });
+
     try {
       if (journeyId) await transitionJourneySession({ journey_id: journeyId, action: 'cancel' });
     } catch {}

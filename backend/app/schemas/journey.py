@@ -122,3 +122,97 @@ class JourneyTransitionRequest(BaseModel):
     journey_id: str = Field(..., description="Target journey identifier")
     action: str = Field(..., description="Action: pause, resume, complete, cancel, check_in_ok, check_in_help, sos_activate, sos_resolve")
     details: Optional[str] = Field(None, description="Optional operator or commuter notes")
+
+
+# ==============================================================================
+# Phase 15: Journey Insights, Safety Analytics & Route Preferences Schemas
+# ==============================================================================
+
+class UserRoutePreferences(BaseModel):
+    """Commuter route navigation preferences for speed vs safety trade-offs (Phase 15)."""
+    route_preference: str = Field(default="BALANCED", pattern=r"^(FASTEST|BALANCED|SAFEST)$", description="Default route strategy")
+    safety_weight: float = Field(default=0.5, ge=0.0, le=1.0, description="0.0 = prioritize travel time, 1.0 = prioritize verified safety")
+    avoid_unlit_areas: bool = Field(default=True, description="Preference to avoid known unlit segments at night")
+    max_acceptable_detour_minutes: float = Field(default=10.0, ge=0.0, le=60.0, description="Max acceptable detour time to select a safer corridor")
+    min_confidence_threshold: float = Field(default=30.0, ge=0.0, le=100.0, description="Minimum acceptable evidence confidence level (0-100%)")
+    prioritize_active_corridors: bool = Field(default=True, description="Favor active commercial corridors with verified footfall")
+
+
+class JourneyRecordItem(BaseModel):
+    """Archival record of a completed or cancelled journey session."""
+    journey_id: str = Field(..., description="Unique journey session ID")
+    status: JourneyStatus = Field(..., description="Terminal lifecycle state")
+    origin: str
+    destination: str
+    route_type: str = "BALANCED"
+    distance_km: float = 0.0
+    duration_minutes: float = 0.0
+    elapsed_seconds: int = 0
+    safety_score: Optional[float] = None
+    confidence_score: Optional[float] = None
+    start_time_ist: str
+    end_time_ist: Optional[str] = None
+    date_ymd: str = Field(..., description="Date of journey in YYYY-MM-DD (Asia/Kolkata)")
+    is_demo: bool = False
+    events_count: int = 0
+    check_in_count: int = 0
+    missed_check_in_count: int = 0
+    sos_activated: bool = False
+
+
+class JourneyRecordCreateRequest(BaseModel):
+    """Payload to record a completed or terminated journey."""
+    journey_id: str
+    status: JourneyStatus
+    origin: str
+    destination: str
+    route_type: str = "BALANCED"
+    distance_km: float = 0.0
+    duration_minutes: float = 0.0
+    elapsed_seconds: int = 0
+    safety_score: Optional[float] = None
+    confidence_score: Optional[float] = None
+    start_time_ist: Optional[str] = None
+    end_time_ist: Optional[str] = None
+    date_ymd: Optional[str] = None
+    is_demo: bool = False
+
+
+class DailyActivityPoint(BaseModel):
+    """Activity aggregation for a single calendar day."""
+    date: str
+    count: int
+    distance_km: float
+    duration_minutes: float
+
+
+class DurationBucket(BaseModel):
+    """Duration distribution histogram bucket."""
+    bucket: str
+    count: int
+    label: str
+
+
+class JourneyHistorySummary(BaseModel):
+    """Aggregated journey analytics strictly calculated from actual records."""
+    total_journeys: int
+    completed_journeys: int
+    cancelled_journeys: int
+    active_or_paused_journeys: int
+    total_distance_km: float
+    total_duration_minutes: float
+    average_duration_minutes: float
+    average_safety_score: Optional[float] = None
+    average_confidence_score: Optional[float] = None
+    route_type_breakdown: Dict[str, int]
+    status_breakdown: Dict[str, int]
+    daily_activity: List[DailyActivityPoint]
+    duration_distribution: List[DurationBucket]
+    time_range_applied: str = "all"
+    is_demo_included: bool = False
+    data_disclaimer: str = (
+        "Metrics reflect actual recorded journeys. Incomplete and cancelled journeys are strictly "
+        "excluded from completed travel distance and average duration calculations. "
+        "Historical journey data does NOT guarantee future route safety."
+    )
+

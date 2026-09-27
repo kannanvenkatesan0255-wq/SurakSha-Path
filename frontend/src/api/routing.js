@@ -21,6 +21,9 @@ export async function submitRoutePlan({
   routePreference = 'BALANCED',
   safetyWeightPreference = 0.5,
   avoidUnlitAreas = true,
+  maxDetourMinutesPreference = null,
+  minConfidencePreference = null,
+  prioritizeActiveCorridors = true,
 }) {
   // Resolve locations through the location service if coordinates not explicitly passed
   const resolvedOrigin = resolveLocationQuery(originName);
@@ -54,6 +57,16 @@ export async function submitRoutePlan({
     safety_weight_preference: Number(safetyWeightPreference),
     avoid_unlit_areas: Boolean(avoidUnlitAreas),
   };
+
+  if (maxDetourMinutesPreference !== null && maxDetourMinutesPreference !== undefined) {
+    payload.max_detour_minutes_preference = Number(maxDetourMinutesPreference);
+  }
+  if (minConfidencePreference !== null && minConfidencePreference !== undefined) {
+    payload.min_confidence_preference = Number(minConfidencePreference);
+  }
+  if (prioritizeActiveCorridors !== undefined) {
+    payload.prioritize_active_corridors = Boolean(prioritizeActiveCorridors);
+  }
 
   return await apiClient.post('/routes/plan', payload);
 }

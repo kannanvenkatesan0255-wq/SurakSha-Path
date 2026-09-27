@@ -391,6 +391,7 @@ class RoutingService:
         optimizer = RouteOptimizationService(
             safety_weight=request.safety_weight_preference,
             time_weight=1.0 - request.safety_weight_preference if request.safety_weight_preference is not None else None,
+            max_detour_minutes=request.max_detour_minutes_preference,
         )
         alternatives, selected_route_id, tradeoff_summary = optimizer.optimize_and_rank_routes(
             candidates=candidate_profiles,

@@ -127,6 +127,8 @@ Each service encapsulates a distinct business domain without monolithic coupling
 | **Evidence Service** | `evidence_service.py` | Foundational query interface | Phase 4/5: Audit trails & factor breakdown |
 | **Community Service** | `community_service.py` | Foundational trust algorithm | Phase 6: Full crowd ingestion & corroboration |
 | **Feedback Service** | `feedback_service.py` | Foundational ingestion interface | Phase 7: Closed-loop segment reassessment |
+| **Journey & Insights Service** | `journey_service.py` | Active in Phase 14 & 15 | Phase 14-15: Active monitoring, SOS, and historical analytics |
+
 
 ---
 

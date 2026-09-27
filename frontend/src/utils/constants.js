@@ -6,6 +6,7 @@ export const NAV_TABS = {
   HOME: 'home',
   PLAN_ROUTE: 'plan_route',
   MONITOR: 'monitor',
+  INSIGHTS: 'insights',
   EVIDENCE: 'evidence',
   COMMUNITY: 'community',
   ACTIVITY: 'activity',
@@ -32,6 +33,13 @@ export const NAV_ITEMS = [
     icon: '🛡️',
     description: 'Safety check-in, tracking, and SOS',
     ariaLabel: 'Navigate to Journey Monitoring and SOS',
+  },
+  {
+    id: NAV_TABS.INSIGHTS,
+    label: 'Insights',
+    icon: '📊',
+    description: 'Journey insights, safety analytics & route preferences',
+    ariaLabel: 'Navigate to Journey Insights and Safety Analytics',
   },
   {
     id: NAV_TABS.EVIDENCE,

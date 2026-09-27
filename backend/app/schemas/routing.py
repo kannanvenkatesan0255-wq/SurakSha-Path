@@ -20,6 +20,10 @@ class RoutePlanRequest(BaseModel):
     route_preference: str = Field("BALANCED", pattern=r"^(FASTEST|BALANCED|SAFEST)$", description="FASTEST, BALANCED, or SAFEST")
     safety_weight_preference: float = Field(0.5, ge=0.0, le=1.0, description="0.0 = prioritize speed, 1.0 = prioritize safety")
     avoid_unlit_areas: bool = Field(True, description="Preference to avoid known unlit segments")
+    max_detour_minutes_preference: Optional[float] = Field(None, ge=0.0, le=60.0, description="Maximum acceptable detour in minutes")
+    min_confidence_preference: Optional[float] = Field(None, ge=0.0, le=100.0, description="Minimum acceptable evidence confidence threshold (0-100%)")
+    prioritize_active_corridors: bool = Field(True, description="Preference to prioritize commercial/transit corridors with verified activity")
+
 
     @model_validator(mode="after")
     def validate_locations_distinct(self):

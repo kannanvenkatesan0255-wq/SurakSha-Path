@@ -24,6 +24,10 @@ from ..schemas.journey import (
     JourneyStartRequest,
     JourneySessionState,
     JourneyTransitionRequest,
+    UserRoutePreferences,
+    JourneyRecordItem,
+    JourneyRecordCreateRequest,
+    JourneyHistorySummary,
 )
 import logging
 from ..services.routing_service import RoutingService
@@ -915,6 +919,123 @@ def transition_journey_session(
     Enforces state machine rules and prevents invalid transitions.
     """
     return JourneyService.transition_journey(request)
+
+
+# ==============================================================================
+# Phase 15: Journey Insights, Safety Analytics & Route Preferences Endpoints
+# ==============================================================================
+
+@api_router.get(
+    "/journey/history",
+    response_model=List[JourneyRecordItem],
+    tags=["Journey Analytics"],
+)
+def get_journey_history(
+    days: Optional[int] = None,
+    route_type: Optional[str] = None,
+    status: Optional[str] = None,
+    include_demo: bool = False,
+) -> List[JourneyRecordItem]:
+    """
+    Retrieve commuter recorded journey history filtered by timeframe, route type, or status.
+    Strictly local/in-memory records; demo data excluded unless explicitly requested.
+    """
+    return JourneyService.get_history(
+        status=status,
+        route_type=route_type,
+        days=days,
+        include_demo=include_demo,
+    )
+
+
+@api_router.post(
+    "/journey/record",
+    response_model=JourneyRecordItem,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Journey Analytics"],
+)
+def record_journey_session(
+    request: JourneyRecordCreateRequest,
+) -> JourneyRecordItem:
+    """
+    Record or synchronize a completed or cancelled journey session into the ledger.
+    Guarantees idempotency and avoids double-counting.
+    """
+    return JourneyService.record_journey(request)
+
+
+@api_router.get(
+    "/journey/analytics",
+    response_model=JourneyHistorySummary,
+    tags=["Journey Analytics"],
+)
+def get_journey_analytics(
+    days: Optional[int] = None,
+    route_type: Optional[str] = None,
+    status: Optional[str] = None,
+    include_demo: bool = False,
+) -> JourneyHistorySummary:
+    """
+    Calculate transparent aggregated journey insights from actual recorded sessions.
+    Strictly excludes cancelled and incomplete journeys from completed metrics.
+    """
+    return JourneyService.get_analytics(
+        days=days,
+        route_type=route_type,
+        status_filter=status,
+        include_demo=include_demo,
+    )
+
+
+@api_router.delete(
+    "/journey/history",
+    tags=["Journey Analytics"],
+)
+def clear_journey_history() -> Dict[str, Any]:
+    """
+    Clear all in-memory journey records to respect commuter privacy and retention preferences.
+    """
+    return JourneyService.clear_history()
+
+
+@api_router.get(
+    "/preferences/route",
+    response_model=UserRoutePreferences,
+    tags=["Route Preferences"],
+)
+def get_user_route_preferences() -> UserRoutePreferences:
+    """
+    Retrieve configured personal route preferences for speed vs safety weighting,
+    lighting requirements, and maximum detour tolerance.
+    """
+    return JourneyService.get_preferences()
+
+
+@api_router.post(
+    "/preferences/route",
+    response_model=UserRoutePreferences,
+    tags=["Route Preferences"],
+)
+def update_user_route_preferences(
+    preferences: UserRoutePreferences,
+) -> UserRoutePreferences:
+    """
+    Update personal route preferences for multi-criteria route optimization.
+    """
+    return JourneyService.update_preferences(preferences)
+
+
+@api_router.post(
+    "/preferences/route/reset",
+    response_model=UserRoutePreferences,
+    tags=["Route Preferences"],
+)
+def reset_user_route_preferences() -> UserRoutePreferences:
+    """
+    Reset route preferences back to standard balanced baseline defaults.
+    """
+    return JourneyService.reset_preferences()
+
 
 
 

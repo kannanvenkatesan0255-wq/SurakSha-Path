@@ -95,3 +95,94 @@ export async function transitionJourneySession(payload) {
 export async function fetchJourneySession(journeyId) {
   return await apiClient.request(`/api/journey/session/${encodeURIComponent(journeyId)}`);
 }
+
+// =============================================================================
+// Phase 15: Journey Insights, Safety Analytics & Route Preferences API Client
+// =============================================================================
+
+/**
+ * Fetches journey history from backend if available.
+ * @param {Object} options
+ * @returns {Promise<Array>}
+ */
+export async function fetchJourneyHistory(options = {}) {
+  const params = new URLSearchParams();
+  if (options.days) params.set('days', options.days);
+  if (options.routeType && options.routeType !== 'ALL') params.set('route_type', options.routeType);
+  if (options.status && options.status !== 'ALL') params.set('status', options.status);
+  if (options.includeDemo) params.set('include_demo', 'true');
+
+  const query = params.toString();
+  const endpoint = `/api/journey/history${query ? `?${query}` : ''}`;
+  return await apiClient.request(endpoint);
+}
+
+/**
+ * Fetches calculated journey analytics from backend.
+ * @param {Object} options
+ * @returns {Promise<Object>} JourneyHistorySummary
+ */
+export async function fetchJourneyAnalytics(options = {}) {
+  const params = new URLSearchParams();
+  if (options.days) params.set('days', options.days);
+  if (options.routeType && options.routeType !== 'ALL') params.set('route_type', options.routeType);
+  if (options.status && options.status !== 'ALL') params.set('status', options.status);
+  if (options.includeDemo) params.set('include_demo', 'true');
+
+  const query = params.toString();
+  const endpoint = `/api/journey/analytics${query ? `?${query}` : ''}`;
+  return await apiClient.request(endpoint);
+}
+
+/**
+ * Records a journey into backend history ledger.
+ * @param {Object} payload - JourneyRecordCreateRequest
+ * @returns {Promise<Object>}
+ */
+export async function recordJourneySessionApi(payload) {
+  return await apiClient.request('/api/journey/record', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Clears backend journey history ledger for privacy.
+ * @returns {Promise<Object>}
+ */
+export async function clearRemoteJourneyHistory() {
+  return await apiClient.request('/api/journey/history', {
+    method: 'DELETE',
+  });
+}
+
+/**
+ * Fetches user route preferences from backend.
+ * @returns {Promise<Object>} UserRoutePreferences
+ */
+export async function fetchRoutePreferencesApi() {
+  return await apiClient.request('/api/preferences/route');
+}
+
+/**
+ * Updates user route preferences on backend.
+ * @param {Object} prefs - UserRoutePreferences
+ * @returns {Promise<Object>}
+ */
+export async function updateRoutePreferencesApi(prefs) {
+  return await apiClient.request('/api/preferences/route', {
+    method: 'POST',
+    body: JSON.stringify(prefs),
+  });
+}
+
+/**
+ * Resets user route preferences to baseline defaults on backend.
+ * @returns {Promise<Object>}
+ */
+export async function resetRoutePreferencesApi() {
+  return await apiClient.request('/api/preferences/route/reset', {
+    method: 'POST',
+  });
+}
+

@@ -346,13 +346,31 @@ In two separate terminals:
   - Comprehensive automated test suite: 102 backend unit/integration tests + 71 frontend tests (**173 total passing tests across the workspace**).
   - Detailed documentation in `docs/journey_monitoring_and_sos.md`.
 
+- [x] **Phase 15: Journey Insights, Safety Analytics & Personalised Route Preferences:**
+  - Dynamic **Journey Insights Dashboard** computing authentic metrics from recorded commuter history: completed journeys, cancelled trips, total travel distance, travel time, and average duration.
+  - Strict calculation integrity: cancelled or incomplete journeys are tracked in status audits but **strictly excluded** from cumulative completed distance and travel time.
+  - Flexible temporal and categorical filters: 7-day, 30-day, and all-time range filters; route type filters (`FASTEST`, `BALANCED`, `SAFEST`); and status filters (`COMPLETED`, `CANCELLED`).
+  - Accessible, responsive charting suite with high-contrast text and tabular alternatives: completed journeys over time, duration histogram, route-type distribution, and side-by-side alternative comparison.
+  - Epistemic clarity and non-predictive safety boundaries: **Safety Score** ($15.0 - 95.0$) and **Epistemic Confidence** ($10.0 - 100.0\%$) are kept strictly distinct. Higher safety scores reflect well-lit, active infrastructure, never a prediction of crime or personal safety guarantee.
+  - **Evidence Coverage & Uncertainty Explorer**: Categorizes segment data into 4 evidential states (No evidence recorded, Outdated/stale, Limited corroboration, Strong multi-source coverage) with transparent half-life decay indicators.
+  - **Personalised Route Preferences Panel**: Commuter-controlled sliders and toggles for Speed vs. Safety balance, maximum acceptable detour tolerance ($0 - 45\text{ mins}$), avoid unlit streets during nocturnal hours, and minimum confidence thresholds.
+  - **Routing Integration with Separation of Concerns**: Preferences adjust alternative ranking without artificially inflating underlying segment safety scores.
+  - Privacy-first local custody: Personal travel histories stored strictly on-device via `localStorage` with address masking, zero background tracking, confirmed two-step history wipe, and preference reset.
+  - Isolated demonstration mode: Pre-seeded Chennai commuter sample journeys labeled with `is_demo: true` and toggleable without contaminating real user history.
+  - Dedicated REST endpoints: `GET /api/journey/history`, `POST /api/journey/record`, `GET /api/journey/analytics`, `DELETE /api/journey/history`, `GET /api/preferences/route`, `POST /api/preferences/route`, `POST /api/preferences/route/reset`.
+  - UI integration: Dedicated `JourneyInsightsView.jsx` workspace, `NAV_TABS.INSIGHTS` navigation tab, personalized preferences drawer in `PlanRouteView.jsx`, and automatic journey history archiving in `JourneyMonitoringWorkspace.jsx`.
+  - Comprehensive automated test suite: 111 backend unit/integration tests + 81 frontend tests (**192 total passing tests across the workspace**).
+  - Detailed documentation in `docs/journey_insights_and_preferences.md`.
+
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 15: Historical Safety Analytics & Urban Audit Export**
-2. **Phase 16: Offline PWA & Offline Network Caching**
-3. **Phase 17: Multi-Modal Transit & First/Last Mile Safety**
+1. **Phase 16: Offline PWA & Offline Network Caching**
+2. **Phase 17: Multi-Modal Transit & First/Last Mile Safety**
+3. **Phase 18: Collaborative Safe Haven & Community Guardian Network**
+4. **Phase 19: Civic Authority Open Data Integration & Automated Spatial Auditing**
+
 
 
 

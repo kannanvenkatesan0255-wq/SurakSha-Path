@@ -14,6 +14,8 @@ import { MapWorkspace } from '../map/MapWorkspace';
 import { submitRoutePlan } from '../../api/routing';
 import { reassessRouteContext } from '../../api/context';
 import { swapLocations } from '../../services/locationService';
+import { loadRoutePreferences } from '../../services/journeyStorage';
+import { PersonalizedPreferencesPanel } from '../analytics/PersonalizedPreferencesPanel';
 import { CHENNAI_PRESETS, NAV_TABS } from '../../utils/constants';
 
 /**
@@ -26,6 +28,7 @@ export function PlanRouteView({
   onUpdateJourneyState,
   onNavigate,
   onStartMonitoring,
+  onRoutesCalculated = null,
 }) {
   const {
     origin = '',
@@ -36,6 +39,8 @@ export function PlanRouteView({
     safetyWeight = 0.5,
   } = journeyState || {};
 
+  const [preferences, setPreferences] = useState(() => loadRoutePreferences());
+  const [showPreferencesPanel, setShowPreferencesPanel] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResponse, setSubmissionResponse] = useState(null);
@@ -154,13 +159,19 @@ export function PlanRouteView({
         journeyDate,
         departureTime,
         routePreference,
-        safetyWeightPreference: safetyWeight,
-        avoidUnlitAreas: true,
+        safetyWeightPreference: preferences.safetyWeight ?? safetyWeight,
+        avoidUnlitAreas: preferences.avoidUnlitAreas,
+        maxDetourMinutesPreference: preferences.maxAcceptableDetourMinutes,
+        minConfidencePreference: preferences.minConfidenceThreshold,
+        prioritizeActiveCorridors: preferences.prioritizeActiveCorridors,
       });
 
       setSubmissionResponse(response);
       if (response && response.alternatives && response.alternatives.length > 0) {
         setRoutes(response.alternatives);
+        if (onRoutesCalculated) {
+          onRoutesCalculated(response.alternatives);
+        }
         const initialSelected =
           response.selected_route_id ||
           response.alternatives.find((r) => r.is_selected)?.route_id ||
@@ -435,6 +446,42 @@ export function PlanRouteView({
                   value={routePreference}
                   onChange={(val) => onUpdateJourneyState({ routePreference: val })}
                 />
+
+                {/* Phase 15: Personalized Route Preferences Controls */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowPreferencesPanel(!showPreferencesPanel)}
+                    style={{
+                      background: showPreferencesPanel ? 'var(--color-surface-elevated)' : 'var(--color-surface-card)',
+                      border: '1px solid var(--color-border-subtle)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: 'var(--space-2) var(--space-3)',
+                      fontSize: '0.8rem',
+                      color: 'var(--color-brand-cyan)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>⚙️ Personalized Preferences (Weight, Lighting, Detour)</span>
+                    <span style={{ fontSize: '0.72rem' }}>{showPreferencesPanel ? '▲ Hide' : '▼ Configure'}</span>
+                  </button>
+
+                  {showPreferencesPanel && (
+                    <PersonalizedPreferencesPanel
+                      onPreferencesChange={(updated) => {
+                        setPreferences(updated);
+                        onUpdateJourneyState({
+                          routePreference: updated.routePreference,
+                          safetyWeight: updated.safetyWeight,
+                        });
+                      }}
+                    />
+                  )}
+                </div>
 
                 {/* Submission Error Banner if any */}
                 {submissionError && (
