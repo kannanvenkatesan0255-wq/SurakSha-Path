@@ -220,3 +220,89 @@ class JourneyFeedback(Base):
     comments = Column(Text, nullable=True)
     created_at = Column(DateTime, default=utc_now)
     processed_for_reassessment = Column(Boolean, default=False)
+
+
+class AssessmentFeedback(Base):
+    """
+    Structured user feedback for continuous model improvement and controlled reassessment (Phase 12).
+    Tracks feedback type, operational intent, spatial association, review lifecycle,
+    and whether reassessment was executed.
+    """
+
+    __tablename__ = "assessment_feedback"
+
+    id = Column(Integer, primary_key=True, index=True)
+    feedback_id = Column(String(64), unique=True, index=True, nullable=False)
+    feedback_type = Column(String(64), nullable=False, index=True)  # CONDITION_CHANGED, OBSERVATION_OUTDATED, etc.
+    operational_intent = Column(String(64), default="NEW_OBSERVATION", index=True)  # NEW_OBSERVATION, CORRECTION, CONFIRMATION, DISPUTE, GENERAL_FEEDBACK
+    target_type = Column(String(32), default="SEGMENT", index=True)  # SEGMENT, ROUTE, REPORT, GENERAL
+    target_id = Column(String(64), nullable=True, index=True)
+    
+    # Target associations
+    target_segment_code = Column(String(64), nullable=True, index=True)
+    target_route_id = Column(String(64), nullable=True, index=True)
+    target_report_id = Column(String(64), nullable=True, index=True)
+    
+    # Geographic location
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    location_name = Column(String(255), nullable=True)
+    
+    # Observation time vs Submission time (distinguished)
+    observed_at = Column(DateTime, nullable=True)
+    submitted_at = Column(DateTime, default=utc_now, nullable=False)
+    
+    # Feedback content
+    description = Column(Text, nullable=False)
+    supporting_evidence_url = Column(String(255), nullable=True)
+    
+    # Reporter & Privacy
+    reporter_id = Column(String(64), default="anon_user", index=True)
+    reporter_reliability = Column(Float, default=0.75)
+    
+    # Transparent Lifecycle State
+    status = Column(String(32), default="SUBMITTED", index=True)  # SUBMITTED, PENDING_REVIEW, ACCEPTED, REJECTED, DISPUTED, RESOLVED, EXPIRED
+    review_notes = Column(Text, nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    reviewed_by = Column(String(64), nullable=True)
+    
+    # Reassessment execution tracking
+    reassessment_applied = Column(Boolean, default=False)
+    reassessment_timestamp = Column(DateTime, nullable=True)
+    
+    # Abuse prevention & idempotency
+    idempotency_key = Column(String(64), nullable=True, index=True)
+    is_synthetic = Column(Boolean, default=False)
+
+
+class ReassessmentAuditLog(Base):
+    """
+    Auditable history of segment-level and route-level safety reassessments (Phase 12).
+    Captures before-and-after scores, confidence deltas, and triggering feedback.
+    """
+
+    __tablename__ = "reassessment_audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    audit_id = Column(String(64), unique=True, index=True, nullable=False)
+    trigger_type = Column(String(64), nullable=False, index=True)  # FEEDBACK_SUBMISSION, FEEDBACK_REVIEW, COMMUNITY_CORROBORATION, STALE_DECAY, ADMIN_OVERRIDE
+    trigger_reference_id = Column(String(64), nullable=False, index=True)  # e.g., "FBK-XXXX" or "REP-XXXX"
+    
+    segment_code = Column(String(64), nullable=True, index=True)
+    route_id = Column(String(64), nullable=True, index=True)
+    
+    # Before and after metrics
+    previous_safety_score = Column(Float, nullable=True)
+    new_safety_score = Column(Float, nullable=True)
+    score_delta = Column(Float, nullable=True)
+    
+    previous_confidence = Column(Float, nullable=True)
+    new_confidence = Column(Float, nullable=True)
+    confidence_delta = Column(Float, nullable=True)
+    
+    previous_status = Column(String(32), nullable=True)
+    new_status = Column(String(32), nullable=True)
+    
+    explanation_summary = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+

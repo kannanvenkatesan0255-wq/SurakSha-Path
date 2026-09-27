@@ -6,6 +6,8 @@ from .domain import (
     CommunityReport,
     RouteEvaluation,
     JourneyFeedback,
+    AssessmentFeedback,
+    ReassessmentAuditLog,
 )
 
 __all__ = [
@@ -14,4 +16,7 @@ __all__ = [
     "CommunityReport",
     "RouteEvaluation",
     "JourneyFeedback",
+    "AssessmentFeedback",
+    "ReassessmentAuditLog",
 ]
+

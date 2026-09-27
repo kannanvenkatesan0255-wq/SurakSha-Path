@@ -28,6 +28,9 @@ class TestDatabase(unittest.TestCase):
             self.assertIn("evidence_items", tables)
             self.assertIn("route_evaluations", tables)
             self.assertIn("journey_feedback", tables)
+            self.assertIn("assessment_feedback", tables)
+            self.assertIn("reassessment_audit_logs", tables)
+
 
 if __name__ == "__main__":
     unittest.main()

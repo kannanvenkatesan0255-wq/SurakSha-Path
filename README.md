@@ -304,10 +304,25 @@ In two separate terminals:
   - Comprehensive automated test suite: 72 backend unit tests + 43 frontend unit tests (115 total tests passing across project).
   - Detailed documentation in `docs/route_explainability_dashboard.md`.
 
+- [x] **Phase 12: Feedback-Driven Reassessment & Continuous Improvement:**
+  - Structured feedback intake (`FeedbackService`) with controlled taxonomy (`CONDITION_CHANGED`, `OBSERVATION_OUTDATED`, `REPORT_INACCURATE`, `INFRASTRUCTURE_ISSUE`, `ASSESSMENT_INCONSISTENT`, `LOCATION_ASSOCIATION_ERROR`, `GENERAL_PRODUCT_FEEDBACK`).
+  - Strict separation of general product feedback: `GENERAL_PRODUCT_FEEDBACK` (UI/UX comments, audio language requests) is archived and resolved without ever altering road segment weights or routing calculations.
+  - Operational intents supporting nuanced civic participation: `NEW_OBSERVATION`, `CORRECTION`, `CONFIRMATION`, `DISPUTE`, and `GENERAL_FEEDBACK`.
+  - Comprehensive lifecycle management (`SUBMITTED`, `PENDING_REVIEW`, `ACCEPTED`, `REJECTED`, `DISPUTED`, `RESOLVED`, `EXPIRED`) with administrative moderation controls and prevention of self-moderation.
+  - Controlled segment reassessment with atomic cache invalidation in `RiskService`, deterministic score recalibration ($S \in [15.0, 95.0]$, $C \in [10.0, 100.0]\%$), and immutable `ReassessmentAuditLog` recording before-and-after metric deltas ($\Delta S$, $\Delta C$).
+  - Route-level refresh without altering verified kinematics: geometry, distance, and duration are preserved while safety metrics and explainability reports are dynamically updated.
+  - Anti-abuse safeguards: rate limiting (10 submissions/hr), duplicate detection (2-hour window), client-supplied idempotency keys, and privacy-preserving reporter pseudonym masking (`che****er_77`).
+  - Non-predictive safety boundaries: score updates explicitly disclaim crime prediction and personal safety guarantees; absence of reports is never treated as proof of safety.
+  - Comprehensive UI workspace in `ActivityView.jsx`: interactive submission console, filterable audit log ledger with delta indicators, submitted feedback tracker, moderator review queue with live score recalculation, and governance policies.
+  - REST endpoints: `GET /api/feedback/types`, `POST /api/feedback/submit`, `GET /api/feedback`, `GET /api/feedback/{id}`, `POST /api/feedback/{id}/review`, `POST /api/feedback/reassess-segment/{code}`, `POST /api/feedback/reassess-route`, `GET /api/feedback-audit-log`, `GET /api/feedback/segment/{code}/history`.
+  - Comprehensive automated test suite: 81 backend unit/integration tests + 51 frontend tests (132 total passing tests across the workspace).
+  - Detailed documentation in `docs/feedback_driven_reassessment.md`.
+
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 12: Turn-by-Turn Safe Navigation Guidance**
-2. **Phase 13: Emergency SOS & Guardian Proximity Sharing**
-3. **Phase 14: Historical Safety Analytics & Urban Audit Export**
+1. **Phase 13: Emergency SOS & Guardian Proximity Sharing**
+2. **Phase 14: Historical Safety Analytics & Urban Audit Export**
+3. **Phase 15: Offline PWA & Offline Network Caching**
+

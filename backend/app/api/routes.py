@@ -548,3 +548,183 @@ def get_safety_methodology(
     service = RiskService(db=db)
     return service.get_methodology_info()
 
+
+# ==============================================================================
+# Phase 12: Feedback-Driven Reassessment & Continuous Improvement Endpoints
+# ==============================================================================
+
+from ..schemas.feedback import (
+    JourneyFeedbackCreate,
+    FeedbackReassessmentResponse,
+    FeedbackCreate,
+    FeedbackResponse,
+    FeedbackReviewRequest,
+    ReassessmentAuditLogItem,
+    SegmentReassessmentResult,
+    FeedbackSubmissionResult,
+    FeedbackTypeCatalogItem,
+)
+from ..services.feedback_service import FeedbackService
+
+
+class RouteReassessRequest(BaseModel):
+    route: RouteAlternative
+    departure_time: Optional[str] = None
+
+
+@api_router.post("/feedback", response_model=FeedbackReassessmentResponse, tags=["Feedback & Reassessment"])
+def submit_post_journey_feedback(
+    feedback_in: JourneyFeedbackCreate,
+    db: Session = Depends(get_db),
+) -> FeedbackReassessmentResponse:
+    """Legacy post-journey feedback endpoint. Triggers segment reassessment."""
+    service = FeedbackService(db=db)
+    return service.submit_journey_feedback(feedback_in)
+
+
+@api_router.get("/feedback/types", response_model=List[FeedbackTypeCatalogItem], tags=["Feedback & Reassessment"])
+def get_feedback_types(
+    db: Session = Depends(get_db),
+) -> List[FeedbackTypeCatalogItem]:
+    """Retrieve catalog of supported feedback categories, operational intents, and scoring rules."""
+    service = FeedbackService(db=db)
+    return service.get_feedback_types()
+
+
+@api_router.post("/feedback/submit", response_model=FeedbackSubmissionResult, status_code=status.HTTP_201_CREATED, tags=["Feedback & Reassessment"])
+def submit_structured_feedback(
+    data: FeedbackCreate,
+    db: Session = Depends(get_db),
+) -> FeedbackSubmissionResult:
+    """
+    Submit structured feedback regarding a road segment, route, community report, or application.
+    Executes controlled segment reassessment if spatially resolved and validated.
+    """
+    service = FeedbackService(db=db)
+    try:
+        return service.submit_feedback(data)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@api_router.get("/feedback", response_model=List[FeedbackResponse], tags=["Feedback & Reassessment"])
+def list_feedback(
+    feedback_type: Optional[str] = None,
+    status: Optional[str] = None,
+    segment_code: Optional[str] = None,
+    target_type: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+) -> List[FeedbackResponse]:
+    """Query user feedback records with type, status, and segment filtering."""
+    service = FeedbackService(db=db)
+    items, _ = service.list_feedback(
+        feedback_type=feedback_type,
+        status=status,
+        segment_code=segment_code,
+        target_type=target_type,
+        limit=limit,
+        offset=offset,
+    )
+    return items
+
+
+@api_router.get("/feedback/{feedback_id}", response_model=FeedbackResponse, tags=["Feedback & Reassessment"])
+def get_feedback_by_id(
+    feedback_id: str,
+    db: Session = Depends(get_db),
+) -> FeedbackResponse:
+    """Fetch single feedback record by ID."""
+    service = FeedbackService(db=db)
+    item = service.get_feedback_by_id(feedback_id)
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Feedback record '{feedback_id}' was not found.",
+        )
+    return item
+
+
+@api_router.post("/feedback/{feedback_id}/review", response_model=FeedbackResponse, tags=["Feedback & Reassessment"])
+def review_feedback(
+    feedback_id: str,
+    review_in: FeedbackReviewRequest,
+    db: Session = Depends(get_db),
+) -> FeedbackResponse:
+    """Review and moderate user feedback (requires moderator authorization key)."""
+    service = FeedbackService(db=db)
+    try:
+        return service.review_feedback(feedback_id, review_in)
+    except PermissionError as pe:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+
+
+@api_router.post("/feedback/reassess-segment/{segment_code}", response_model=SegmentReassessmentResult, tags=["Feedback & Reassessment"])
+def trigger_segment_reassessment(
+    segment_code: str,
+    departure_time: Optional[str] = None,
+    db: Session = Depends(get_db),
+) -> SegmentReassessmentResult:
+    """Explicitly recalculate safety score and confidence for a road segment and record an audit log."""
+    service = FeedbackService(db=db)
+    try:
+        return service.reassess_segment(
+            segment_code=segment_code,
+            trigger_type="MANUAL_TRIGGER",
+            reference_id="API_REQUEST",
+            departure_time=departure_time,
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+
+
+@api_router.post("/feedback/reassess-route", tags=["Feedback & Reassessment"])
+def trigger_route_reassessment(
+    request: RouteReassessRequest,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Refresh a route alternative with the latest segment assessments without altering route geometry.
+    Returns previous vs new scores, deltas, updated explainability, and change summary.
+    """
+    service = FeedbackService(db=db)
+    return service.reassess_route(route=request.route, departure_time=request.departure_time)
+
+
+@api_router.get("/feedback-audit-log", response_model=List[ReassessmentAuditLogItem], tags=["Feedback & Reassessment"])
+def get_reassessment_audit_log(
+    segment_code: Optional[str] = None,
+    route_id: Optional[str] = None,
+    trigger_type: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+) -> List[ReassessmentAuditLogItem]:
+    """Retrieve historical audit logs of safety score and confidence reassessments."""
+    service = FeedbackService(db=db)
+    items, _ = service.list_audit_logs(
+        segment_code=segment_code,
+        route_id=route_id,
+        trigger_type=trigger_type,
+        limit=limit,
+        offset=offset,
+    )
+    return items
+
+
+@api_router.get("/feedback/segment/{segment_code}/history", tags=["Feedback & Reassessment"])
+def get_segment_reassessment_history(
+    segment_code: str,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """Retrieve full reassessment audit history and feedback for a road segment."""
+    service = FeedbackService(db=db)
+    try:
+        return service.get_segment_history(segment_code)
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+
+

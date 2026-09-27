@@ -55,6 +55,15 @@ class RiskService:
         self.evidence_service = EvidenceService(db)
         self._segment_cache: Dict[str, SegmentSafetyAssessment] = {}
 
+    def invalidate_cache(self, segment_code: Optional[str] = None) -> None:
+        """Invalidates in-memory assessment cache for a specific segment or all segments."""
+        if segment_code:
+            keys_to_delete = [k for k in self._segment_cache if k.startswith(f"{segment_code}:")]
+            for k in keys_to_delete:
+                self._segment_cache.pop(k, None)
+        else:
+            self._segment_cache.clear()
+
     def evaluate_segment_safety(
         self,
         segment_code: str,
