@@ -25,6 +25,7 @@ export function PlanRouteView({
   journeyState,
   onUpdateJourneyState,
   onNavigate,
+  onStartMonitoring,
 }) {
   const {
     origin = '',
@@ -288,6 +289,37 @@ export function PlanRouteView({
                 }}
                 onViewEvidence={() => onNavigate && onNavigate(NAV_TABS.EVIDENCE)}
               />
+
+              {/* Phase 14: Start Journey Safety Monitoring Action */}
+              {routes && routes.length > 0 && selectedRoute && (
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  onClick={() => {
+                    if (onStartMonitoring) {
+                      onStartMonitoring({
+                        ...selectedRoute,
+                        origin,
+                        destination,
+                      });
+                    } else if (onNavigate) {
+                      onNavigate(NAV_TABS.MONITOR);
+                    }
+                  }}
+                  icon="🛡️"
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    padding: '12px var(--space-4)',
+                    background: 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)',
+                    boxShadow: 'var(--shadow-md)',
+                    width: '100%',
+                  }}
+                >
+                  Start Journey Monitoring with this Route
+                </Button>
+              )}
 
               {/* Calculated Route Alternatives Comparison Panel (Phase 10 Trade-Off Engine) */}
               {routes && routes.length > 0 && (

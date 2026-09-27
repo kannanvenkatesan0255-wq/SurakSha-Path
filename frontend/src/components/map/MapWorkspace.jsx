@@ -12,6 +12,7 @@ export function MapWorkspace({
   activeCorridor = 'Chennai Metropolitan Area',
   origin = '',
   destination = '',
+  currentLocation = null, // Phase 14: Commuter position
   routes = [],
   selectedRouteId = null,
   onSelectRoute = null,
@@ -103,6 +104,7 @@ export function MapWorkspace({
         <InteractiveMap
           originLocation={resolvedOrigin}
           destinationLocation={resolvedDestination}
+          currentLocation={currentLocation}
           routes={routes}
           selectedRouteId={selectedRouteId}
           onSelectRoute={onSelectRoute}

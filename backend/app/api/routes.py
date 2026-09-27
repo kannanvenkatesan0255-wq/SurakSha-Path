@@ -19,11 +19,18 @@ from ..schemas.contextual import (
     ContextEvaluateResponse,
     RouteReassessContextRequest,
 )
+from ..schemas.journey import (
+    ChennaiHelplinesResponse,
+    JourneyStartRequest,
+    JourneySessionState,
+    JourneyTransitionRequest,
+)
 import logging
 from ..services.routing_service import RoutingService
 from ..services.community_service import CommunityService
 from ..services.feedback_service import FeedbackService
 from ..services.contextual_service import ContextualService
+from ..services.journey_service import JourneyService
 from ..models.domain import RoadSegment
 from ..config import settings
 
@@ -852,6 +859,63 @@ def reassess_route_context(
             "Route geometry and travel duration are invariant."
         ),
     }
+
+
+# ==============================================================================
+# Phase 14: Safety Check-In, Journey Monitoring & SOS Workflow Endpoints
+# ==============================================================================
+
+@api_router.get(
+    "/journey/helplines",
+    response_model=ChennaiHelplinesResponse,
+    tags=["Journey Monitoring"],
+)
+def get_chennai_emergency_helplines() -> ChennaiHelplinesResponse:
+    """Retrieve verified official emergency telephone helplines for Chennai."""
+    return JourneyService.get_chennai_helplines()
+
+
+@api_router.post(
+    "/journey/session",
+    response_model=JourneySessionState,
+    tags=["Journey Monitoring"],
+)
+def start_journey_session(
+    request: JourneyStartRequest,
+) -> JourneySessionState:
+    """
+    Start a monitored journey session for a selected route.
+    Initializes state machine to ACTIVE, schedules initial check-in, and starts event ledger.
+    """
+    return JourneyService.start_journey(request)
+
+
+@api_router.get(
+    "/journey/session/{journey_id}",
+    response_model=JourneySessionState,
+    tags=["Journey Monitoring"],
+)
+def get_journey_session(
+    journey_id: str,
+) -> JourneySessionState:
+    """Retrieve the current state and audit log of a journey session."""
+    return JourneyService.get_session(journey_id)
+
+
+@api_router.post(
+    "/journey/transition",
+    response_model=JourneySessionState,
+    tags=["Journey Monitoring"],
+)
+def transition_journey_session(
+    request: JourneyTransitionRequest,
+) -> JourneySessionState:
+    """
+    Execute a validated state transition, safety check-in response, or SOS action.
+    Enforces state machine rules and prevents invalid transitions.
+    """
+    return JourneyService.transition_journey(request)
+
 
 
 

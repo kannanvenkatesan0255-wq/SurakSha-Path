@@ -30,6 +30,7 @@ import {
   createDestinationDivIcon,
   createSelectionDivIcon,
   createInfrastructureDivIcon,
+  createCurrentLocationDivIcon,
   formatMarkerPopup,
 } from './markerUtils';
 import { CHENNAI_INFRASTRUCTURE_POINTS } from './mapOverlays';
@@ -41,6 +42,7 @@ import { getRoadSegments } from '../../api/roadNetwork';
 export function InteractiveMap({
   originLocation = null, // { name, lat, lng, address }
   destinationLocation = null, // { name, lat, lng, address }
+  currentLocation = null, // Phase 14: { lat, lng, isSimulated, label }
   routes = [], // Array of RouteAlternative from routing engine
   selectedRouteId = null,
   onSelectRoute = null,
@@ -56,6 +58,7 @@ export function InteractiveMap({
   const tileLayerRef = useRef(null);
   const originMarkerRef = useRef(null);
   const destMarkerRef = useRef(null);
+  const currentLocationMarkerRef = useRef(null);
   const selectionMarkerRef = useRef(null);
   const infraLayerGroupRef = useRef(null);
   const routeLayerGroupRef = useRef(null);
@@ -402,6 +405,39 @@ export function InteractiveMap({
       destMarkerRef.current = marker;
     }
   }, [destinationLocation, mapReady, onClearDestination]);
+
+  // Phase 14: Update Current Location Marker (Live Device GPS or Demo Simulated)
+  useEffect(() => {
+    if (!mapRef.current || !mapReady) return;
+
+    if (currentLocationMarkerRef.current) {
+      currentLocationMarkerRef.current.remove();
+      currentLocationMarkerRef.current = null;
+    }
+
+    if (currentLocation && isValidCoordinate(currentLocation.lat, currentLocation.lng)) {
+      const isSim = Boolean(currentLocation.isSimulated);
+      const icon = createCurrentLocationDivIcon(isSim, currentLocation.label || 'Commuter Position');
+      const marker = L.marker([currentLocation.lat, currentLocation.lng], {
+        icon,
+        zIndexOffset: 1200,
+      }).addTo(mapRef.current);
+
+      marker.bindPopup(
+        formatMarkerPopup({
+          role: 'COMMUTER_LOCATION',
+          title: currentLocation.label || (isSim ? 'Demo Simulated Position' : 'Current GPS Position'),
+          address: isSim ? 'Simulated progression along route' : 'Live device location sharing active',
+          coordText: formatCoordinates(currentLocation.lat, currentLocation.lng),
+          details: isSim
+            ? 'Simulated coordinates for demonstration purposes'
+            : 'Device coordinates processed locally in browser',
+        })
+      );
+
+      currentLocationMarkerRef.current = marker;
+    }
+  }, [currentLocation, mapReady]);
 
   // Update Infrastructure Layer Pins
   useEffect(() => {

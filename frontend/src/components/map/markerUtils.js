@@ -156,3 +156,30 @@ export function formatMarkerPopup({
     </div>
   `;
 }
+
+/**
+ * Creates custom divIcon for Current Commuter Position (Phase 14).
+ * Distinguishes Live Device GPS from Simulated Demo coordinates.
+ */
+export function createCurrentLocationDivIcon(isSimulated = false, label = 'Current Position') {
+  const pulseClass = isSimulated ? 'pin-pulse simulated' : 'pin-pulse live';
+  const tagText = isSimulated ? 'DEMO' : 'LIVE';
+  const tagColor = isSimulated ? '#a855f7' : '#06b6d4';
+
+  return L.divIcon({
+    className: 'suraksha-marker-current-loc-wrapper',
+    iconSize: [38, 48],
+    iconAnchor: [19, 44],
+    popupAnchor: [0, -42],
+    html: `
+      <div class="suraksha-pin-marker current-location" aria-label="${label}: ${tagText}" role="img">
+        <div class="${pulseClass}" style="border-color: ${tagColor}; box-shadow: 0 0 12px ${tagColor};"></div>
+        <div class="pin-body" style="background: ${isSimulated ? 'linear-gradient(135deg, #7e22ce, #a855f7)' : 'linear-gradient(135deg, #0284c7, #06b6d4)'}; border: 2px solid #ffffff;">
+          <span class="pin-icon" style="font-size: 1.1rem;">🚶</span>
+        </div>
+        <div class="pin-tip" style="border-top-color: ${tagColor};"></div>
+      </div>
+    `,
+  });
+}
+

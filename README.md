@@ -330,12 +330,29 @@ In two separate terminals:
   - Comprehensive automated test suite: 92 backend unit/integration tests + 61 frontend tests (153 total passing tests across the workspace).
   - Detailed documentation in `docs/context_and_environmental_adjustments.md`.
 
+- [x] **Phase 14: Safety Check-In, Journey Monitoring & SOS Workflow:**
+  - Robust journey lifecycle state machine enforcing valid transitions (`NOT_STARTED`, `ACTIVE`, `PAUSED`, `COMPLETED`, `CANCELLED`) with strict rejection of invalid or duplicate actions.
+  - Opt-in, consent-based safety check-in engine with configurable cadences (30s demo, 1m demo, 5m, 10m, 15m standard, 30m), live elapsed timers, and next-check-in countdown progress indicators.
+  - Prompt workflow with large touch targets ("✅ I'm OK" and "⚠️ I need help").
+  - Grace-period missed check-in handling: non-alarmist epistemic standard (uncertain signal; does not prove danger; no silent emergency alerts).
+  - Accessible, deliberate emergency SOS workflow: 2-second press-and-hold activation or accessible confirmation modal preventing accidental triggers.
+  - Unmistakable SOS-active state with verified Chennai emergency directory shortcuts (Police 100/112, Women Helpline 1091, Ambulance 108, GCC Flood 1913, Traffic 103, Fire 101) with direct `tel:` dialing.
+  - Strict location privacy: location sharing is off by default, opt-in consent only, device coordinates processed strictly in local browser memory without remote storage or server logging.
+  - Transparent distinction between live device GPS (`LIVE_GPS`) and simulated progression coordinates (`SIMULATED_DEMO`).
+  - Auditable minimal journey event ledger with IST timestamps, no sensitive coordinates, and local history clearing controls.
+  - Local persistence in browser `localStorage` with corrupted-state validation, preserving paused journeys across reloads.
+  - Dedicated REST endpoints: `GET /api/journey/helplines`, `POST /api/journey/session`, `GET /api/journey/session/{id}`, `POST /api/journey/transition`.
+  - UI integration: Dedicated `JourneyMonitorView.jsx` workspace, `NAV_TABS.MONITOR` navigation tab, "Start Journey Monitoring with this Route" action in `PlanRouteView.jsx`, and current commuter location pulsing beacon in `InteractiveMap.jsx`.
+  - Comprehensive automated test suite: 102 backend unit/integration tests + 71 frontend tests (**173 total passing tests across the workspace**).
+  - Detailed documentation in `docs/journey_monitoring_and_sos.md`.
+
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 14: Emergency SOS & Guardian Proximity Sharing**
-2. **Phase 15: Historical Safety Analytics & Urban Audit Export**
-3. **Phase 16: Offline PWA & Offline Network Caching**
+1. **Phase 15: Historical Safety Analytics & Urban Audit Export**
+2. **Phase 16: Offline PWA & Offline Network Caching**
+3. **Phase 17: Multi-Modal Transit & First/Last Mile Safety**
+
 
 

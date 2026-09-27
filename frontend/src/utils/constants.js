@@ -5,6 +5,7 @@
 export const NAV_TABS = {
   HOME: 'home',
   PLAN_ROUTE: 'plan_route',
+  MONITOR: 'monitor',
   EVIDENCE: 'evidence',
   COMMUNITY: 'community',
   ACTIVITY: 'activity',
@@ -24,6 +25,13 @@ export const NAV_ITEMS = [
     icon: '🗺️',
     description: 'Multi-route alternatives and map analysis',
     ariaLabel: 'Navigate to Plan Route and map workspace',
+  },
+  {
+    id: NAV_TABS.MONITOR,
+    label: 'Journey Monitor',
+    icon: '🛡️',
+    description: 'Safety check-in, tracking, and SOS',
+    ariaLabel: 'Navigate to Journey Monitoring and SOS',
   },
   {
     id: NAV_TABS.EVIDENCE,
@@ -146,3 +154,61 @@ export const CHENNAI_PRESETS = [
     distanceEst: '5.6 km',
   },
 ];
+
+export const JOURNEY_STATUSES = {
+  NOT_STARTED: {
+    key: 'NOT_STARTED',
+    label: 'STANDBY',
+    fullLabel: 'MONITORING STANDBY',
+    badgeVariant: 'neutral',
+    description: 'Route selected, monitoring standby',
+  },
+  ACTIVE: {
+    key: 'ACTIVE',
+    label: 'ACTIVE',
+    fullLabel: 'ACTIVE JOURNEY MONITORING',
+    badgeVariant: 'success',
+    description: 'Journey underway; safety check-ins active',
+  },
+  PAUSED: {
+    key: 'PAUSED',
+    label: 'PAUSED',
+    fullLabel: 'JOURNEY PAUSED',
+    badgeVariant: 'warning',
+    description: 'Monitoring temporarily paused by commuter',
+  },
+  COMPLETED: {
+    key: 'COMPLETED',
+    label: 'COMPLETED',
+    fullLabel: 'JOURNEY COMPLETED',
+    badgeVariant: 'info',
+    description: 'Commuter reached destination safely',
+  },
+  CANCELLED: {
+    key: 'CANCELLED',
+    label: 'CANCELLED',
+    fullLabel: 'JOURNEY CANCELLED',
+    badgeVariant: 'neutral',
+    description: 'Journey terminated before destination',
+  },
+};
+
+export const CHECK_IN_INTERVALS = [
+  { label: '30 seconds (Fast Demo)', value: 0.5, isDemo: true },
+  { label: '1 minute (Short Demo)', value: 1, isDemo: true },
+  { label: '5 minutes', value: 5, isDemo: false },
+  { label: '10 minutes', value: 10, isDemo: false },
+  { label: '15 minutes (Standard)', value: 15, isDemo: false },
+  { label: '30 minutes', value: 30, isDemo: false },
+];
+
+export const CHENNAI_EMERGENCY_HELPLINES = [
+  { name: 'Police Control Room', number: '100', category: 'Police', dialUri: 'tel:100' },
+  { name: 'National Emergency ERSS', number: '112', category: 'Police / General', dialUri: 'tel:112' },
+  { name: 'Chennai Police Women Helpline (Kavalan)', number: '1091', category: 'Women Safety', dialUri: 'tel:1091' },
+  { name: 'Tamil Nadu Ambulance & Medical', number: '108', category: 'Medical', dialUri: 'tel:108' },
+  { name: 'Greater Chennai Corp (GCC) Flood Helpline', number: '1913', category: 'Civic / Flood', dialUri: 'tel:1913' },
+  { name: 'Chennai Traffic Police Control', number: '103', category: 'Traffic', dialUri: 'tel:103' },
+  { name: 'Tamil Nadu Fire & Rescue', number: '101', category: 'Fire', dialUri: 'tel:101' },
+];
+

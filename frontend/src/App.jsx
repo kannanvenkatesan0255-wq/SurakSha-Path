@@ -5,6 +5,7 @@ import { PlanRouteView } from './components/views/PlanRouteView';
 import { EvidenceView } from './components/views/EvidenceView';
 import { CommunityView } from './components/views/CommunityView';
 import { ActivityView } from './components/views/ActivityView';
+import { JourneyMonitorView } from './components/views/JourneyMonitorView';
 import { fetchSystemHealth } from './api/health';
 import { NAV_TABS } from './utils/constants';
 
@@ -13,6 +14,7 @@ export default function App() {
   const [healthData, setHealthData] = useState(null);
   const [healthLoading, setHealthLoading] = useState(true);
   const [healthError, setHealthError] = useState(null);
+  const [monitoredRoute, setMonitoredRoute] = useState(null);
 
   // Journey state preserved across navigation between tabs
   const [journeyState, setJourneyState] = useState({
@@ -29,6 +31,11 @@ export default function App() {
       ...prev,
       ...updates,
     }));
+  };
+
+  const handleStartMonitoring = (route) => {
+    setMonitoredRoute(route);
+    setActiveTab(NAV_TABS.MONITOR);
   };
 
   const checkHealth = async () => {
@@ -72,6 +79,14 @@ export default function App() {
           <PlanRouteView
             journeyState={journeyState}
             onUpdateJourneyState={handleUpdateJourneyState}
+            onNavigate={setActiveTab}
+            onStartMonitoring={handleStartMonitoring}
+          />
+        );
+      case NAV_TABS.MONITOR:
+        return (
+          <JourneyMonitorView
+            selectedRoute={monitoredRoute}
             onNavigate={setActiveTab}
           />
         );
