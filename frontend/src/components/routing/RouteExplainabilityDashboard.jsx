@@ -315,6 +315,7 @@ export function RouteExplainabilityDashboard({
           <div style={{ display: 'flex', background: 'rgba(15, 23, 42, 0.6)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-subtle)' }}>
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
+              { id: 'context', label: 'Time & Weather', icon: '🌤️' },
               { id: 'evidence', label: 'Evidence Streams', icon: '🔍' },
               { id: 'segments', label: `Segments (${report.total_segments_count})`, icon: '🛣️' },
               { id: 'tradeoffs', label: 'Trade-Off Matrix', icon: '⚖️' },
@@ -602,6 +603,46 @@ export function RouteExplainabilityDashboard({
               </div>
             </div>
 
+            {/* Phase 13: Real-Time Context & Environmental Status Banner */}
+            {route.contextual_report && (
+              <div
+                style={{
+                  background: 'rgba(30, 41, 59, 0.7)',
+                  border: '1px solid var(--color-border-subtle)',
+                  borderRadius: 'var(--radius-xs)',
+                  padding: '8px 12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '1.1rem' }}>
+                    {route.contextual_report.solar_context?.is_dark ? '🌙' : '☀️'}
+                  </span>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                    {route.contextual_report.solar_context?.solar_phase?.replace('_', ' ')} • {route.contextual_report.environmental_context?.weather_description} ({route.contextual_report.environmental_context?.temperature_celsius}°C)
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                    • Contextual score modifier: <strong style={{ color: 'var(--color-brand-cyan)' }}>
+                      {route.contextual_report.contextual_modifier_mean_pts >= 0 ? '+' : ''}
+                      {route.contextual_report.contextual_modifier_mean_pts} pts
+                    </strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('context')}
+                  className="btn btn-subtle btn-sm"
+                  style={{ fontSize: '0.72rem', padding: '2px 8px' }}
+                >
+                  View Time & Weather Details →
+                </button>
+              </div>
+            )}
+
             {/* "Why This Route?" Dynamic Justification Box (Step 6) */}
             <div
               style={{
@@ -767,6 +808,198 @@ export function RouteExplainabilityDashboard({
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#64748b' }} /> Unassessed Gap
                 </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            TAB: TIME & WEATHER CONTEXT (Phase 13)
+           ========================================================================= */}
+        {activeTab === 'context' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            {/* Header context card */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)',
+                border: '1px solid var(--color-border-medium)',
+                borderRadius: 'var(--radius-sm)',
+                padding: 'var(--space-3) var(--space-4)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                  Journey Context & Environmental Adjustments
+                </h4>
+                <p style={{ margin: '2px 0 0', fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>
+                  Evaluated for departure at {route.contextual_report?.departure_time || departureTime} IST ({route.contextual_report?.timezone || 'Asia/Kolkata (IST: UTC+5:30)'})
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-pill)',
+                    background: route.contextual_report?.environmental_context?.is_forecast
+                      ? 'rgba(147, 51, 234, 0.15)'
+                      : 'rgba(16, 185, 129, 0.15)',
+                    color: route.contextual_report?.environmental_context?.is_forecast ? '#c084fc' : '#34d399',
+                    border: '1px solid currentColor',
+                    fontWeight: 600,
+                  }}
+                >
+                  {route.contextual_report?.environmental_context?.provenance || 'OPEN-METEO LIVE TELEMETRY'}
+                </span>
+              </div>
+            </div>
+
+            {/* Grid of Solar and Weather Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-3)' }}>
+              {/* Solar & Illumination Card */}
+              <div
+                style={{
+                  background: 'var(--color-surface-card)',
+                  border: '1px solid var(--color-border-medium)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: 'var(--space-3)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--space-2)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+                    SOLAR ILLUMINATION & CELESTIAL MECHANICS
+                  </span>
+                  <span style={{ fontSize: '1.2rem' }}>
+                    {route.contextual_report?.solar_context?.is_dark ? '🌙' : '☀️'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                  <span style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                    {route.contextual_report?.solar_context?.solar_phase?.replace('_', ' ') || 'DAYLIGHT'}
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    ({route.contextual_report?.solar_context?.solar_elevation_degrees !== undefined ? `${route.contextual_report.solar_context.solar_elevation_degrees}°` : 'Sun elevation'})
+                  </span>
+                </div>
+
+                <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
+                  {route.contextual_report?.solar_context?.phase_description || 'Calculated using NOAA astronomical algorithms calibrated for Chennai (13.08°N, 80.27°E).'}
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '0.72rem', background: 'rgba(15, 23, 42, 0.4)', padding: '6px 8px', borderRadius: 'var(--radius-xs)' }}>
+                  <div>Sunrise: <strong>{route.contextual_report?.solar_context?.sunrise_ist || '05:58 IST'}</strong></div>
+                  <div>Sunset: <strong>{route.contextual_report?.solar_context?.sunset_ist || '18:04 IST'}</strong></div>
+                  <div>Dawn Twilight: <strong>{route.contextual_report?.solar_context?.dawn_twilight_ist || '05:37 IST'}</strong></div>
+                  <div>Dusk Twilight: <strong>{route.contextual_report?.solar_context?.dusk_twilight_ist || '18:26 IST'}</strong></div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem' }}>
+                    <span style={{ color: 'var(--color-text-muted)' }}>Street Lighting Relevance:</span>
+                    <strong style={{ color: route.contextual_report?.solar_context?.is_dark ? '#f59e0b' : 'var(--color-text-primary)' }}>
+                      {Math.round((route.contextual_report?.solar_context?.lighting_relevance_factor || 0.2) * 100)}%
+                    </strong>
+                  </div>
+                  <div style={{ height: '4px', background: 'rgba(148, 163, 184, 0.2)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        width: `${Math.round((route.contextual_report?.solar_context?.lighting_relevance_factor || 0.2) * 100)}%`,
+                        height: '100%',
+                        background: '#f59e0b',
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Weather & Meteorological Conditions Card */}
+              <div
+                style={{
+                  background: 'var(--color-surface-card)',
+                  border: '1px solid var(--color-border-medium)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: 'var(--space-3)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--space-2)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+                    METEOROLOGICAL & TRACTION CONDITIONS
+                  </span>
+                  <span style={{ fontSize: '1.2rem' }}>🌧️</span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                  <span style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                    {route.contextual_report?.environmental_context?.temperature_celsius !== undefined ? `${route.contextual_report.environmental_context.temperature_celsius}°C` : '30°C'}
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                    • {route.contextual_report?.environmental_context?.weather_description || 'Clear / Moderate Conditions'}
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '0.72rem', background: 'rgba(15, 23, 42, 0.4)', padding: '6px 8px', borderRadius: 'var(--radius-xs)' }}>
+                  <div>Precipitation: <strong>{route.contextual_report?.environmental_context?.precipitation_mm || 0} mm/h</strong></div>
+                  <div>Rain Probability: <strong>{route.contextual_report?.environmental_context?.rain_probability_pct ?? 0}%</strong></div>
+                  <div>Wind Speed: <strong>{route.contextual_report?.environmental_context?.wind_speed_kmh || 12} km/h</strong></div>
+                  <div>Waterlogging Risk: <strong style={{ color: route.contextual_report?.environmental_context?.waterlogging_risk_level === 'HIGH' ? '#ef4444' : '#10b981' }}>{route.contextual_report?.environmental_context?.waterlogging_risk_level || 'NONE'}</strong></div>
+                </div>
+
+                {/* Advisories if present */}
+                {route.contextual_report?.active_advisories && route.contextual_report.active_advisories.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+                    {route.contextual_report.active_advisories.map((adv, aIdx) => (
+                      <div
+                        key={aIdx}
+                        style={{
+                          fontSize: '0.71rem',
+                          padding: '4px 6px',
+                          borderRadius: '3px',
+                          background: adv.includes('waterlogging') || adv.includes('underpass') ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.1)',
+                          border: '1px solid rgba(245, 158, 11, 0.25)',
+                          color: adv.includes('waterlogging') || adv.includes('underpass') ? '#f87171' : 'var(--color-risk-medium-text)',
+                        }}
+                      >
+                        ⚠️ {adv}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Contextual Adjustment Bounds & Methodology Notice */}
+            <div
+              style={{
+                background: 'rgba(15, 23, 42, 0.6)',
+                border: '1px solid var(--color-border-subtle)',
+                borderRadius: 'var(--radius-xs)',
+                padding: 'var(--space-3)',
+                fontSize: '0.73rem',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.45,
+              }}
+            >
+              <h5 style={{ margin: '0 0 4px', color: 'var(--color-text-primary)', fontSize: '0.78rem' }}>
+                Contextual Modifiers & Double-Counting Safeguards
+              </h5>
+              <p style={{ margin: '0 0 6px' }}>
+                Segment-level contextual modifiers are strictly bounded to <strong>[-8.0, +5.0] points</strong> to prevent extreme or uncorroborated environmental fluctuations.
+                When verified community hazard or street lighting reports are already active on a segment, the contextual weather/lighting penalty is automatically dampened to <strong>0.65×</strong> to prevent penalizing commuters twice for the same physical reality.
+              </p>
+              <div style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                Note: Darkness and precipitation adjust visibility and traction heuristics; they do NOT prove an area is dangerous or predict crime rates.
               </div>
             </div>
           </div>

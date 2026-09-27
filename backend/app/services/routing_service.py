@@ -397,6 +397,23 @@ class RoutingService:
             user_preference=request.route_preference,
         )
 
+        # 6.5 Apply Real-Time Context, Time-of-Day & Environmental Adjustments (Phase 13)
+        contextual_report_for_response = None
+        try:
+            from .contextual_service import ContextualService
+            context_service = ContextualService(db=self.db)
+            for alt in alternatives:
+                c_report = context_service.enrich_route_with_context(
+                    route=alt,
+                    journey_date=request.journey_date,
+                    departure_time=request.departure_time,
+                )
+                alt.contextual_report = c_report.model_dump()
+                if alt.route_id == selected_route_id:
+                    contextual_report_for_response = alt.contextual_report
+        except Exception as ctx_err:
+            logger.warning(f"Failed to enrich routes with contextual assessment: {ctx_err}")
+
         # 7. Generate Route Explainability & Confidence Reports (Phase 11)
         try:
             from .explainability_service import ExplainabilityService
@@ -443,10 +460,14 @@ class RoutingService:
                 "Routes are evaluated using verified segment illumination, footfall, and police patrol coverage "
                 "balanced against estimated travel duration under practical detour constraints."
             ),
-            message=f"Calculated and optimized {len(alternatives)} route alternative(s) for Chennai journey.",
+            message=(
+                f"Calculated {len(alternatives)} route alternative(s) using OpenStreetMap road network. "
+                "Travel times are based on standard road speeds; live traffic sensors are not available."
+            ),
             alternatives=alternatives,
             selected_route_id=selected_route_id,
+            disclaimer=settings.DISCLAIMER_TEXT,
             tradeoff_summary=tradeoff_summary,
             optimization_strategy="PARETO_UTILITY_V1",
-            disclaimer=settings.DISCLAIMER_TEXT,
+            contextual_report=contextual_report_for_response,
         )

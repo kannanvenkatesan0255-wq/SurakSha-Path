@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Header, Query
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .health import router as health_router
-from ..schemas.routing import RoutePlanRequest, RoutePlanResponse
+from ..schemas.routing import RoutePlanRequest, RoutePlanResponse, RouteAlternative
 from ..schemas.community import (
     CommunityReportCreate,
     CommunityReportResponse,
@@ -13,9 +13,21 @@ from ..schemas.community import (
     CategoryInfo,
 )
 from ..schemas.feedback import JourneyFeedbackCreate, FeedbackReassessmentResponse
+from ..schemas.contextual import (
+    CurrentContextResponse,
+    ContextEvaluateRequest,
+    ContextEvaluateResponse,
+    RouteReassessContextRequest,
+)
+import logging
 from ..services.routing_service import RoutingService
 from ..services.community_service import CommunityService
 from ..services.feedback_service import FeedbackService
+from ..services.contextual_service import ContextualService
+from ..models.domain import RoadSegment
+from ..config import settings
+
+logger = logging.getLogger(__name__)
 
 api_router = APIRouter()
 
@@ -726,5 +738,120 @@ def get_segment_reassessment_history(
         return service.get_segment_history(segment_code)
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+
+
+# ==============================================================================
+# Phase 13: Real-Time Context, Time-of-Day & Environmental Endpoints
+# ==============================================================================
+
+@api_router.get("/context/current", response_model=CurrentContextResponse, tags=["Context & Environment"])
+def get_current_context(
+    db: Session = Depends(get_db),
+) -> CurrentContextResponse:
+    """
+    Retrieve real-time solar illumination and environmental weather conditions for Chennai (Asia/Kolkata).
+    Uses NOAA solar algorithms and Open-Meteo current meteorological telemetry with fallback.
+    """
+    service = ContextualService(db=db)
+    now_ist = service.get_chennai_now()
+    solar = service.calculate_solar_context(now_ist)
+    weather = service.get_environmental_context(now_ist, is_future=False)
+    return CurrentContextResponse(
+        current_time_ist=now_ist.strftime("%Y-%m-%d %H:%M:%S IST"),
+        timezone="Asia/Kolkata (IST: UTC+5:30)",
+        solar_context=solar,
+        environmental_context=weather,
+        disclaimer=settings.DISCLAIMER_TEXT,
+    )
+
+
+@api_router.post("/context/evaluate", response_model=ContextEvaluateResponse, tags=["Context & Environment"])
+def evaluate_journey_context(
+    request: ContextEvaluateRequest,
+    db: Session = Depends(get_db),
+) -> ContextEvaluateResponse:
+    """
+    Evaluate solar phase, weather, and segment modifiers for a specific journey date and departure time.
+    Distinguishes current telemetry from future hourly forecasts.
+    """
+    service = ContextualService(db=db)
+    journey_dt, is_future = service.parse_journey_datetime(request.journey_date, request.departure_time)
+    solar = service.calculate_solar_context(journey_dt)
+    weather = service.get_environmental_context(journey_dt, is_future=is_future)
+
+    evaluated_segs = []
+    if request.segment_codes:
+        segments = db.query(RoadSegment).filter(RoadSegment.segment_code.in_(request.segment_codes)).all()
+        for seg in segments:
+            adj = service.evaluate_segment_context(seg, journey_dt, weather=weather)
+            evaluated_segs.append(adj)
+
+    advisories = list(weather.active_advisories)
+    if solar.is_dark:
+        advisories.append(f"Nocturnal journey ({solar.solar_phase}): Street lighting relevance is 100%.")
+
+    return ContextEvaluateResponse(
+        journey_date=journey_dt.strftime("%Y-%m-%d"),
+        departure_time=journey_dt.strftime("%H:%M"),
+        timezone="Asia/Kolkata (IST: UTC+5:30)",
+        is_departure_future=is_future,
+        solar_context=solar,
+        environmental_context=weather,
+        evaluated_segments=evaluated_segs,
+        active_advisories=advisories,
+        disclaimer=settings.DISCLAIMER_TEXT,
+    )
+
+
+@api_router.post("/context/reassess-route", response_model=Dict[str, Any], tags=["Context & Environment"])
+def reassess_route_context(
+    request: RouteReassessContextRequest,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Reassess an existing route alternative with new journey time and environmental conditions.
+    Preserves verified routing kinematics (distance, geometry, and duration invariant).
+    Updates context-adjusted scores, confidence, and contextual assessment report.
+    """
+    service = ContextualService(db=db)
+    try:
+        route_alt = RouteAlternative.model_validate(request.route)
+    except Exception as ex:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid route payload for reassessment: {ex}",
+        )
+
+    # Enrich route with updated context
+    report = service.enrich_route_with_context(
+        route=route_alt,
+        journey_date=request.journey_date,
+        departure_time=request.departure_time,
+    )
+    route_alt.contextual_report = report.model_dump()
+
+    # Re-evaluate explainability if explainability service available
+    try:
+        from ..services.explainability_service import ExplainabilityService
+        exp_service = ExplainabilityService(db=db)
+        exp_report = exp_service.generate_report(
+            route=route_alt,
+            all_alternatives=[route_alt],
+            departure_time=request.departure_time,
+        )
+        route_alt.explainability = exp_report.model_dump()
+    except Exception as exp_err:
+        logger.warning(f"Failed to regenerate explainability during route reassessment: {exp_err}")
+
+    return {
+        "status": "SUCCESS",
+        "route": route_alt.model_dump(),
+        "contextual_report": report.model_dump(),
+        "message": (
+            f"Route reassessed for {request.journey_date or 'today'} at {request.departure_time or 'current time'} IST. "
+            "Route geometry and travel duration are invariant."
+        ),
+    }
+
 
 

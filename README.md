@@ -318,11 +318,24 @@ In two separate terminals:
   - Comprehensive automated test suite: 81 backend unit/integration tests + 51 frontend tests (132 total passing tests across the workspace).
   - Detailed documentation in `docs/feedback_driven_reassessment.md`.
 
+- [x] **Phase 13: Real-Time Context, Time-of-Day & Environmental Adjustments:**
+  - Astronomical solar position engine using NOAA formulation calibrated to Chennai coordinates ($13.0827^\circ\text{ N}, 80.2707^\circ\text{ E}$) and `Asia/Kolkata` timezone (IST: UTC+5:30), calculating solar noon, equation of time, solar elevation, sunrise/sunset, civil dawn/dusk, and time-dependent lighting relevance ($0.20$ to $1.00$) and footfall attenuation curve ($0.35$ to $1.00$).
+  - Open-Meteo meteorological telemetry integration: current observations, hourly forecasts for future scheduled departures, WMO weather descriptions, precipitation rate, and deterministic seasonal climatological fallback (`HISTORICAL_CLIMATE_BASELINE`).
+  - Bounded segment contextual modifier strictly clamped to $[-8.0, +5.0]$ points.
+  - Low-lying Chennai underpass waterlogging risk detection (Vyasarpadi, Gengu Reddy, RBI subways) during heavy rainfall ($\ge 2.5\text{ mm/h}$).
+  - Double-counting safeguard: dampens contextual weather/lighting penalty ($0.65\times$) when verified community hazard/lighting reports already exist on that segment.
+  - Route-level progressive traversal offset calculation, context aggregation, and kinematic invariance (route geometry, distance, and duration remain strictly invariant).
+  - Dedicated REST endpoints: `GET /api/context/current`, `POST /api/context/evaluate`, `POST /api/context/reassess-route`.
+  - UI integration: Live solar badge and weather pill in `JourneyDateTimeControls.jsx`, instant "Reassess Routes for Current Date/Time" action in `PlanRouteView.jsx`, contextual chips in `RouteAlternativeCard.jsx`, and a comprehensive "Time & Weather" tab in `RouteExplainabilityDashboard.jsx`.
+  - Comprehensive automated test suite: 92 backend unit/integration tests + 61 frontend tests (153 total passing tests across the workspace).
+  - Detailed documentation in `docs/context_and_environmental_adjustments.md`.
+
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 13: Emergency SOS & Guardian Proximity Sharing**
-2. **Phase 14: Historical Safety Analytics & Urban Audit Export**
-3. **Phase 15: Offline PWA & Offline Network Caching**
+1. **Phase 14: Emergency SOS & Guardian Proximity Sharing**
+2. **Phase 15: Historical Safety Analytics & Urban Audit Export**
+3. **Phase 16: Offline PWA & Offline Network Caching**
+
 

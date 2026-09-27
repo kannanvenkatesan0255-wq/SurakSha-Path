@@ -12,6 +12,7 @@ import { RouteComparisonPanel } from '../routing/RouteComparisonPanel';
 import { RouteExplainabilityDashboard } from '../routing/RouteExplainabilityDashboard';
 import { MapWorkspace } from '../map/MapWorkspace';
 import { submitRoutePlan } from '../../api/routing';
+import { reassessRouteContext } from '../../api/context';
 import { swapLocations } from '../../services/locationService';
 import { CHENNAI_PRESETS, NAV_TABS } from '../../utils/constants';
 
@@ -41,6 +42,7 @@ export function PlanRouteView({
   const [routes, setRoutes] = useState([]);
   const [selectedRouteId, setSelectedRouteId] = useState(null);
   const [highlightedSegmentCode, setHighlightedSegmentCode] = useState(null);
+  const [isReassessing, setIsReassessing] = useState(false);
 
   const selectedRoute = useMemo(() => {
     if (!routes || routes.length === 0) return null;
@@ -188,6 +190,32 @@ export function PlanRouteView({
     setSubmissionError(null);
     setRoutes([]);
     setSelectedRouteId(null);
+  };
+
+  const handleReassessContext = async () => {
+    if (!routes || routes.length === 0) return;
+    setIsReassessing(true);
+    try {
+      const reassessedList = await Promise.all(
+        routes.map(async (r) => {
+          try {
+            const res = await reassessRouteContext({
+              route: r,
+              journeyDate,
+              departureTime,
+            });
+            return res.route || r;
+          } catch {
+            return r;
+          }
+        })
+      );
+      setRoutes(reassessedList);
+    } catch (err) {
+      console.warn('Context reassessment failed:', err);
+    } finally {
+      setIsReassessing(false);
+    }
   };
 
   return (
@@ -354,6 +382,21 @@ export function PlanRouteView({
                   onTimeChange={(val) => onUpdateJourneyState({ departureTime: val })}
                   dateError={formErrors.journeyDate}
                 />
+
+                {/* Phase 13: Instant Reassessment when Date or Time changes on active routes */}
+                {routes && routes.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    loading={isReassessing}
+                    onClick={handleReassessContext}
+                    icon="🔄"
+                    style={{ fontSize: '0.74rem', width: '100%', marginTop: '2px' }}
+                  >
+                    {isReassessing ? 'Reassessing Context...' : 'Reassess Routes for Current Date/Time'}
+                  </Button>
+                )}
 
                 {/* Safety–Time Preference Selector (Task 6) */}
                 <RoutePreferenceSelector

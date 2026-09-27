@@ -207,6 +207,53 @@ export function RouteAlternativeCard({
             <span>{coveragePct}% Evidence Coverage</span>
           </span>
         )}
+
+        {/* Phase 13: Time-of-Day & Environmental Contextual Chip */}
+        {route.contextual_report && (
+          <span
+            style={{
+              fontSize: '0.7rem',
+              padding: '2px 8px',
+              borderRadius: 'var(--radius-pill)',
+              background: 'rgba(99, 102, 241, 0.12)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              color: '#a5b4fc',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            title={route.contextual_report.environmental_context?.weather_description || 'Contextual modifier'}
+          >
+            <span>{route.contextual_report.solar_context?.is_dark ? '🌙' : '☀️'}</span>
+            <span>
+              {route.contextual_report.solar_context?.solar_phase?.replace('_', ' ')} •{' '}
+              {route.contextual_report.contextual_modifier_mean_pts >= 0 ? '+' : ''}
+              {route.contextual_report.contextual_modifier_mean_pts} pts
+            </span>
+          </span>
+        )}
+
+        {/* Phase 13: Waterlogging vulnerability tag */}
+        {route.contextual_report?.vulnerable_segments_count > 0 && (
+          <span
+            style={{
+              fontSize: '0.7rem',
+              padding: '2px 8px',
+              borderRadius: 'var(--radius-pill)',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: 'var(--color-risk-high-text)',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <span>⚠️</span>
+            <span>{route.contextual_report.vulnerable_segments_count} Underpass Hotspot(s)</span>
+          </span>
+        )}
       </div>
 
       {/* Metrics Row: Time & Distance */}

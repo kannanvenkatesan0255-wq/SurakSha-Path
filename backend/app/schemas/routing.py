@@ -120,6 +120,11 @@ class RouteAlternative(BaseModel):
         None, description="Detailed RouteExplainabilityReport dictionary for interactive dashboard"
     )
 
+    # Phase 13: Real-Time Context, Time-of-Day & Environmental Adjustments
+    contextual_report: Optional[Dict[str, Any]] = Field(
+        None, description="Detailed ContextualAssessmentReport dictionary for solar illumination and weather conditions"
+    )
+
 class RoutePlanResponse(BaseModel):
     journey_id: str = Field(default_factory=lambda: f"JRN-{uuid.uuid4().hex[:8].upper()}")
     origin: LocationInput
@@ -152,5 +157,10 @@ class RoutePlanResponse(BaseModel):
     )
     optimization_strategy: str = Field(
         "PARETO_UTILITY_V1", description="Multi-objective trade-off method used for candidate ranking"
+    )
+
+    # Phase 13: Journey Context Assessment
+    contextual_report: Optional[Dict[str, Any]] = Field(
+        None, description="Contextual assessment report (solar illumination, weather, advisories) for selected route"
     )
 
