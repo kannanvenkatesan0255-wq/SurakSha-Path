@@ -12,6 +12,9 @@ export function MapWorkspace({
   activeCorridor = 'Chennai Metropolitan Area',
   origin = '',
   destination = '',
+  routes = [],
+  selectedRouteId = null,
+  onSelectRoute = null,
   selectedRouteType = 'BALANCED',
   onSelectOrigin,
   onSelectDestination,
@@ -82,9 +85,13 @@ export function MapWorkspace({
               13.0827° N, 80.2707° E • {activeCorridor}
             </div>
           </div>
-          <StatusBadge label="PHASE 5 LIVE MAP" variant="status" />
-          {selectedRouteType && (
-            <StatusBadge label={selectedRouteType} variant="info" />
+          <StatusBadge label="PHASE 6 ROUTE ENGINE" variant="status" />
+          {routes && routes.length > 0 ? (
+            <StatusBadge label={`${routes.length} Alternatives`} variant="info" />
+          ) : (
+            selectedRouteType && (
+              <StatusBadge label={selectedRouteType} variant="info" />
+            )
           )}
         </div>
       </div>
@@ -94,6 +101,9 @@ export function MapWorkspace({
         <InteractiveMap
           originLocation={resolvedOrigin}
           destinationLocation={resolvedDestination}
+          routes={routes}
+          selectedRouteId={selectedRouteId}
+          onSelectRoute={onSelectRoute}
           onSelectOrigin={onSelectOrigin}
           onSelectDestination={onSelectDestination}
           onClearOrigin={onClearOrigin}

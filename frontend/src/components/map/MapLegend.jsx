@@ -11,6 +11,7 @@ export function MapLegend({
   origin = null,
   destination = null,
   straightLineDistanceKm = null,
+  selectedRoute = null,
   attributionText = '© OpenStreetMap contributors © CARTO',
 }) {
   return (
@@ -40,13 +41,22 @@ export function MapLegend({
         </span>
         <span style={{ color: 'var(--color-border-strong)' }}>•</span>
         <span>Zoom {zoom}</span>
-        {straightLineDistanceKm !== null && straightLineDistanceKm > 0 && (
+        {selectedRoute?.metrics?.distance_km ? (
           <>
             <span style={{ color: 'var(--color-border-strong)' }}>•</span>
             <span style={{ color: 'var(--color-brand-cyan)', fontWeight: 600 }}>
-              Air Distance: {straightLineDistanceKm} km
+              Road: {selectedRoute.metrics.distance_km} km ({selectedRoute.metrics.duration_minutes} min)
             </span>
           </>
+        ) : (
+          straightLineDistanceKm !== null && straightLineDistanceKm > 0 && (
+            <>
+              <span style={{ color: 'var(--color-border-strong)' }}>•</span>
+              <span style={{ color: 'var(--color-brand-cyan)', fontWeight: 600 }}>
+                Air: {straightLineDistanceKm} km
+              </span>
+            </>
+          )
         )}
       </div>
 

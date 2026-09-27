@@ -45,6 +45,12 @@ class Settings:
     DEFAULT_CENTER_LAT: float = float(os.getenv("DEFAULT_CENTER_LAT", "13.0827"))
     DEFAULT_CENTER_LNG: float = float(os.getenv("DEFAULT_CENTER_LNG", "80.2707"))
 
+    # Routing Engine Configuration (OSRM with OpenStreetMap Road Network)
+    OSRM_ROUTER_URL: str = os.getenv("OSRM_ROUTER_URL", "https://router.project-osrm.org")
+    ROUTING_TIMEOUT_SECONDS: float = float(os.getenv("ROUTING_TIMEOUT_SECONDS", "8.0"))
+    ROUTING_PROVIDER_NAME: str = os.getenv("ROUTING_PROVIDER_NAME", "OpenStreetMap / OSRM Driving Engine")
+    ENABLE_OFFLINE_CORRIDOR_FALLBACK: bool = os.getenv("ENABLE_OFFLINE_CORRIDOR_FALLBACK", "true").lower() in ("true", "1", "yes")
+
     # Suraksha Path Principle Flags
     ENABLE_SYNTHETIC_DATA_LABELING: bool = True
     DISCLAIMER_TEXT: str = (

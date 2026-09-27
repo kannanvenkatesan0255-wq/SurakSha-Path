@@ -134,6 +134,7 @@ test('Location Swap: Successfully inverts origin and destination', () => {
 });
 
 test('Catalog Search: Finds matching locations in Chennai', () => {
+  assert.ok(CHENNAI_LOCATION_CATALOG.length >= 5);
   const results = searchChennaiLocations('Metro');
   assert.ok(results.length >= 1);
   assert.ok(results.some((r) => r.name.includes('Metro')));

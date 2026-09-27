@@ -27,32 +27,55 @@ class RoutePlanRequest(BaseModel):
         dest = self.destination.name.strip().lower()
         if orig == dest:
             raise ValueError("Origin and destination cannot be identical. Please enter distinct locations.")
+        if (
+            self.origin.lat is not None and self.origin.lng is not None and
+            self.destination.lat is not None and self.destination.lng is not None
+        ):
+            # Check if coordinates are virtually identical (< ~50 meters: ~0.0005 deg)
+            if abs(self.origin.lat - self.destination.lat) < 0.0005 and abs(self.origin.lng - self.destination.lng) < 0.0005:
+                raise ValueError("Origin and destination coordinates are identical. Please specify distinct geographic endpoints.")
         return self
+
+class RouteMetrics(BaseModel):
+    distance_meters: float
+    distance_km: float
+    duration_seconds: float
+    duration_minutes: float
+    duration_type: str = Field("ESTIMATED_FREE_FLOW", description="Standard road-network estimate; not live traffic")
+    traffic_aware: bool = Field(False, description="OSRM routing provides estimated travel times without live traffic sensors")
 
 class SegmentSummary(BaseModel):
     segment_code: str
     name: str
     length_meters: float
-    safety_score: float
-    confidence_score: float
-    lighting_level: float
-    crowd_density: float
-    police_presence: float
+    safety_score: Optional[float] = None
+    confidence_score: Optional[float] = None
+    lighting_level: Optional[float] = None
+    crowd_density: Optional[float] = None
+    police_presence: Optional[float] = None
     key_factors: List[str] = Field(default_factory=list)
 
 class RouteAlternative(BaseModel):
-    route_type: str = Field(..., description="FASTEST, BALANCED, or SAFEST")
-    title: str
-    distance_meters: float
-    duration_seconds: float
-    safety_score: float = Field(..., ge=0.0, le=100.0)
-    confidence_score: float = Field(..., ge=0.0, le=100.0)
-    safety_delta_vs_fastest: float = Field(0.0)
-    time_delta_vs_fastest_seconds: float = Field(0.0)
-    summary_explanation: str
-    coordinates: List[List[float]] = Field(default_factory=list, description="GeoJSON coordinates [lng, lat]")
+    route_id: str = Field(..., description="Unique route identifier, e.g. ROUTE-ALT-1")
+    route_type: str = Field(..., description="FASTEST, BALANCED, SAFEST, or ALTERNATIVE")
+    title: str = Field(..., description="Human-readable title describing the route corridor")
+    summary: str = Field("", description="Key roads traversed (from routing engine steps)")
+    metrics: RouteMetrics
+    coordinates: List[List[float]] = Field(default_factory=list, description="GeoJSON coordinates array of [lng, lat] pairs")
+    is_selected: bool = False
+    safety_assessment_status: str = Field(
+        "PENDING_PHASE_7_SAFETY_SCORING",
+        description="Safety scoring and evidence-weighted algorithms are scheduled for Phase 7"
+    )
+    safety_disclaimer: str = Field(
+        "Safety scoring not yet applied. Navigation metrics reflect estimated road distance and travel time only."
+    )
+    safety_score: Optional[float] = None
+    confidence_score: Optional[float] = None
+    delta_time_seconds: float = 0.0
+    delta_time_minutes: float = 0.0
     segments: List[SegmentSummary] = Field(default_factory=list)
-    is_synthetic: bool = True
+    is_synthetic: bool = False
 
 class RoutePlanResponse(BaseModel):
     journey_id: str = Field(default_factory=lambda: f"JRN-{uuid.uuid4().hex[:8].upper()}")
@@ -61,11 +84,22 @@ class RoutePlanResponse(BaseModel):
     journey_date: Optional[str] = None
     departure_time: Optional[str] = None
     route_preference: str
-    status: str = Field("VALIDATED", description="Request validation status")
+    status: str = Field("SUCCESS", description="SUCCESS, NO_ROUTE_FOUND, or PROVIDER_ERROR")
     routing_status: str = Field(
-        "PENDING_ROUTING_ENGINE_PHASE_5",
-        description="Indicates spatial routing engine is scheduled for integration in Phase 5"
+        "COMPLETED_PHASE_6_ROUTING_ENGINE",
+        description="Indicates actual road-network geometry and metrics were generated"
+    )
+    provider: str = Field("OpenStreetMap / OSRM Driving Engine")
+    provider_notes: str = Field(
+        "Actual road-network route geometries and distance/duration estimates calculated via OSRM OpenStreetMap routing."
+    )
+    traffic_data_available: bool = Field(False, description="Live traffic sensors are not supplied by OSRM")
+    preference_notice: str = Field(
+        "FASTEST selects the route with minimal travel duration. BALANCED and SAFEST currently present "
+        "alternative road corridors from the routing engine; multi-criteria safety evidence scoring will be integrated in Phase 7."
     )
     message: str = Field(...)
     alternatives: List[RouteAlternative] = Field(default_factory=list)
+    selected_route_id: Optional[str] = None
     disclaimer: str
+

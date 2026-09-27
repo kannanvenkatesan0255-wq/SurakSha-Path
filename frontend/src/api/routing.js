@@ -12,32 +12,41 @@ import { resolveLocationQuery } from '../services/locationService';
 export async function submitRoutePlan({
   originName,
   destinationName,
+  originLat = null,
+  originLng = null,
+  destLat = null,
+  destLng = null,
   journeyDate,
   departureTime,
   routePreference = 'BALANCED',
   safetyWeightPreference = 0.5,
   avoidUnlitAreas = true,
 }) {
-  // Resolve locations through the location service
+  // Resolve locations through the location service if coordinates not explicitly passed
   const resolvedOrigin = resolveLocationQuery(originName);
   const resolvedDestination = resolveLocationQuery(destinationName);
 
+  const finalOriginLat = originLat !== null && originLat !== undefined ? originLat : resolvedOrigin.lat;
+  const finalOriginLng = originLng !== null && originLng !== undefined ? originLng : resolvedOrigin.lng;
+  const finalDestLat = destLat !== null && destLat !== undefined ? destLat : resolvedDestination.lat;
+  const finalDestLng = destLng !== null && destLng !== undefined ? destLng : resolvedDestination.lng;
+
   const payload = {
     origin: {
-      name: resolvedOrigin.name,
-      address: resolvedOrigin.address,
-      lat: resolvedOrigin.lat,
-      lng: resolvedOrigin.lng,
-      is_resolved: resolvedOrigin.isResolved,
-      resolution_source: resolvedOrigin.source,
+      name: resolvedOrigin.name || originName,
+      address: resolvedOrigin.address || '',
+      lat: finalOriginLat,
+      lng: finalOriginLng,
+      is_resolved: finalOriginLat !== null,
+      resolution_source: resolvedOrigin.source || 'CLIENT_INPUT',
     },
     destination: {
-      name: resolvedDestination.name,
-      address: resolvedDestination.address,
-      lat: resolvedDestination.lat,
-      lng: resolvedDestination.lng,
-      is_resolved: resolvedDestination.isResolved,
-      resolution_source: resolvedDestination.source,
+      name: resolvedDestination.name || destinationName,
+      address: resolvedDestination.address || '',
+      lat: finalDestLat,
+      lng: finalDestLng,
+      is_resolved: finalDestLat !== null,
+      resolution_source: resolvedDestination.source || 'CLIENT_INPUT',
     },
     journey_date: journeyDate || undefined,
     departure_time: departureTime || undefined,

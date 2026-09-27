@@ -594,3 +594,19 @@ a:hover {
   color: #f8fafc !important;
 }
 
+/* Route Polyline Hover Tooltip */
+.suraksha-route-tooltip {
+  background: rgba(13, 20, 36, 0.95) !important;
+  border: 1px solid var(--color-border-medium) !important;
+  color: var(--color-text-primary) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.75rem !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-xs) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+.suraksha-route-tooltip::before {
+  border-top-color: #0d1424 !important;
+}
+

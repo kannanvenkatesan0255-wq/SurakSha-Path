@@ -1,11 +1,10 @@
 import React from 'react';
-import { RiskBadge } from '../common/RiskBadge';
 import { ROUTE_TYPES } from '../../utils/constants';
 
 /**
  * RouteAlternativeCard component.
  * Reusable presentation pattern for route alternatives: FASTEST, BALANCED, and SAFEST.
- * Displays travel duration, distance, safety score, confidence, risk level, and main factor.
+ * Displays travel duration, distance, route summary roads, and safety status disclaimer.
  */
 export function RouteAlternativeCard({
   route,
@@ -15,34 +14,46 @@ export function RouteAlternativeCard({
 }) {
   if (!route) return null;
 
-  const {
-    routeType = 'BALANCED',
-    title,
-    durationMinutes,
-    distanceKm,
-    safetyScore,
-    confidenceScore,
-    riskLevel = 'LOW',
-    mainFactor,
-    deltaSafety,
-    deltaTimeMinutes,
-  } = route;
+  const routeId = route.route_id || route.id || route.route_type || route.routeType;
+  const routeType = route.route_type || route.routeType || 'BALANCED';
+  const title = route.title || '';
+  const durationMin =
+    route.metrics?.duration_minutes !== undefined
+      ? route.metrics.duration_minutes
+      : route.durationMinutes;
+  const distanceKmVal =
+    route.metrics?.distance_km !== undefined
+      ? route.metrics.distance_km
+      : route.distanceKm;
+  const deltaTime =
+    route.delta_time_minutes !== undefined
+      ? route.delta_time_minutes
+      : route.deltaTimeMinutes;
+  const summaryRoads = route.summary || '';
+  const safetyDisclaimer =
+    route.safety_disclaimer ||
+    'Safety scoring pending Phase 7. Current metrics evaluate road distance and estimated driving duration.';
 
-  const typeConfig = ROUTE_TYPES[routeType] || ROUTE_TYPES.BALANCED;
+  const typeConfig = ROUTE_TYPES[routeType] || {
+    key: routeType,
+    title: title || 'Route Alternative',
+    tag: 'ALTERNATIVE',
+    description: 'Calculated road corridor from OpenStreetMap routing engine',
+  };
 
   return (
     <div
-      onClick={() => onSelect && onSelect(routeType)}
+      onClick={() => onSelect && onSelect(routeId, routeType)}
       onKeyDown={(e) => {
         if ((e.key === 'Enter' || e.key === ' ') && onSelect) {
           e.preventDefault();
-          onSelect(routeType);
+          onSelect(routeId, routeType);
         }
       }}
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
-      aria-label={`${typeConfig.title}: ${durationMinutes} minutes, Safety Score ${safetyScore}, ${riskLevel} Risk`}
+      aria-label={`${typeConfig.title}: ${durationMin} minutes, ${distanceKmVal} km`}
       className={`route-alternative-card ${className}`}
       style={{
         background: isSelected ? 'var(--color-surface-elevated)' : 'var(--color-surface-panel)',
@@ -62,7 +73,7 @@ export function RouteAlternativeCard({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-2)' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+            <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
               {title || typeConfig.title}
             </span>
             <span
@@ -72,9 +83,15 @@ export function RouteAlternativeCard({
               {typeConfig.tag}
             </span>
           </div>
-          <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: 0, marginTop: '2px' }}>
-            {typeConfig.description}
-          </p>
+          {summaryRoads ? (
+            <p style={{ fontSize: '0.78rem', color: 'var(--color-brand-cyan)', margin: 0, marginTop: '2px' }}>
+              via {summaryRoads}
+            </p>
+          ) : (
+            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: 0, marginTop: '2px' }}>
+              {typeConfig.description}
+            </p>
+          )}
         </div>
 
         {/* Selected Radio Indicator */}
@@ -91,11 +108,11 @@ export function RouteAlternativeCard({
         />
       </div>
 
-      {/* Metrics Row: Time & Distance vs Safety Score & Confidence */}
+      {/* Metrics Row: Time & Distance */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: '1.2fr 1fr',
           gap: 'var(--space-2)',
           background: 'var(--color-surface-card)',
           padding: 'var(--space-3)',
@@ -103,57 +120,54 @@ export function RouteAlternativeCard({
           border: '1px solid var(--color-border-subtle)',
         }}
       >
-        {/* Travel Time & Distance */}
+        {/* Travel Time */}
         <div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-            EST. TRAVEL TIME
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+            EST. TRAVEL TIME (FREE-FLOW)
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
             <span className="tabular-numbers" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
-              {durationMinutes !== undefined ? durationMinutes : '—'}
+              {durationMin !== undefined ? durationMin : '—'}
             </span>
             <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>min</span>
-            {distanceKm && (
-              <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', marginLeft: '6px' }}>
-                ({distanceKm} km)
+            {deltaTime !== undefined && deltaTime > 0 && (
+              <span style={{ fontSize: '0.72rem', color: 'var(--color-risk-medium-text)', marginLeft: '6px' }}>
+                (+{deltaTime}m)
               </span>
             )}
           </div>
-          {deltaTimeMinutes !== undefined && deltaTimeMinutes !== 0 && (
-            <div style={{ fontSize: '0.72rem', color: 'var(--color-risk-medium-text)' }}>
-              +{deltaTimeMinutes} min vs fastest
-            </div>
-          )}
         </div>
 
-        {/* Safety Score & Confidence */}
-        <div style={{ borderLeft: '1px solid var(--color-border-subtle)', paddingLeft: 'var(--space-2)' }}>
-          <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-            SAFETY SCORE
+        {/* Road Distance */}
+        <div style={{ borderLeft: '1px solid var(--color-border-subtle)', paddingLeft: 'var(--space-3)' }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+            ROAD DISTANCE
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <span className="tabular-numbers" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-risk-low-text)' }}>
-              {safetyScore !== undefined ? safetyScore : '—'}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+            <span className="tabular-numbers" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              {distanceKmVal !== undefined ? distanceKmVal : '—'}
             </span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>/ 100</span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>km</span>
           </div>
-          {confidenceScore !== undefined && (
-            <div style={{ fontSize: '0.72rem', color: 'var(--color-confidence-text)' }}>
-              Confidence: {confidenceScore}%
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Footer: Risk Badge & Main Contributing Factor */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
-        <RiskBadge level={riskLevel} />
-
-        {mainFactor && (
-          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', textAlign: 'right' }}>
-            Key: <strong style={{ color: 'var(--color-text-primary)' }}>{mainFactor}</strong>
-          </div>
-        )}
+      {/* Safety Status Notice (Explicit distinction from safety assessment) */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          background: 'rgba(139, 92, 246, 0.08)',
+          border: '1px solid rgba(139, 92, 246, 0.25)',
+          borderRadius: 'var(--radius-xs)',
+          padding: '4px 8px',
+          fontSize: '0.72rem',
+          color: 'var(--color-confidence-text)',
+        }}
+      >
+        <span aria-hidden="true">ℹ️</span>
+        <span style={{ lineHeight: 1.35 }}>{safetyDisclaimer}</span>
       </div>
     </div>
   );

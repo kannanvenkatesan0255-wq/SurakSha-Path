@@ -245,13 +245,20 @@ In two separate terminals:
   - Accessible floating controls: Zoom in/out, Reset View to Chennai center, Fit Endpoints, and Basemap switcher.
   - Cartographic status HUD & Legend with coordinate readouts, air distance in km, active markers, and visible attribution.
   - Layer overlay registration points for verified infrastructure (police posts, lighting stretches) and future safety heatmaps.
-  - Automated unit test suite (`map.test.js`) and complete documentation (`docs/map_workspace.md`).
+- [x] **Phase 6: Route Engine & Alternative Route Generation:**
+  - Real OpenStreetMap / OSRM driving engine integration (`router.project-osrm.org`) via backend HTTP client for authentic Chennai road-network navigation.
+  - Multi-corridor route alternatives generation (`FASTEST`, `BALANCED`, `SAFEST`) with genuine road geometries, distance (km), and estimated free-flow travel durations.
+  - Transparent demarcation: durations explicitly identified as free-flow estimates without live traffic sensors; safety assessments marked strictly as `PENDING_PHASE_7_SAFETY_SCORING` (no fabricated safety scores or crime rankings).
+  - Automated route deduplication (< 0.5% distance diff) and single-alternative honest handling (never fabricates artificial detours).
+  - High-contrast interactive Leaflet polylines: vibrant cyan glow for active route, subdued dashed slate for unselected alternatives with hover tooltips and click-to-select.
+  - Two-way synchronization between `RouteComparisonPanel` alternative cards and the Leaflet cartographic map with automatic viewport bounds fitting.
+  - Resilient offline benchmark corridor fallback for uninterrupted demonstration.
+  - Complete automated test coverage (11 backend tests + 14 frontend tests = 25 passing tests) and technical documentation (`docs/routing_engine.md`).
 
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 6: Multi-Criteria Routing Engine & Alternative Route Generation:** A* / contraction hierarchies with travel-time and safety edge weighting.
-2. **Phase 7: Segment-Level Safety Evidence Scoring:** Street illumination, CCTV presence, crowd density, and time-of-day contextual modifier algorithms.
-3. **Phase 8: Trust-Weighted Community Intelligence:** Crowd incident reporting, corroboration tallying, and exponential time-decay weighting.
-4. **Phase 9: Closed-Loop Journey Feedback & Dynamic Reassessment:** Post-trip feedback ingestion and automatic segment score re-evaluation.
+1. **Phase 7: Segment-Level Safety Evidence Scoring:** Street illumination, CCTV presence, crowd density, and time-of-day contextual modifier algorithms.
+2. **Phase 8: Trust-Weighted Community Intelligence:** Crowd incident reporting, corroboration tallying, and exponential time-decay weighting.
+3. **Phase 9: Closed-Loop Journey Feedback & Dynamic Reassessment:** Post-trip feedback ingestion and automatic segment score re-evaluation.

@@ -8,6 +8,7 @@ import { LocationInputWithSuggestions } from '../planner/LocationInputWithSugges
 import { RoutePreferenceSelector } from '../planner/RoutePreferenceSelector';
 import { JourneyDateTimeControls } from '../planner/JourneyDateTimeControls';
 import { JourneyPlanResultCard } from '../planner/JourneyPlanResultCard';
+import { RouteComparisonPanel } from '../routing/RouteComparisonPanel';
 import { MapWorkspace } from '../map/MapWorkspace';
 import { submitRoutePlan } from '../../api/routing';
 import { swapLocations } from '../../services/locationService';
@@ -15,7 +16,8 @@ import { CHENNAI_PRESETS, NAV_TABS } from '../../utils/constants';
 
 /**
  * PlanRouteView component.
- * Complete journey-planning interface implementing Task 2 through Task 12 of Phase 4.
+ * Complete journey-planning interface implementing Phase 4 Journey Planner
+ * and Phase 6 Route Engine & Alternative Route Generation.
  */
 export function PlanRouteView({
   journeyState,
@@ -35,6 +37,8 @@ export function PlanRouteView({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResponse, setSubmissionResponse] = useState(null);
   const [submissionError, setSubmissionError] = useState(null);
+  const [routes, setRoutes] = useState([]);
+  const [selectedRouteId, setSelectedRouteId] = useState(null);
 
   // Validation function
   const validateForm = () => {
@@ -76,10 +80,31 @@ export function PlanRouteView({
       origin: swappedOrigin,
       destination: swappedDestination,
     });
+    setRoutes([]);
+    setSelectedRouteId(null);
+    setSubmissionResponse(null);
     // Clear cross-field identical errors on swap
     if (formErrors.destination || formErrors.origin) {
       setFormErrors({});
     }
+  };
+
+  // Select alternative route
+  const handleSelectRoute = (routeId) => {
+    setSelectedRouteId(routeId);
+    setRoutes((prevRoutes) =>
+      prevRoutes.map((r) => ({
+        ...r,
+        is_selected: r.route_id === routeId,
+      }))
+    );
+  };
+
+  // Clear current route alternatives
+  const handleClearRoutes = () => {
+    setRoutes([]);
+    setSelectedRouteId(null);
+    setSubmissionResponse(null);
   };
 
   // Form submission handler
@@ -105,10 +130,23 @@ export function PlanRouteView({
       });
 
       setSubmissionResponse(response);
+      if (response && response.alternatives && response.alternatives.length > 0) {
+        setRoutes(response.alternatives);
+        const initialSelected =
+          response.selected_route_id ||
+          response.alternatives.find((r) => r.is_selected)?.route_id ||
+          response.alternatives[0].route_id;
+        setSelectedRouteId(initialSelected);
+      } else {
+        setRoutes([]);
+        setSelectedRouteId(null);
+      }
     } catch (err) {
       setSubmissionError(
         err.message || 'Unable to submit route planning request to the backend service.'
       );
+      setRoutes([]);
+      setSelectedRouteId(null);
     } finally {
       setIsSubmitting(false);
     }
@@ -122,6 +160,8 @@ export function PlanRouteView({
     setFormErrors({});
     setSubmissionResponse(null);
     setSubmissionError(null);
+    setRoutes([]);
+    setSelectedRouteId(null);
   };
 
   return (
@@ -130,7 +170,7 @@ export function PlanRouteView({
       <PageHeader
         title="Plan Your Journey"
         description="Choose where you're travelling from and to, then compare route options using travel time and available safety evidence."
-        badge={<StatusBadge label="PHASE 4 PLANNER" variant="info" />}
+        badge={<StatusBadge label="PHASE 6 ROUTE ENGINE" variant="info" />}
         actions={
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <Button
@@ -183,12 +223,28 @@ export function PlanRouteView({
         {/* Left Column: Journey Form or Validation Result Card */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           {submissionResponse ? (
-            /* Result Confirmation Card */
-            <JourneyPlanResultCard
-              response={submissionResponse}
-              onReset={() => setSubmissionResponse(null)}
-              onViewEvidence={() => onNavigate && onNavigate(NAV_TABS.EVIDENCE)}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+              {/* Result Confirmation Card */}
+              <JourneyPlanResultCard
+                response={submissionResponse}
+                onReset={() => {
+                  setSubmissionResponse(null);
+                  setRoutes([]);
+                  setSelectedRouteId(null);
+                }}
+                onViewEvidence={() => onNavigate && onNavigate(NAV_TABS.EVIDENCE)}
+              />
+
+              {/* Calculated Route Alternatives Comparison Panel (Phase 6) */}
+              {routes && routes.length > 0 && (
+                <RouteComparisonPanel
+                  routes={routes}
+                  selectedRouteId={selectedRouteId}
+                  onSelectRoute={handleSelectRoute}
+                  onClearRoutes={handleClearRoutes}
+                />
+              )}
+            </div>
           ) : (
             /* Journey Planning Form (Task 2B) */
             <SectionPanel
@@ -203,7 +259,13 @@ export function PlanRouteView({
                     id="planner-origin"
                     icon="📍"
                     value={origin}
-                    onChange={(val) => onUpdateJourneyState({ origin: val })}
+                    onChange={(val) => {
+                      onUpdateJourneyState({ origin: val });
+                      if (routes.length > 0) {
+                        setRoutes([]);
+                        setSelectedRouteId(null);
+                      }
+                    }}
                     placeholder="e.g. Chennai Central Railway Station"
                     error={formErrors.origin}
                     helperText="Enter a Chennai station, neighbourhood, or landmark"
@@ -241,7 +303,13 @@ export function PlanRouteView({
                     id="planner-destination"
                     icon="🏁"
                     value={destination}
-                    onChange={(val) => onUpdateJourneyState({ destination: val })}
+                    onChange={(val) => {
+                      onUpdateJourneyState({ destination: val });
+                      if (routes.length > 0) {
+                        setRoutes([]);
+                        setSelectedRouteId(null);
+                      }
+                    }}
                     placeholder="e.g. T. Nagar Bus Terminus"
                     error={formErrors.destination}
                     helperText="Enter your target destination in Chennai"
@@ -326,17 +394,28 @@ export function PlanRouteView({
             destination={destination}
             activeCorridor="Chennai Demonstration Corridor"
             selectedRouteType={routePreference}
+            routes={routes}
+            selectedRouteId={selectedRouteId}
+            onSelectRoute={handleSelectRoute}
             onSelectOrigin={(loc) => {
               onUpdateJourneyState({ origin: loc.name });
+              setRoutes([]);
+              setSelectedRouteId(null);
             }}
             onSelectDestination={(loc) => {
               onUpdateJourneyState({ destination: loc.name });
+              setRoutes([]);
+              setSelectedRouteId(null);
             }}
             onClearOrigin={() => {
               onUpdateJourneyState({ origin: '' });
+              setRoutes([]);
+              setSelectedRouteId(null);
             }}
             onClearDestination={() => {
               onUpdateJourneyState({ destination: '' });
+              setRoutes([]);
+              setSelectedRouteId(null);
             }}
           />
         </div>

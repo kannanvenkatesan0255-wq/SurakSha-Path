@@ -40,6 +40,9 @@ import { CHENNAI_LOCATION_CATALOG } from '../../services/locationService';
 export function InteractiveMap({
   originLocation = null, // { name, lat, lng, address }
   destinationLocation = null, // { name, lat, lng, address }
+  routes = [], // Array of RouteAlternative from routing engine
+  selectedRouteId = null,
+  onSelectRoute = null,
   onSelectOrigin,
   onSelectDestination,
   onClearOrigin,
@@ -52,6 +55,7 @@ export function InteractiveMap({
   const destMarkerRef = useRef(null);
   const selectionMarkerRef = useRef(null);
   const infraLayerGroupRef = useRef(null);
+  const routeLayerGroupRef = useRef(null);
 
   // Keep latest callbacks in ref to avoid reinitializing map
   const callbacksRef = useRef({ onSelectOrigin, onSelectDestination });
@@ -131,6 +135,10 @@ export function InteractiveMap({
       // Layer group for infrastructure pins
       const infraGroup = L.layerGroup().addTo(map);
       infraLayerGroupRef.current = infraGroup;
+
+      // Layer group for route polylines
+      const routeGroup = L.layerGroup().addTo(map);
+      routeLayerGroupRef.current = routeGroup;
 
       // Handle Map Click for Location Selection
       map.on('click', (e) => {
@@ -405,6 +413,89 @@ export function InteractiveMap({
     });
   }, [activeLayers, mapReady]);
 
+  // Update Route Polylines from Routing Engine (Phase 6)
+  useEffect(() => {
+    if (!mapRef.current || !mapReady || !routeLayerGroupRef.current) return;
+
+    routeLayerGroupRef.current.clearLayers();
+
+    if (!routes || routes.length === 0) return;
+
+    let selectedPolyline = null;
+
+    routes.forEach((route) => {
+      const isSelected = route.route_id === selectedRouteId;
+      const coords = route.coordinates || [];
+      if (coords.length < 2) return;
+
+      // GeoJSON coordinates are [lng, lat] -> convert to Leaflet [lat, lng]
+      const latLngs = coords.map(([lng, lat]) => [lat, lng]);
+
+      const distText = route.metrics?.distance_km ? `${route.metrics.distance_km} km` : '';
+      const durText = route.metrics?.duration_minutes ? `${route.metrics.duration_minutes} min` : '';
+
+      if (isSelected) {
+        // High-contrast background casing glow
+        const casing = L.polyline(latLngs, {
+          color: '#0284c7',
+          weight: 9,
+          opacity: 0.45,
+          lineCap: 'round',
+          lineJoin: 'round',
+        });
+        routeLayerGroupRef.current.addLayer(casing);
+
+        // Active foreground polyline
+        const line = L.polyline(latLngs, {
+          color: '#06b6d4',
+          weight: 5,
+          opacity: 0.95,
+          lineCap: 'round',
+          lineJoin: 'round',
+        });
+
+        line.bindTooltip(
+          `<strong>${route.title}</strong><br/>${distText} • ${durText} (Active Route)`,
+          { sticky: true, className: 'suraksha-route-tooltip' }
+        );
+
+        routeLayerGroupRef.current.addLayer(line);
+        selectedPolyline = line;
+      } else {
+        // Subdued unselected alternative
+        const line = L.polyline(latLngs, {
+          color: '#64748b',
+          weight: 4,
+          opacity: 0.6,
+          dashArray: '6, 8',
+          lineCap: 'round',
+          lineJoin: 'round',
+        });
+
+        line.bindTooltip(
+          `<strong>${route.title}</strong><br/>${distText} • ${durText} (Click to Select)`,
+          { sticky: true, className: 'suraksha-route-tooltip' }
+        );
+
+        line.on('click', () => {
+          if (onSelectRoute) {
+            onSelectRoute(route.route_id);
+          }
+        });
+
+        routeLayerGroupRef.current.addLayer(line);
+      }
+    });
+
+    if (selectedPolyline) {
+      selectedPolyline.bringToFront();
+      mapRef.current.fitBounds(selectedPolyline.getBounds(), {
+        padding: [60, 60],
+        maxZoom: 15,
+      });
+    }
+  }, [routes, selectedRouteId, mapReady, onSelectRoute]);
+
   // Map Navigation Handlers
   const handleZoomIn = useCallback(() => {
     if (mapRef.current) {
@@ -429,6 +520,19 @@ export function InteractiveMap({
   const handleFitBounds = useCallback(() => {
     if (!mapRef.current) return;
 
+    if (routes && routes.length > 0) {
+      const activeRoute = routes.find((r) => r.route_id === selectedRouteId) || routes[0];
+      if (activeRoute?.coordinates?.length > 1) {
+        const latLngs = activeRoute.coordinates.map(([lng, lat]) => [lat, lng]);
+        const polyline = L.polyline(latLngs);
+        mapRef.current.fitBounds(polyline.getBounds(), {
+          padding: [60, 60],
+          maxZoom: 15,
+        });
+        return;
+      }
+    }
+
     const points = [];
     if (
       originLocation &&
@@ -452,7 +556,7 @@ export function InteractiveMap({
     } else if (points.length === 1) {
       mapRef.current.flyTo(points[0], 14, { duration: 0.6 });
     }
-  }, [originLocation, destinationLocation]);
+  }, [routes, selectedRouteId, originLocation, destinationLocation]);
 
   const handleToggleBasemap = useCallback(() => {
     setActiveBasemap((prev) => (prev === 'DARK_MATTER' ? 'VOYAGER' : 'DARK_MATTER'));
@@ -463,8 +567,13 @@ export function InteractiveMap({
   }, []);
 
   const hasEndpoints = Boolean(
-    originLocation?.lat && destinationLocation?.lat
+    (originLocation?.lat && destinationLocation?.lat) || (routes && routes.length > 0)
   );
+
+  const selectedRoute =
+    routes && routes.length > 0
+      ? routes.find((r) => r.route_id === selectedRouteId) || routes[0]
+      : null;
 
   if (mapError) {
     return (
@@ -596,6 +705,7 @@ export function InteractiveMap({
         origin={originLocation}
         destination={destinationLocation}
         straightLineDistanceKm={straightLineDistance}
+        selectedRoute={selectedRoute}
         attributionText={activeBasemapConfig.attribution}
       />
     </div>
