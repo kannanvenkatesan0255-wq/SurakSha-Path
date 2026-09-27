@@ -82,8 +82,9 @@ export function MapLegend({
           fontSize: '0.67rem',
           color: 'var(--color-text-muted)',
         }}
-        dangerouslySetInnerHTML={{ __html: attributionText }}
-      />
+      >
+        {attributionText}
+      </div>
     </div>
   );
 }

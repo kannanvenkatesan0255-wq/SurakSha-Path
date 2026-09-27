@@ -16,12 +16,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger("suraksha_path")
 
+from .core.security import SecurityHeadersMiddleware, RequestSizeLimitMiddleware
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle application startup and shutdown lifecycle events."""
     logger.info("Initializing Suraksha Path application and database...")
     init_db()
     logger.info("Database initialized successfully.")
+
+    # Production readiness security checks
+    if settings.ENVIRONMENT.lower() == "production":
+        if settings.DEBUG:
+            logger.warning("SECURITY WARNING: Application is configured in PRODUCTION mode with DEBUG=True! Set DEBUG=False for production.")
+        if settings.MODERATOR_KEY == "suraksha-chennai-moderator-2026":
+            logger.warning("SECURITY WARNING: Using default development MODERATOR_KEY in production! Please override with a cryptographically random secret.")
 
     # Automatically ingest Chennai road network segments if table is empty (Phase 7)
     try:
@@ -71,13 +80,20 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS Middleware setup
+# Defensive Security Middlewares (Phase 17)
+# 1. Content Security Policy, X-Content-Type-Options, Frame protection, Referrer Policy
+app.add_middleware(SecurityHeadersMiddleware)
+
+# 2. Request body size limit (1 MB max payload to prevent Denial of Service)
+app.add_middleware(RequestSizeLimitMiddleware, max_bytes=1_048_576)
+
+# 3. CORS Middleware setup with explicit allowed methods and headers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Admin-Key", "X-User-Id", "X-Client-Version"],
 )
 
 # Mount all API endpoints under /api
@@ -95,16 +111,16 @@ def root():
         "disclaimer": settings.DISCLAIMER_TEXT,
     }
 
-# Standardized error handling
+# Standardized error handling - sanitizes path and protects query parameters/secrets
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception on {request.url}: {exc}", exc_info=True)
+    logger.error(f"Unhandled exception on {request.url.path}: {exc}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": "Internal Server Error",
             "message": "An unexpected error occurred. Please verify backend logs.",
-            "path": str(request.url),
+            "path": request.url.path,
         },
     )
 

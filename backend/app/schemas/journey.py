@@ -2,7 +2,8 @@
 
 from typing import List, Optional, Dict, Any
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from ..core.security import sanitize_user_text
 
 
 class JourneyStatus(str, Enum):
@@ -68,9 +69,9 @@ class ChennaiHelplinesResponse(BaseModel):
 
 class JourneyStartRequest(BaseModel):
     """Request payload to initiate a monitored journey."""
-    origin: str = Field(..., min_length=2, description="Origin point or station")
-    destination: str = Field(..., min_length=2, description="Destination point or station")
-    route_id: Optional[str] = Field(None, description="Calculated route ID from routing engine")
+    origin: str = Field(..., min_length=2, max_length=255, description="Origin point or station")
+    destination: str = Field(..., min_length=2, max_length=255, description="Destination point or station")
+    route_id: Optional[str] = Field(None, max_length=128, description="Calculated route ID from routing engine")
     route_type: str = Field(default="BALANCED", description="FASTEST, BALANCED, or SAFEST")
     distance_km: Optional[float] = Field(None, ge=0.0, description="Estimated distance in km")
     duration_minutes: Optional[float] = Field(None, ge=0.0, description="Estimated duration in minutes")
@@ -80,6 +81,14 @@ class JourneyStartRequest(BaseModel):
     location_sharing_enabled: bool = Field(default=False, description="Explicit opt-in for location tracking")
     is_demo_mode: bool = Field(default=False, description="Whether simulation demo features are active")
 
+    @field_validator("origin", "destination", mode="after")
+    @classmethod
+    def sanitize_endpoints(cls, v: str) -> str:
+        cleaned = sanitize_user_text(v, max_length=255)
+        if not cleaned or len(cleaned) < 2:
+            raise ValueError("Endpoint must contain at least 2 non-script characters.")
+        return cleaned
+
 
 class JourneyEventRecord(BaseModel):
     """Auditable minimal log entry for journey monitoring events."""
@@ -87,7 +96,7 @@ class JourneyEventRecord(BaseModel):
     event_type: JourneyEventType = Field(..., description="Categorical event type")
     timestamp_ist: str = Field(..., description="Formatted timestamp in Asia/Kolkata (IST)")
     summary: str = Field(..., description="Brief human-readable message")
-    details: Optional[str] = Field(None, description="Optional non-sensitive context or rationale")
+    details: Optional[str] = Field(None, max_length=1000, description="Optional non-sensitive context or rationale")
 
 
 class JourneySessionState(BaseModel):
@@ -119,9 +128,14 @@ class JourneySessionState(BaseModel):
 
 class JourneyTransitionRequest(BaseModel):
     """Command to execute a validated state transition on an existing journey."""
-    journey_id: str = Field(..., description="Target journey identifier")
-    action: str = Field(..., description="Action: pause, resume, complete, cancel, check_in_ok, check_in_help, sos_activate, sos_resolve")
-    details: Optional[str] = Field(None, description="Optional operator or commuter notes")
+    journey_id: str = Field(..., min_length=1, max_length=128, description="Target journey identifier")
+    action: str = Field(..., min_length=1, max_length=64, description="Action: pause, resume, complete, cancel, check_in_ok, check_in_help, sos_activate, sos_resolve")
+    details: Optional[str] = Field(None, max_length=1000, description="Optional operator or commuter notes")
+
+    @field_validator("details", mode="after")
+    @classmethod
+    def sanitize_details(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_user_text(v, max_length=1000)
 
 
 # ==============================================================================

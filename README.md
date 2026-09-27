@@ -362,14 +362,28 @@ In two separate terminals:
   - Comprehensive automated test suite: 111 backend unit/integration tests + 81 frontend tests (**192 total passing tests across the workspace**).
   - Detailed documentation in `docs/journey_insights_and_preferences.md`.
 
+- [x] **Phase 17: Security, Authentication, Privacy & Production Readiness:**
+  - Hardened administrative authentication with **constant-time credential comparison** (`secrets.compare_digest`) protecting moderation endpoints against timing side-channel attacks.
+  - Standardized Bearer token authentication (`Authorization: Bearer <token>`) alongside custom `X-Admin-Key` headers for enterprise integration.
+  - Strict **self-moderation prevention gates** in community intelligence and feedback review workflows, forbidding contributors from verifying their own observations.
+  - Defensive **HTTP security headers middleware**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-XSS-Protection: 1; mode=block`, `Permissions-Policy: geolocation=(self)...`, and customized `Content-Security-Policy` permitting Leaflet tiles, Open-Meteo API, OSRM routing, and Google Fonts.
+  - Request body size limit enforcement (`RequestSizeLimitMiddleware` rejecting payloads $> 1\text{ MB}$ with `413 Payload Too Large`) preventing Denial-of-Service memory exhaustion.
+  - Thread-safe in-memory sliding-window **Rate Limiting** across report submissions, feedback intakes, and moderation actions (`429 Too Many Requests` with `Retry-After`).
+  - Comprehensive **input sanitization** (`sanitize_user_text`) and safe URL protocol validation (HTTP/HTTPS only) preventing XSS, markup injection, and dangerous `javascript:` or `data:` URIs.
+  - Elimination of `dangerouslySetInnerHTML` in frontend components (`MapLegend.jsx`) for complete render safety.
+  - Sanitized global exception handling preventing reflection of sensitive query strings or internal stack traces in client error responses.
+  - Privacy-first architecture: Location sharing strictly **OFF by default**, pseudonymous reporter ID masking (`che****_42`), and confirmed one-click history deletion.
+  - Comprehensive automated test suite: 124 backend unit/integration tests + 87 frontend tests (**211 total passing tests across the workspace**).
+  - Detailed documentation in `docs/security_and_production_readiness.md`.
+
 ---
 
 ## 12. Upcoming Roadmap Phases
 
 1. **Phase 16: Offline PWA & Offline Network Caching**
-2. **Phase 17: Multi-Modal Transit & First/Last Mile Safety**
-3. **Phase 18: Collaborative Safe Haven & Community Guardian Network**
-4. **Phase 19: Civic Authority Open Data Integration & Automated Spatial Auditing**
+2. **Phase 18: Collaborative Safe Haven & Community Guardian Network**
+3. **Phase 19: Civic Authority Open Data Integration & Automated Spatial Auditing**
+
 
 
 

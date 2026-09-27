@@ -35,6 +35,7 @@ from ..schemas.feedback import (
 )
 from ..schemas.routing import RouteAlternative
 from ..config import settings
+from ..core.security import verify_moderator_key
 from .risk_service import RiskService
 from .road_network_service import RoadNetworkService
 from .explainability_service import ExplainabilityService
@@ -615,7 +616,7 @@ class FeedbackService:
         Executes administrative or moderation review on submitted feedback.
         Enforces authorization key verification and prevents self-review.
         """
-        if review_in.moderator_key != settings.MODERATOR_KEY:
+        if not verify_moderator_key(review_in.moderator_key, settings.MODERATOR_KEY):
             raise PermissionError("Invalid moderator authorization credentials.")
 
         feedback = (

@@ -37,6 +37,13 @@ from ..services.contextual_service import ContextualService
 from ..services.journey_service import JourneyService
 from ..models.domain import RoadSegment
 from ..config import settings
+from ..core.security import (
+    extract_admin_key,
+    create_rate_limit_dependency,
+    report_rate_limiter,
+    feedback_rate_limiter,
+    moderation_rate_limiter,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +99,13 @@ def list_community_reports(
     return CommunityReportsListResponse(items=formatted, total=total, limit=limit, offset=offset)
 
 
-@api_router.post("/community/reports", response_model=CommunityReportResponse, status_code=status.HTTP_201_CREATED, tags=["Community"])
+@api_router.post(
+    "/community/reports",
+    response_model=CommunityReportResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Community"],
+    dependencies=[Depends(create_rate_limit_dependency(report_rate_limiter))],
+)
 def create_community_report(
     report_in: CommunityReportCreate,
     x_user_id: Optional[str] = Header(None, description="Anonymous or session user identifier"),
@@ -193,21 +206,30 @@ def flag_community_report(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@api_router.post("/community/reports/{report_id}/moderate", response_model=CommunityReportResponse, tags=["Community"])
+@api_router.post(
+    "/community/reports/{report_id}/moderate",
+    response_model=CommunityReportResponse,
+    tags=["Community"],
+    dependencies=[Depends(create_rate_limit_dependency(moderation_rate_limiter))],
+)
 def moderate_community_report(
     report_id: str,
     action: ReportModerationAction,
     x_admin_key: Optional[str] = Header(None, description="Administrative authorization key"),
+    authorization: Optional[str] = Header(None, description="Standard Bearer token authorization"),
+    x_moderator_id: Optional[str] = Header(None, description="Moderator user identifier"),
     db: Session = Depends(get_db),
 ) -> CommunityReportResponse:
     """Perform verified moderation action (VERIFIED, REJECTED, UNDER_REVIEW)."""
     service = CommunityService(db=db)
+    effective_key = extract_admin_key(x_admin_key=x_admin_key, authorization=authorization) or ""
+    moderator_id = x_moderator_id or "admin_moderator"
     try:
         updated = service.moderate_report(
             report_id=report_id,
             target_status=action.status,
-            moderator_id="admin_moderator",
-            moderator_key=x_admin_key or "",
+            moderator_id=moderator_id,
+            moderator_key=effective_key,
             notes=action.notes,
         )
         return service.format_report_response(updated)
@@ -217,7 +239,13 @@ def moderate_community_report(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 # Feedback & Reassessment endpoint
-@api_router.post("/feedback", response_model=FeedbackReassessmentResponse, status_code=status.HTTP_201_CREATED, tags=["Feedback"])
+@api_router.post(
+    "/feedback",
+    response_model=FeedbackReassessmentResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Feedback"],
+    dependencies=[Depends(create_rate_limit_dependency(feedback_rate_limiter))],
+)
 def submit_feedback(
     feedback: JourneyFeedbackCreate,
     db: Session = Depends(get_db),
@@ -669,13 +697,23 @@ def get_feedback_by_id(
     return item
 
 
-@api_router.post("/feedback/{feedback_id}/review", response_model=FeedbackResponse, tags=["Feedback & Reassessment"])
+@api_router.post(
+    "/feedback/{feedback_id}/review",
+    response_model=FeedbackResponse,
+    tags=["Feedback & Reassessment"],
+    dependencies=[Depends(create_rate_limit_dependency(moderation_rate_limiter))],
+)
 def review_feedback(
     feedback_id: str,
     review_in: FeedbackReviewRequest,
+    x_admin_key: Optional[str] = Header(None, description="Administrative authorization key"),
+    authorization: Optional[str] = Header(None, description="Standard Bearer token authorization"),
     db: Session = Depends(get_db),
 ) -> FeedbackResponse:
     """Review and moderate user feedback (requires moderator authorization key)."""
+    header_key = extract_admin_key(x_admin_key=x_admin_key, authorization=authorization)
+    if not review_in.moderator_key and header_key:
+        review_in.moderator_key = header_key
     service = FeedbackService(db=db)
     try:
         return service.review_feedback(feedback_id, review_in)

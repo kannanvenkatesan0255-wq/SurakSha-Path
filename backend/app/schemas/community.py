@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Literal
 from pydantic import BaseModel, Field, field_validator
+from ..core.security import sanitize_user_text
 
 class CommunityReportCreate(BaseModel):
     """Payload for submitting a new location-based safety observation."""
@@ -40,6 +41,19 @@ class CommunityReportCreate(BaseModel):
         description="Optional explicitly identified road segment code",
     )
 
+    @field_validator("description", mode="after")
+    @classmethod
+    def sanitize_description(cls, v: str) -> str:
+        cleaned = sanitize_user_text(v, max_length=1000)
+        if not cleaned or len(cleaned) < 10:
+            raise ValueError("Description must contain at least 10 non-script characters.")
+        return cleaned
+
+    @field_validator("location_name", mode="after")
+    @classmethod
+    def sanitize_location(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_user_text(v, max_length=255)
+
     @field_validator("latitude")
     @classmethod
     def validate_latitude(cls, v: float) -> float:
@@ -68,6 +82,11 @@ class ReportInteractionCreate(BaseModel):
         description="Optional contextual comment explaining the confirmation or dispute",
     )
 
+    @field_validator("comments", mode="after")
+    @classmethod
+    def sanitize_comments(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_user_text(v, max_length=500)
+
 
 class ReportModerationAction(BaseModel):
     """Moderation action performed by authorized platform reviewer."""
@@ -81,6 +100,11 @@ class ReportModerationAction(BaseModel):
         max_length=500,
         description="Administrative moderation notes or field audit reference",
     )
+
+    @field_validator("notes", mode="after")
+    @classmethod
+    def sanitize_notes(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_user_text(v, max_length=500)
 
 
 class CommunityReportResponse(BaseModel):

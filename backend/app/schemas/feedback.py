@@ -7,7 +7,8 @@ audit logs, and segment/route reassessment outcomes.
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from ..core.security import sanitize_user_text, validate_safe_url
 
 def get_utc_now() -> datetime:
     return datetime.now(timezone.utc)
@@ -56,6 +57,11 @@ class JourneyFeedbackCreate(BaseModel):
     felt_safe: bool = True
     encountered_issues: Optional[str] = None
     comments: Optional[str] = None
+
+    @field_validator("comments", "encountered_issues", mode="after")
+    @classmethod
+    def sanitize_optional_text(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_user_text(v, max_length=1000)
 
 
 class FeedbackReassessmentResponse(BaseModel):
@@ -131,6 +137,24 @@ class FeedbackCreate(BaseModel):
         description="Client-supplied UUID to guarantee idempotent submission",
     )
 
+    @field_validator("description", mode="after")
+    @classmethod
+    def sanitize_description(cls, v: str) -> str:
+        cleaned = sanitize_user_text(v, max_length=2000)
+        if not cleaned or len(cleaned) < 5:
+            raise ValueError("Description must contain at least 5 non-script characters.")
+        return cleaned
+
+    @field_validator("location_name", mode="after")
+    @classmethod
+    def sanitize_location(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_user_text(v, max_length=255)
+
+    @field_validator("supporting_evidence_url", mode="after")
+    @classmethod
+    def validate_evidence_url(cls, v: Optional[str]) -> Optional[str]:
+        return validate_safe_url(v)
+
 
 class FeedbackResponse(BaseModel):
     feedback_id: str
@@ -175,6 +199,11 @@ class FeedbackReviewRequest(BaseModel):
         default=None,
         description="Official review rationale or resolution remarks",
     )
+
+    @field_validator("review_notes", mode="after")
+    @classmethod
+    def sanitize_notes(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_user_text(v, max_length=1000)
 
 
 class ReassessmentAuditLogItem(BaseModel):

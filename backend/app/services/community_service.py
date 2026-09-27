@@ -22,6 +22,7 @@ from ..schemas.community import (
     ReportModerationAction,
 )
 from ..config import settings
+from ..core.security import verify_moderator_key
 from .road_network_service import RoadNetworkService
 from .risk_service import RiskService
 
@@ -493,9 +494,9 @@ class CommunityService:
     ) -> CommunityReport:
         """
         Executes an administrative moderation transition (VERIFIED, REJECTED, UNDER_REVIEW).
-        Validates moderator authorization key.
+        Validates moderator authorization key in constant time and prevents self-moderation.
         """
-        if moderator_key != settings.MODERATOR_KEY:
+        if not verify_moderator_key(moderator_key, settings.MODERATOR_KEY):
             raise PermissionError("Invalid moderator authorization credentials.")
 
         target_status = target_status.upper()
@@ -505,6 +506,10 @@ class CommunityService:
         report = self.db.query(CommunityReport).filter(CommunityReport.report_id == report_id).first()
         if not report:
             raise ValueError(f"Community report with ID '{report_id}' not found.")
+
+        # Prevent self-moderation (moderator cannot moderate their own submitted report)
+        if report.reporter_id and moderator_id and report.reporter_id == moderator_id:
+            raise PermissionError("Self-moderation prohibited: Moderator cannot moderate their own community report.")
 
         report.verification_status = target_status
         report.moderated_at = utc_now()

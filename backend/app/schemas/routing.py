@@ -2,21 +2,35 @@
 
 import uuid
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
+from ..core.security import sanitize_user_text
 
 class LocationInput(BaseModel):
     name: str = Field(..., min_length=2, max_length=255, description="Place name, landmark, or address")
-    address: Optional[str] = None
+    address: Optional[str] = Field(None, max_length=500, description="Optional road address")
     lat: Optional[float] = Field(None, ge=-90.0, le=90.0)
     lng: Optional[float] = Field(None, ge=-180.0, le=180.0)
     is_resolved: bool = Field(False, description="Whether coordinates are verified by geocoding")
     resolution_source: Optional[str] = Field(None, description="Provenance: e.g. CHENNAI_DEMO_CATALOG, OSM_NOMINATIM")
 
+    @field_validator("name", mode="after")
+    @classmethod
+    def sanitize_name(cls, v: str) -> str:
+        cleaned = sanitize_user_text(v, max_length=255)
+        if not cleaned or len(cleaned) < 2:
+            raise ValueError("Location name must contain at least 2 characters.")
+        return cleaned
+
+    @field_validator("address", mode="after")
+    @classmethod
+    def sanitize_address(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_user_text(v, max_length=500)
+
 class RoutePlanRequest(BaseModel):
     origin: LocationInput
     destination: LocationInput
     journey_date: Optional[str] = Field(None, pattern=r"^\d{4}-\d{2}-\d{2}$", description="Departure date (YYYY-MM-DD)")
-    departure_time: Optional[str] = Field(None, description="Departure time (e.g. 21:30 or HH:MM)")
+    departure_time: Optional[str] = Field(None, max_length=16, description="Departure time (e.g. 21:30 or HH:MM)")
     route_preference: str = Field("BALANCED", pattern=r"^(FASTEST|BALANCED|SAFEST)$", description="FASTEST, BALANCED, or SAFEST")
     safety_weight_preference: float = Field(0.5, ge=0.0, le=1.0, description="0.0 = prioritize speed, 1.0 = prioritize safety")
     avoid_unlit_areas: bool = Field(True, description="Preference to avoid known unlit segments")

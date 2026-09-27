@@ -20,6 +20,7 @@ class Settings:
     APP_VERSION: str = "0.1.0"
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DEBUG: bool = os.getenv("DEBUG", "true").lower() in ("true", "1", "yes")
+    ENABLE_RATE_LIMITING: bool = os.getenv("ENABLE_RATE_LIMITING", "true").lower() in ("true", "1", "yes")
 
     # API Configuration
     API_V1_STR: str = "/api"
