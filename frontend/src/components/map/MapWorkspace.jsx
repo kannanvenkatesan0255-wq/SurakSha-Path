@@ -16,6 +16,8 @@ export function MapWorkspace({
   selectedRouteId = null,
   onSelectRoute = null,
   selectedRouteType = 'BALANCED',
+  highlightedSegmentCode = null,
+  onSelectSegment = null,
   onSelectOrigin,
   onSelectDestination,
   onClearOrigin,
@@ -104,6 +106,8 @@ export function MapWorkspace({
           routes={routes}
           selectedRouteId={selectedRouteId}
           onSelectRoute={onSelectRoute}
+          highlightedSegmentCode={highlightedSegmentCode}
+          onSelectSegment={onSelectSegment}
           onSelectOrigin={onSelectOrigin}
           onSelectDestination={onSelectDestination}
           onClearOrigin={onClearOrigin}

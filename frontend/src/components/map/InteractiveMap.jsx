@@ -44,6 +44,8 @@ export function InteractiveMap({
   routes = [], // Array of RouteAlternative from routing engine
   selectedRouteId = null,
   onSelectRoute = null,
+  highlightedSegmentCode = null, // Phase 11: synchronized segment highlighting
+  onSelectSegment = null, // Phase 11: map-to-panel segment selection
   onSelectOrigin,
   onSelectDestination,
   onClearOrigin,
@@ -58,6 +60,7 @@ export function InteractiveMap({
   const infraLayerGroupRef = useRef(null);
   const routeLayerGroupRef = useRef(null);
   const roadSegmentsLayerGroupRef = useRef(null);
+  const highlightedSegmentLayerGroupRef = useRef(null);
 
   // Keep latest callbacks in ref to avoid reinitializing map
   const callbacksRef = useRef({ onSelectOrigin, onSelectDestination });
@@ -149,6 +152,10 @@ export function InteractiveMap({
       // Layer group for road network segments (Phase 7)
       const roadSegmentGroup = L.layerGroup().addTo(map);
       roadSegmentsLayerGroupRef.current = roadSegmentGroup;
+
+      // Layer group for synchronized highlighted segment (Phase 11)
+      const highlightGroup = L.layerGroup().addTo(map);
+      highlightedSegmentLayerGroupRef.current = highlightGroup;
 
       // Handle Map Click for Location Selection
       map.on('click', (e) => {
@@ -571,6 +578,9 @@ export function InteractiveMap({
 
         polyline.on('click', () => {
           setSelectedSegment(segment);
+          if (onSelectSegment) {
+            onSelectSegment(segment);
+          }
         });
 
         roadSegmentsLayerGroupRef.current.addLayer(polyline);
@@ -590,7 +600,88 @@ export function InteractiveMap({
           console.warn('Failed to load road segments for map overlay:', err);
         });
     }
-  }, [activeLayers.road_segments, roadSegmentsData, mapReady]);
+  }, [activeLayers.road_segments, roadSegmentsData, mapReady, onSelectSegment]);
+
+  // Synchronized Road Segment Highlighting (Phase 11 Map-Panel Sync)
+  useEffect(() => {
+    if (!mapRef.current || !mapReady || !highlightedSegmentLayerGroupRef.current) return;
+
+    highlightedSegmentLayerGroupRef.current.clearLayers();
+    if (!highlightedSegmentCode) return;
+
+    const activeRoute = routes?.find((r) => r.route_id === selectedRouteId) || routes?.[0];
+    let matchedSeg = activeRoute?.segments?.find((s) => s.segment_code === highlightedSegmentCode);
+    let coords = matchedSeg?.coordinates;
+
+    if (!coords || coords.length < 2) {
+      const fromRoadNetwork = roadSegmentsData.find((s) => s.segment_code === highlightedSegmentCode);
+      if (fromRoadNetwork?.geometry?.coordinates) {
+        coords = fromRoadNetwork.geometry.coordinates;
+        if (!matchedSeg) matchedSeg = fromRoadNetwork;
+      }
+    }
+
+    if (coords && coords.length >= 2) {
+      const latLngs = coords.map((c) => {
+        if (c[0] > 70.0 && c[1] < 20.0) return [c[1], c[0]];
+        return c;
+      });
+
+      // Luminous casing glow
+      const casing = L.polyline(latLngs, {
+        color: '#f59e0b',
+        weight: 12,
+        opacity: 0.65,
+        lineCap: 'round',
+        lineJoin: 'round',
+      });
+      highlightedSegmentLayerGroupRef.current.addLayer(casing);
+
+      // Foreground sharp line
+      const line = L.polyline(latLngs, {
+        color: '#fbbf24',
+        weight: 6,
+        opacity: 1.0,
+        lineCap: 'round',
+        lineJoin: 'round',
+      });
+
+      const sScore = matchedSeg?.safety_score;
+      const popupHtml = `
+        <div style="font-family: var(--font-sans); min-width: 200px; padding: 4px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-size: 0.68rem; font-weight: 700; color: #f59e0b; text-transform: uppercase;">
+              Highlighted Segment
+            </span>
+            <span style="font-size: 0.65rem; background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 1px 5px; border-radius: 3px; font-family: var(--font-mono);">
+              ${highlightedSegmentCode}
+            </span>
+          </div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #f8fafc; margin-bottom: 4px;">
+            ${matchedSeg?.name || matchedSeg?.road_name || 'Road Segment'}
+          </div>
+          <div style="font-size: 0.75rem; color: #cbd5e1; margin-bottom: 4px;">
+            ${sScore !== null && sScore !== undefined ? `Safety Score: <strong>${typeof sScore === 'number' ? sScore.toFixed(1) : sScore}/100</strong>` : 'Unassessed Segment'}
+          </div>
+          ${matchedSeg?.is_bottleneck ? `<div style="font-size: 0.7rem; color: #ef4444; font-weight: 600;">⚠️ Bottleneck: ${matchedSeg?.bottleneck_reason || 'Higher modeled risk'}</div>` : ''}
+        </div>
+      `;
+
+      line.bindPopup(popupHtml);
+      highlightedSegmentLayerGroupRef.current.addLayer(line);
+
+      try {
+        line.bringToFront();
+        mapRef.current.fitBounds(line.getBounds(), {
+          padding: [80, 80],
+          maxZoom: 16,
+        });
+        line.openPopup();
+      } catch (err) {
+        console.warn('Could not fit bounds to highlighted segment:', err);
+      }
+    }
+  }, [highlightedSegmentCode, routes, selectedRouteId, roadSegmentsData, mapReady]);
 
   // Map Navigation Handlers
   const handleZoomIn = useCallback(() => {

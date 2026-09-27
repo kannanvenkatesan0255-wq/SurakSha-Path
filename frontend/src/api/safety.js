@@ -68,3 +68,22 @@ export async function fetchSafetyProvenance() {
 export async function fetchSafetyMethodology() {
   return await apiClient.get('/safety/methodology');
 }
+
+/**
+ * Fetch complete explainability report and dynamic trade-off analysis for a route (Phase 11).
+ */
+export async function fetchRouteExplainability({ route, allAlternatives = [], departureTime = null }) {
+  return await apiClient.post('/safety/routes/explain', {
+    route,
+    all_alternatives: allAlternatives,
+    departure_time: departureTime,
+  });
+}
+
+/**
+ * Fetch official metric semantic definitions (Safety Score, Confidence, Evidence Coverage) (Phase 11).
+ */
+export async function fetchMetricSemantics() {
+  return await apiClient.get('/safety/semantics');
+}
+

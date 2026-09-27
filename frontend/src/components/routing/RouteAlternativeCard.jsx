@@ -437,6 +437,38 @@ export function RouteAlternativeCard({
         <span aria-hidden="true">ℹ️</span>
         <span style={{ lineHeight: 1.35 }}>{safetyDisclaimer}</span>
       </div>
+
+      {/* Phase 11 Explainability Dashboard Jump Action */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
+        <a
+          href="#route-explainability-section"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onSelect) onSelect(routeId, routeType);
+            const el = document.getElementById('route-explainability-section');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="btn btn-subtle btn-sm"
+          style={{
+            fontSize: '0.72rem',
+            padding: '3px 8px',
+            color: 'var(--color-brand-cyan)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            textDecoration: 'none',
+          }}
+        >
+          <span>📊</span>
+          <span>Inspect Explainability & Confidence</span>
+        </a>
+
+        {route.explainability && (
+          <span style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)' }}>
+            ✓ Explainability Verified
+          </span>
+        )}
+      </div>
     </div>
   );
 }

@@ -54,6 +54,18 @@ class SegmentSummary(BaseModel):
     crowd_density: Optional[float] = None
     police_presence: Optional[float] = None
     key_factors: List[str] = Field(default_factory=list)
+    status: Optional[str] = None
+    risk_level: Optional[str] = None
+    road_classification: Optional[str] = None
+    corridor: Optional[str] = None
+    length_percentage: Optional[float] = None
+    covered_categories: List[str] = Field(default_factory=list)
+    missing_categories: List[str] = Field(default_factory=list)
+    missing_data_warnings: List[str] = Field(default_factory=list)
+    is_bottleneck: bool = False
+    bottleneck_reason: Optional[str] = None
+    is_synthetic: bool = False
+    coordinates: List[List[float]] = Field(default_factory=list)
 
 class RouteAlternative(BaseModel):
     route_id: str = Field(..., description="Unique route identifier, e.g. ROUTE-ALT-1")
@@ -101,6 +113,11 @@ class RouteAlternative(BaseModel):
     )
     bottleneck_reason: Optional[str] = Field(
         None, description="Contextual explanation of highest-risk segment"
+    )
+
+    # Phase 11: Route Explainability & Confidence Dashboard
+    explainability: Optional[Dict[str, Any]] = Field(
+        None, description="Detailed RouteExplainabilityReport dictionary for interactive dashboard"
     )
 
 class RoutePlanResponse(BaseModel):

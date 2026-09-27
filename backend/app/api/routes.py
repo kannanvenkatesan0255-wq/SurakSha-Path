@@ -419,6 +419,64 @@ def evaluate_route_safety(
     )
 
 
+# ==============================================================================
+# Phase 11: Route Explainability, Safety Score & Confidence Dashboard Endpoints
+# ==============================================================================
+
+from ..schemas.explainability import (
+    RouteExplainabilityReport,
+    MetricSemanticDefinition,
+)
+from ..schemas.routing import RouteAlternative
+from ..services.explainability_service import ExplainabilityService
+
+
+class RouteExplainRequest(BaseModel):
+    route: RouteAlternative
+    all_alternatives: Optional[List[RouteAlternative]] = None
+    departure_time: Optional[str] = None
+
+
+@api_router.post("/safety/routes/explain", response_model=RouteExplainabilityReport, tags=["Safety Explainability"])
+def explain_route(
+    request: RouteExplainRequest,
+    db: Session = Depends(get_db),
+) -> RouteExplainabilityReport:
+    """Generate comprehensive explainability, semantic documentation, and trade-off analysis for a route."""
+    service = ExplainabilityService(db=db)
+    return service.generate_report(
+        route=request.route,
+        all_alternatives=request.all_alternatives or [request.route],
+        departure_time=request.departure_time,
+    )
+
+
+@api_router.get("/safety/semantics", response_model=Dict[str, MetricSemanticDefinition], tags=["Safety Explainability"])
+def get_metric_semantics(
+    db: Session = Depends(get_db),
+) -> Dict[str, MetricSemanticDefinition]:
+    """Retrieve official semantic definitions for Safety Score, Confidence, and Evidence Coverage."""
+    service = ExplainabilityService(db=db)
+    from ..schemas.routing import RouteMetrics
+    dummy_alt = RouteAlternative(
+        route_id="SEMANTICS-DUMMY",
+        route_type="BALANCED",
+        title="Semantics Reference",
+        metrics=RouteMetrics(
+            distance_meters=1000.0,
+            distance_km=1.0,
+            duration_seconds=120.0,
+            duration_minutes=2.0,
+        ),
+    )
+    report = service.generate_report(dummy_alt)
+    return {
+        "safety_score": report.safety_score_semantics,
+        "confidence": report.confidence_semantics,
+        "evidence_coverage": report.evidence_coverage_semantics,
+    }
+
+
 @api_router.get("/safety/evidence", tags=["Safety Evidence"])
 def query_safety_evidence(
     segment_code: Optional[str] = None,

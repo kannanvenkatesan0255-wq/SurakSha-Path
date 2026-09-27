@@ -342,6 +342,7 @@ class RoutingService:
                             elif seg_eval and seg_eval.missing_data_warnings:
                                 factors.append(seg_eval.missing_data_warnings[0])
 
+                            is_bn = bool(bottleneck_code and bottleneck_code == m.segment_code)
                             matched_segment_summaries.append(
                                 SegmentSummary(
                                     segment_code=m.segment_code,
@@ -350,6 +351,17 @@ class RoutingService:
                                     safety_score=seg_eval.safety_score if seg_eval else None,
                                     confidence_score=seg_eval.confidence_score if seg_eval else 10.0,
                                     key_factors=factors,
+                                    status=seg_eval.status if seg_eval else "INSUFFICIENT_DATA",
+                                    risk_level=seg_eval.risk_level if seg_eval else "UNKNOWN",
+                                    road_classification=m.road_classification or "arterial",
+                                    corridor=m.corridor,
+                                    covered_categories=seg_eval.evidence_coverage.covered_categories if (seg_eval and seg_eval.evidence_coverage) else [],
+                                    missing_categories=seg_eval.evidence_coverage.missing_categories if (seg_eval and seg_eval.evidence_coverage) else [],
+                                    missing_data_warnings=seg_eval.missing_data_warnings if seg_eval else [],
+                                    is_bottleneck=is_bn,
+                                    bottleneck_reason=bottleneck_reason if is_bn else None,
+                                    is_synthetic=seg_eval.is_synthetic if seg_eval else False,
+                                    coordinates=m.coordinates or [],
                                 )
                             )
                 except Exception as ex:
@@ -384,6 +396,20 @@ class RoutingService:
             candidates=candidate_profiles,
             user_preference=request.route_preference,
         )
+
+        # 7. Generate Route Explainability & Confidence Reports (Phase 11)
+        try:
+            from .explainability_service import ExplainabilityService
+            exp_service = ExplainabilityService(db=self.db)
+            for alt in alternatives:
+                exp_report = exp_service.generate_report(
+                    route=alt,
+                    all_alternatives=alternatives,
+                    departure_time=request.departure_time,
+                )
+                alt.explainability = exp_report.model_dump()
+        except Exception as exp_err:
+            logger.warning(f"Failed to generate explainability report: {exp_err}")
 
         provider_name = (
             "Chennai Urban Corridor Verified Graph (Offline Fallback)"

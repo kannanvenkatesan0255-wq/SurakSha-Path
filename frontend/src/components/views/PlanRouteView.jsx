@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PageHeader } from '../common/PageHeader';
 import { SectionPanel } from '../common/SectionPanel';
 import { StatusBadge } from '../common/StatusBadge';
@@ -9,6 +9,7 @@ import { RoutePreferenceSelector } from '../planner/RoutePreferenceSelector';
 import { JourneyDateTimeControls } from '../planner/JourneyDateTimeControls';
 import { JourneyPlanResultCard } from '../planner/JourneyPlanResultCard';
 import { RouteComparisonPanel } from '../routing/RouteComparisonPanel';
+import { RouteExplainabilityDashboard } from '../routing/RouteExplainabilityDashboard';
 import { MapWorkspace } from '../map/MapWorkspace';
 import { submitRoutePlan } from '../../api/routing';
 import { swapLocations } from '../../services/locationService';
@@ -39,6 +40,12 @@ export function PlanRouteView({
   const [submissionError, setSubmissionError] = useState(null);
   const [routes, setRoutes] = useState([]);
   const [selectedRouteId, setSelectedRouteId] = useState(null);
+  const [highlightedSegmentCode, setHighlightedSegmentCode] = useState(null);
+
+  const selectedRoute = useMemo(() => {
+    if (!routes || routes.length === 0) return null;
+    return routes.find((r) => r.route_id === selectedRouteId) || routes[0];
+  }, [routes, selectedRouteId]);
 
   // Validation function
   const validateForm = () => {
@@ -418,30 +425,53 @@ export function PlanRouteView({
             selectedRouteType={routePreference}
             routes={routes}
             selectedRouteId={selectedRouteId}
+            highlightedSegmentCode={highlightedSegmentCode}
+            onSelectSegment={(seg) => {
+              setHighlightedSegmentCode(seg?.segment_code || null);
+            }}
             onSelectRoute={handleSelectRoute}
             onSelectOrigin={(loc) => {
               onUpdateJourneyState({ origin: loc.name });
               setRoutes([]);
               setSelectedRouteId(null);
+              setHighlightedSegmentCode(null);
             }}
             onSelectDestination={(loc) => {
               onUpdateJourneyState({ destination: loc.name });
               setRoutes([]);
               setSelectedRouteId(null);
+              setHighlightedSegmentCode(null);
             }}
             onClearOrigin={() => {
               onUpdateJourneyState({ origin: '' });
               setRoutes([]);
               setSelectedRouteId(null);
+              setHighlightedSegmentCode(null);
             }}
             onClearDestination={() => {
               onUpdateJourneyState({ destination: '' });
               setRoutes([]);
               setSelectedRouteId(null);
+              setHighlightedSegmentCode(null);
             }}
           />
         </div>
       </div>
+
+      {/* Phase 11: Route Assessment, Safety Score & Confidence Explainability Dashboard */}
+      {routes && routes.length > 0 && selectedRoute && (
+        <div id="route-explainability-section" style={{ width: '100%' }}>
+          <RouteExplainabilityDashboard
+            route={selectedRoute}
+            allAlternatives={routes}
+            selectedSegmentCode={highlightedSegmentCode}
+            onSelectSegment={(seg) => {
+              setHighlightedSegmentCode(seg?.segment_code || null);
+            }}
+            departureTime={departureTime}
+          />
+        </div>
+      )}
 
       <style>{`
         @media (max-width: 960px) {

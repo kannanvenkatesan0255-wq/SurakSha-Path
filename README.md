@@ -290,11 +290,24 @@ In two separate terminals:
   - Comprehensive automated test suite: 61 backend unit/integration tests + 33 frontend tests (94 total passing tests).
   - Detailed documentation in `docs/safety_time_tradeoff_engine.md`.
 
+- [x] **Phase 11: Route Explainability, Safety Score & Confidence Dashboard:**
+  - Interactive, polished `RouteExplainabilityDashboard` integrated with route results, offering 5 comprehensive sub-views: Overview, Evidence Streams, Traversed Segments, Trade-Off Matrix, and Metric Semantics.
+  - Authoritative metric definitions:
+    - **Safety Score (15.0–95.0 pts, 50.0 anchor):** Length-weighted environmental protective infrastructure index. Does NOT claim to predict crime or guarantee safety.
+    - **Data Confidence (10.0%–100.0%):** Epistemic measure of data completeness, multi-category diversity, record density, and verification status. Independent from Safety Score.
+    - **Evidence Coverage (0.0%–100.0%):** Physical proportion of route distance supported by registered evidence ($L_{\text{assessed}} / L_{\text{total}}$). Sparse coverage caution flag when $< 25\%$. Absence of reports is strictly treated as unknown condition, never assumed safety.
+  - Evidence stream contribution breakdown across all 5 core Chennai sources (Lighting 35%, Police 20%, Pedestrian 15%, Road 15%, Community 15%) with active counts, point impacts, data sources, and urban limitations.
+  - Granular segment-level explainability with interactive corridor progression bar and **bidirectional Leaflet map synchronization**: selecting a segment in the panel highlights its exact geometry on the map with a glowing casing (`#f59e0b`) and opens an inspector callout; clicking a segment on the map selects it in the dashboard.
+  - Dynamic, data-driven "Why This Route?" trade-off justifications explaining travel time savings vs. safety score differences for `FASTEST`, `BALANCED`, and `SAFEST` strategies.
+  - Active uncertainty, freshness decay, and nocturnal departure lighting advisory handling.
+  - Dedicated REST endpoints: `POST /api/safety/routes/explain` and `GET /api/safety/semantics`.
+  - Comprehensive automated test suite: 72 backend unit tests + 43 frontend unit tests (115 total tests passing across project).
+  - Detailed documentation in `docs/route_explainability_dashboard.md`.
+
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 11: Real-Time Route Recalibration & Dynamic Deviation Alerts**
-2. **Phase 12: Turn-by-Turn Safe Navigation Guidance**
-3. **Phase 13: Emergency SOS & Guardian Proximity Sharing**
-4. **Phase 14: Historical Safety Analytics & Urban Audit Export**
+1. **Phase 12: Turn-by-Turn Safe Navigation Guidance**
+2. **Phase 13: Emergency SOS & Guardian Proximity Sharing**
+3. **Phase 14: Historical Safety Analytics & Urban Audit Export**
