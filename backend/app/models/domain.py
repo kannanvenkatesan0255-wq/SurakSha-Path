@@ -36,6 +36,14 @@ class RoadSegment(Base):
     geometry_geojson = Column(Text, nullable=True)  # Detailed GeoJSON LineString
     length_meters = Column(Float, default=100.0)
 
+    # Road Network Sourced Metadata (Phase 7)
+    source_feature_id = Column(String(64), nullable=True, index=True)  # e.g., "way/24483756"
+    road_classification = Column(String(64), nullable=True, index=True)  # e.g., "primary", "trunk", "secondary"
+    source_dataset = Column(String(128), default="OpenStreetMap / Chennai Network")
+    source_metadata_json = Column(Text, nullable=True)  # JSON string for lanes, oneway, maxspeed, surface
+    from_node_id = Column(String(64), nullable=True)
+    to_node_id = Column(String(64), nullable=True)
+
     # Core Safety & Context Attributes
     lighting_level = Column(Float, default=0.7)  # 0.0 to 1.0 (poor to excellent)
     crowd_density = Column(Float, default=0.6)  # 0.0 to 1.0 (isolated to active)

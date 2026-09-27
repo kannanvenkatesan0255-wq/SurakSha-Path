@@ -2,8 +2,8 @@
  * Routing API service client for Suraksha Path.
  */
 
-import { apiClient } from './client';
-import { resolveLocationQuery } from '../services/locationService';
+import { apiClient } from './client.js';
+import { resolveLocationQuery } from '../services/locationService.js';
 
 /**
  * Submits a journey route-planning request to the backend API.

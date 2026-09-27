@@ -16,9 +16,18 @@ export const LAYER_TYPES = {
   CCTV: 'cctv',
   CROWD: 'crowd',
   ROUTES: 'routes',
+  ROAD_SEGMENTS: 'road_segments',
 };
 
 export const LAYER_METADATA = {
+  [LAYER_TYPES.ROAD_SEGMENTS]: {
+    id: LAYER_TYPES.ROAD_SEGMENTS,
+    label: 'Road Network Segments (OSM)',
+    shortLabel: '🛣️ Road Segments',
+    description: 'Sourced OpenStreetMap discrete road segments and arterial corridors',
+    color: '#0ea5e9', // Sky blue
+    isDemoOnly: false,
+  },
   [LAYER_TYPES.LIGHTING]: {
     id: LAYER_TYPES.LIGHTING,
     label: 'Street Illumination',

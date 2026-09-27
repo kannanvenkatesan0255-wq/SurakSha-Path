@@ -36,6 +36,7 @@ import { CHENNAI_INFRASTRUCTURE_POINTS } from './mapOverlays';
 import { MapControls } from './MapControls';
 import { MapLegend } from './MapLegend';
 import { CHENNAI_LOCATION_CATALOG } from '../../services/locationService';
+import { getRoadSegments } from '../../api/roadNetwork';
 
 export function InteractiveMap({
   originLocation = null, // { name, lat, lng, address }
@@ -56,6 +57,7 @@ export function InteractiveMap({
   const selectionMarkerRef = useRef(null);
   const infraLayerGroupRef = useRef(null);
   const routeLayerGroupRef = useRef(null);
+  const roadSegmentsLayerGroupRef = useRef(null);
 
   // Keep latest callbacks in ref to avoid reinitializing map
   const callbacksRef = useRef({ onSelectOrigin, onSelectDestination });
@@ -76,7 +78,11 @@ export function InteractiveMap({
     police: true,
     cctv: false,
     crowd: false,
+    road_segments: false,
   });
+
+  const [roadSegmentsData, setRoadSegmentsData] = useState([]);
+  const [selectedSegment, setSelectedSegment] = useState(null);
 
   // Calculate straight-line distance if both endpoints have coordinates
   const straightLineDistance =
@@ -139,6 +145,10 @@ export function InteractiveMap({
       // Layer group for route polylines
       const routeGroup = L.layerGroup().addTo(map);
       routeLayerGroupRef.current = routeGroup;
+
+      // Layer group for road network segments (Phase 7)
+      const roadSegmentGroup = L.layerGroup().addTo(map);
+      roadSegmentsLayerGroupRef.current = roadSegmentGroup;
 
       // Handle Map Click for Location Selection
       map.on('click', (e) => {
@@ -496,6 +506,92 @@ export function InteractiveMap({
     }
   }, [routes, selectedRouteId, mapReady, onSelectRoute]);
 
+  // Load and render road network segments when layer is enabled (Phase 7)
+  useEffect(() => {
+    if (!mapRef.current || !mapReady || !roadSegmentsLayerGroupRef.current) return;
+
+    roadSegmentsLayerGroupRef.current.clearLayers();
+
+    if (!activeLayers.road_segments) {
+      return;
+    }
+
+    const renderSegments = (segments) => {
+      if (!roadSegmentsLayerGroupRef.current) return;
+      roadSegmentsLayerGroupRef.current.clearLayers();
+
+      segments.forEach((segment) => {
+        const coords = segment.geometry?.coordinates || [];
+        if (coords.length < 2) return;
+
+        // GeoJSON [lng, lat] -> Leaflet [lat, lng]
+        const latLngs = coords.map(([lng, lat]) => [lat, lng]);
+
+        const polyline = L.polyline(latLngs, {
+          color: '#38bdf8', // Sourced road geometry: distinct slate/cyan tone
+          weight: 4,
+          opacity: 0.8,
+          lineCap: 'round',
+          lineJoin: 'round',
+        });
+
+        const popupHtml = `
+          <div style="font-family: var(--font-sans); min-width: 220px; padding: 4px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 0.68rem; font-weight: 700; color: #38bdf8; text-transform: uppercase;">
+                Road Segment
+              </span>
+              <span style="font-size: 0.65rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 1px 5px; border-radius: 3px; font-family: var(--font-mono);">
+                ${segment.segment_code}
+              </span>
+            </div>
+            <div style="font-size: 0.88rem; font-weight: 600; color: #f8fafc; margin-bottom: 4px;">
+              ${segment.road_name || 'Unnamed Segment'}
+            </div>
+            <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 6px; line-height: 1.4;">
+              <div>Classification: <strong style="color: #e2e8f0;">${segment.road_classification || 'Unclassified'}</strong></div>
+              <div>Length: <strong style="color: #e2e8f0;">${segment.length_meters ? (segment.length_meters / 1000).toFixed(2) + ' km' : 'N/A'}</strong></div>
+              <div>Source: <strong style="color: #e2e8f0;">${segment.source_dataset || 'OpenStreetMap'} (${segment.source_feature_id || 'N/A'})</strong></div>
+            </div>
+            <div style="font-size: 0.68rem; color: #64748b; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px;">
+              Open Database License (ODbL) • No safety scoring applied
+            </div>
+          </div>
+        `;
+
+        polyline.bindPopup(popupHtml);
+
+        polyline.on('mouseover', () => {
+          polyline.setStyle({ weight: 6, opacity: 1.0, color: '#06b6d4' });
+        });
+
+        polyline.on('mouseout', () => {
+          polyline.setStyle({ weight: 4, opacity: 0.8, color: '#38bdf8' });
+        });
+
+        polyline.on('click', () => {
+          setSelectedSegment(segment);
+        });
+
+        roadSegmentsLayerGroupRef.current.addLayer(polyline);
+      });
+    };
+
+    if (roadSegmentsData.length > 0) {
+      renderSegments(roadSegmentsData);
+    } else {
+      getRoadSegments({ limit: 100 })
+        .then((data) => {
+          const segments = data?.segments || [];
+          setRoadSegmentsData(segments);
+          renderSegments(segments);
+        })
+        .catch((err) => {
+          console.warn('Failed to load road segments for map overlay:', err);
+        });
+    }
+  }, [activeLayers.road_segments, roadSegmentsData, mapReady]);
+
   // Map Navigation Handlers
   const handleZoomIn = useCallback(() => {
     if (mapRef.current) {
@@ -682,6 +778,60 @@ export function InteractiveMap({
         }}
         id="suraksha-leaflet-map"
       />
+
+      {/* Selected Road Segment Inspector Panel (Phase 7) */}
+      {selectedSegment && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'var(--space-3)',
+            left: 'var(--space-3)',
+            zIndex: 450,
+            background: 'rgba(13, 20, 36, 0.95)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid var(--color-brand-cyan)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '8px 12px',
+            maxWidth: '300px',
+            boxShadow: 'var(--shadow-lg)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--color-brand-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              🛣️ Road Segment Selected
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedSegment(null)}
+              aria-label="Close segment inspector"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+            {selectedSegment.road_name || 'Unnamed Segment'}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', fontSize: '0.72rem', color: 'var(--color-text-secondary)' }}>
+            <span>Code: <code style={{ color: 'var(--color-brand-cyan)', fontFamily: 'var(--font-mono)' }}>{selectedSegment.segment_code}</code></span>
+            <span>Class: <strong>{selectedSegment.road_classification || 'Unclassified'}</strong></span>
+          </div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+            <span>Length: {selectedSegment.length_meters ? `${(selectedSegment.length_meters / 1000).toFixed(2)} km` : 'N/A'}</span>
+            <span>Source: {selectedSegment.source_dataset || 'OpenStreetMap'}</span>
+          </div>
+        </div>
+      )}
 
       {/* Floating Map Controls */}
       <MapControls

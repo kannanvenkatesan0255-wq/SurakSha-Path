@@ -3,7 +3,7 @@
  * Handles timeouts, network errors, non-2xx responses, and response parsing.
  */
 
-import { APP_CONFIG } from '../config/appConfig';
+import { APP_CONFIG } from '../config/appConfig.js';
 
 class ApiClient {
   constructor(baseUrl = APP_CONFIG.API_BASE_URL) {

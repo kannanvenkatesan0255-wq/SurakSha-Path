@@ -29,11 +29,31 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 def init_db() -> None:
-    """Initialize database tables."""
+    """Initialize database tables and run non-destructive schema migrations."""
     try:
         # Import models so Base metadata is populated
         from . import models  # noqa: F401
         Base.metadata.create_all(bind=engine)
+
+        # Ensure Phase 7 columns exist in road_segments table (for pre-existing SQLite databases)
+        with engine.connect() as conn:
+            cursor = conn.execute(text("PRAGMA table_info(road_segments)"))
+            existing_cols = {row[1] for row in cursor.fetchall()}
+            
+            new_columns = [
+                ("source_feature_id", "VARCHAR(64)"),
+                ("road_classification", "VARCHAR(64)"),
+                ("source_dataset", "VARCHAR(128) DEFAULT 'OpenStreetMap / Chennai Network'"),
+                ("source_metadata_json", "TEXT"),
+                ("from_node_id", "VARCHAR(64)"),
+                ("to_node_id", "VARCHAR(64)"),
+            ]
+            for col_name, col_type in new_columns:
+                if col_name not in existing_cols:
+                    conn.execute(text(f"ALTER TABLE road_segments ADD COLUMN {col_name} {col_type}"))
+                    logger.info(f"Added column {col_name} to road_segments table.")
+            conn.commit()
+
         logger.info("Database tables initialized successfully.")
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")

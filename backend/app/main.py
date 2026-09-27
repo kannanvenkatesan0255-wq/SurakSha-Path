@@ -22,6 +22,24 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing Suraksha Path application and database...")
     init_db()
     logger.info("Database initialized successfully.")
+
+    # Automatically ingest Chennai road network segments if table is empty (Phase 7)
+    try:
+        from .database import SessionLocal
+        from .models.domain import RoadSegment
+        from .services.road_network_service import RoadNetworkService
+        with SessionLocal() as db:
+            segment_count = db.query(RoadSegment).count()
+            if segment_count == 0:
+                logger.info("Ingesting initial Chennai road-network segments from OpenStreetMap dataset...")
+                svc = RoadNetworkService(db)
+                summary = svc.ingest_road_network()
+                logger.info(f"Ingested {summary.features_imported} road segments into Chennai database.")
+            else:
+                logger.info(f"Chennai road network active with {segment_count} segments.")
+    except Exception as ex:
+        logger.warning(f"Initial road-network ingestion check skipped: {ex}")
+
     yield
     logger.info("Shutting down Suraksha Path application...")
 

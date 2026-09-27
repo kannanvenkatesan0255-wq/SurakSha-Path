@@ -14,6 +14,7 @@ from ..schemas.routing import (
     RoutePlanResponse,
     RouteAlternative,
     RouteMetrics,
+    SegmentSummary,
     LocationInput,
 )
 from ..config import settings
@@ -295,6 +296,28 @@ class RoutingService:
             delta_s = max(0.0, dur_s - fastest_duration)
             delta_min = round(delta_s / 60.0, 1)
 
+            # Road network segmentation association (Phase 7)
+            matched_segment_summaries: List[SegmentSummary] = []
+            if self.db and coords:
+                try:
+                    from .road_network_service import RoadNetworkService
+                    seg_service = RoadNetworkService(self.db)
+                    match_res = seg_service.match_route_to_segments(coords, tolerance_meters=150.0)
+                    for m in match_res.matched_segments:
+                        matched_segment_summaries.append(
+                            SegmentSummary(
+                                segment_code=m.segment_code,
+                                name=m.name,
+                                length_meters=m.segment_length_meters,
+                                key_factors=[
+                                    f"Classification: {m.road_classification or 'Arterial'}",
+                                    f"Corridor: {m.corridor or 'Chennai Metropolitan Area'}",
+                                ],
+                            )
+                        )
+                except Exception as ex:
+                    logger.warning(f"Segment matching skipped for route {route_id}: {ex}")
+
             alt = RouteAlternative(
                 route_id=route_id,
                 route_type=route_type,
@@ -312,11 +335,13 @@ class RoutingService:
                 is_selected=False,
                 safety_assessment_status="PENDING_PHASE_7_SAFETY_SCORING",
                 safety_disclaimer=(
-                    "Route geometry and travel time calculated from OpenStreetMap road network. "
-                    "Safety evidence scoring and street lighting assessments will be computed in Phase 7."
+                    "Route geometry sourced from OpenStreetMap road network. "
+                    f"{len(matched_segment_summaries)} discrete road segments linked (Phase 7). "
+                    "Multi-factor safety evidence scoring will be computed in subsequent phases."
                 ),
                 delta_time_seconds=delta_s,
                 delta_time_minutes=delta_min,
+                segments=matched_segment_summaries,
                 is_synthetic=is_offline_fallback,
             )
             alternatives.append(alt)

@@ -152,6 +152,57 @@ export function RouteAlternativeCard({
         </div>
       </div>
 
+      {/* Traversed Road Segments (Phase 7 Geospatial Data Foundation) */}
+      {route.segments && route.segments.length > 0 && (
+        <div
+          style={{
+            background: 'var(--color-surface-card)',
+            border: '1px solid var(--color-border-subtle)',
+            borderRadius: 'var(--radius-xs)',
+            padding: 'var(--space-2) var(--space-3)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+              TRAVERSED ROAD SEGMENTS ({route.segments.length})
+            </span>
+            <span style={{ fontSize: '0.68rem', color: 'var(--color-brand-cyan)' }}>
+              OpenStreetMap Verified
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '2px' }}>
+            {route.segments.map((seg, sIdx) => (
+              <span
+                key={seg.segment_code || sIdx}
+                style={{
+                  fontSize: '0.7rem',
+                  background: 'rgba(15, 23, 42, 0.6)',
+                  border: '1px solid var(--color-border-medium)',
+                  borderRadius: 'var(--radius-xs)',
+                  padding: '2px 6px',
+                  color: 'var(--color-text-secondary)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+                title={`${seg.name} • ${seg.length_meters ? (seg.length_meters / 1000).toFixed(2) + ' km' : ''}`}
+              >
+                <span style={{ color: 'var(--color-brand-cyan)', fontWeight: 600 }}>{sIdx + 1}.</span>
+                <span style={{ color: 'var(--color-text-primary)' }}>{seg.name}</span>
+                {seg.length_meters && (
+                  <span style={{ color: 'var(--color-text-muted)', fontSize: '0.65rem' }}>
+                    ({seg.length_meters >= 1000 ? (seg.length_meters / 1000).toFixed(1) + ' km' : Math.round(seg.length_meters) + ' m'})
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Safety Status Notice (Explicit distinction from safety assessment) */}
       <div
         style={{

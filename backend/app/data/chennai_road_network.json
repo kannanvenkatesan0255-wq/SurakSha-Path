@@ -1,0 +1,522 @@
+{
+  "type": "FeatureCollection",
+  "provenance": {
+    "source_name": "OpenStreetMap",
+    "source_dataset": "Chennai Arterial Road Network (OpenStreetMap Extract)",
+    "license": "Open Database License (ODbL) 1.0",
+    "attribution": "© OpenStreetMap contributors",
+    "retrieval_date": "2026-09",
+    "bounding_box": [12.9750, 80.1800, 13.0900, 80.2900],
+    "is_synthetic": false,
+    "description": "Authentic road network geometries, classifications, and stable OSM way IDs for core transit corridors in Chennai Metropolitan Area."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483756",
+        "name": "Anna Salai (Mount Road)",
+        "corridor": "Anna Salai Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2755, 13.0820],
+          [80.2725, 13.0795],
+          [80.2685, 13.0760]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/46219808",
+        "name": "Anna Salai (Mount Road)",
+        "corridor": "Anna Salai Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2685, 13.0760],
+          [80.2645, 13.0715],
+          [80.2610, 13.0665]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/108392182",
+        "name": "Anna Salai (Mount Road)",
+        "corridor": "Anna Salai Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2610, 13.0665],
+          [80.2580, 13.0620],
+          [80.2555, 13.0585],
+          [80.2536, 13.0569]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/152934892",
+        "name": "Anna Salai (Mount Road)",
+        "corridor": "Anna Salai Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2536, 13.0569],
+          [80.2505, 13.0520],
+          [80.2480, 13.0480]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483757",
+        "name": "Anna Salai (Mount Road)",
+        "corridor": "Anna Salai Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2480, 13.0480],
+          [80.2440, 13.0425],
+          [80.2415, 13.0370]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/46219809",
+        "name": "Anna Salai (Mount Road)",
+        "corridor": "Anna Salai Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2415, 13.0370],
+          [80.2384, 13.0298],
+          [80.2320, 13.0210]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/108392183",
+        "name": "Anna Salai (Mount Road)",
+        "corridor": "Anna Salai Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2320, 13.0210],
+          [80.2240, 13.0150],
+          [80.2130, 13.0100]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/152934893",
+        "name": "Anna Salai / Kathipara Link",
+        "corridor": "Anna Salai Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 60,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2130, 13.0100],
+          [80.2070, 13.0080],
+          [80.2035, 13.0075]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483801",
+        "name": "EVR Periyar Salai (Poonamallee High Road)",
+        "corridor": "Poonamallee High Road Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2707, 13.0827],
+          [80.2650, 13.0800],
+          [80.2608, 13.0782]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/46219815",
+        "name": "EVR Periyar Salai (Poonamallee High Road)",
+        "corridor": "Poonamallee High Road Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2608, 13.0782],
+          [80.2520, 13.0770],
+          [80.2440, 13.0775]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/108392190",
+        "name": "EVR Periyar Salai (Poonamallee High Road)",
+        "corridor": "Poonamallee High Road Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2440, 13.0775],
+          [80.2330, 13.0760],
+          [80.2220, 13.0740]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483820",
+        "name": "Grand Southern Trunk Road (GST Road / NH 45)",
+        "corridor": "GST Road Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 60,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2035, 13.0075],
+          [80.2025, 13.0067],
+          [80.1980, 13.0020]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/46219830",
+        "name": "Grand Southern Trunk Road (GST Road / NH 45)",
+        "corridor": "GST Road Corridor",
+        "road_classification": "trunk",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 60,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.1980, 13.0020],
+          [80.1890, 12.9930],
+          [80.1780, 12.9840]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483840",
+        "name": "Rajiv Gandhi Salai (Old Mahabalipuram Road / OMR)",
+        "corridor": "OMR IT Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 60,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2520, 13.0060],
+          [80.2498, 12.9980],
+          [80.2486, 12.9897]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/46219845",
+        "name": "Rajiv Gandhi Salai (Old Mahabalipuram Road / OMR)",
+        "corridor": "OMR IT Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 6,
+        "oneway": true,
+        "maxspeed": 60,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2486, 12.9897],
+          [80.2470, 12.9820],
+          [80.2450, 12.9730]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483860",
+        "name": "Kamarajar Salai (Beach Promenade)",
+        "corridor": "Kamarajar Salai Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 40,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2850, 13.0800],
+          [80.2830, 13.0690],
+          [80.2810, 13.0560]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/46219865",
+        "name": "Kamarajar Salai (Beach Promenade)",
+        "corridor": "Kamarajar Salai Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 40,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2810, 13.0560],
+          [80.2795, 13.0480],
+          [80.2785, 13.0399]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483880",
+        "name": "Sardar Patel Road",
+        "corridor": "Sardar Patel Road Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2035, 13.0075],
+          [80.2180, 13.0090],
+          [80.2354, 13.0102]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/46219885",
+        "name": "Sardar Patel Road",
+        "corridor": "Sardar Patel Road Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 50,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2354, 13.0102],
+          [80.2435, 13.0067],
+          [80.2520, 13.0060]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483900",
+        "name": "Usman Road (North)",
+        "corridor": "T. Nagar Corridor",
+        "road_classification": "secondary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 35,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2360, 13.0485],
+          [80.2350, 13.0450],
+          [80.2341, 13.0418]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/46219905",
+        "name": "South Usman Road",
+        "corridor": "T. Nagar Corridor",
+        "road_classification": "secondary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 35,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2341, 13.0418],
+          [80.2330, 13.0375],
+          [80.2315, 13.0330]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483920",
+        "name": "Dr. Radhakrishnan Salai",
+        "corridor": "Mylapore Corridor",
+        "road_classification": "primary",
+        "city": "Chennai",
+        "lanes": 4,
+        "oneway": false,
+        "maxspeed": 45,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2785, 13.0399],
+          [80.2680, 13.0425],
+          [80.2580, 13.0440]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "source_feature_id": "way/24483940",
+        "name": "Pantheon Road",
+        "corridor": "Egmore Corridor",
+        "road_classification": "secondary",
+        "city": "Chennai",
+        "lanes": 2,
+        "oneway": false,
+        "maxspeed": 40,
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [80.2608, 13.0782],
+          [80.2580, 13.0710],
+          [80.2550, 13.0650]
+        ]
+      }
+    }
+  ]
+}

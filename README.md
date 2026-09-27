@@ -245,20 +245,25 @@ In two separate terminals:
   - Accessible floating controls: Zoom in/out, Reset View to Chennai center, Fit Endpoints, and Basemap switcher.
   - Cartographic status HUD & Legend with coordinate readouts, air distance in km, active markers, and visible attribution.
   - Layer overlay registration points for verified infrastructure (police posts, lighting stretches) and future safety heatmaps.
-- [x] **Phase 6: Route Engine & Alternative Route Generation:**
-  - Real OpenStreetMap / OSRM driving engine integration (`router.project-osrm.org`) via backend HTTP client for authentic Chennai road-network navigation.
-  - Multi-corridor route alternatives generation (`FASTEST`, `BALANCED`, `SAFEST`) with genuine road geometries, distance (km), and estimated free-flow travel durations.
-  - Transparent demarcation: durations explicitly identified as free-flow estimates without live traffic sensors; safety assessments marked strictly as `PENDING_PHASE_7_SAFETY_SCORING` (no fabricated safety scores or crime rankings).
-  - Automated route deduplication (< 0.5% distance diff) and single-alternative honest handling (never fabricates artificial detours).
-  - High-contrast interactive Leaflet polylines: vibrant cyan glow for active route, subdued dashed slate for unselected alternatives with hover tooltips and click-to-select.
-  - Two-way synchronization between `RouteComparisonPanel` alternative cards and the Leaflet cartographic map with automatic viewport bounds fitting.
-  - Resilient offline benchmark corridor fallback for uninterrupted demonstration.
-  - Complete automated test coverage (11 backend tests + 14 frontend tests = 25 passing tests) and technical documentation (`docs/routing_engine.md`).
+- [x] **Phase 7: Road Network Segmentation & Geospatial Data Foundation:**
+  - Typed, extensible `RoadSegment` database model with dynamic SQLite schema migration (`source_feature_id`, `road_classification`, `source_dataset`, `source_metadata_json`, `from_node_id`, `to_node_id`).
+  - Sourced OpenStreetMap road-network dataset covering 23 core Chennai arterial corridors (Anna Salai, Poonamallee High Road, GST Road, Rajiv Gandhi Salai / OMR, Kamarajar Salai, Sardar Patel Road, Usman Road, Dr. Radhakrishnan Salai, Pantheon Road) with genuine OSM way IDs (`way/24483756`), authentic road classifications, speed limits, lanes, and ODbL licensing.
+  - Reusable, idempotent `RoadNetworkService` ingestion pipeline with duplicate detection, Great-Circle Haversine distance and point-to-line projection formulas, and startup auto-ingestion.
+  - Deterministic segment identifier strategy (`SEG-OSM-W{way_id}`) with SHA-256 coordinate fingerprint fallback.
+  - Route-to-segment association layer (`match_route_to_segments`) mapping real route coordinate polylines to traversed road segments in sequential chronological order, computing coverage ratios and explicitly accounting for unmatched portions.
+  - Spatial query interfaces: `/api/segments`, `/api/segments/{code}`, `/api/segments/bbox`, `/api/segments/near`, `/api/segments/match-route`, and `/api/segments/provenance`.
+  - Leaflet cartographic visualization with togglable `ROAD_SEGMENTS` overlay, neutral sourced styling, and interactive segment inspection without fabricated safety scores.
+  - Integrated traversed segment breakdown cards in `RouteAlternativeCard`.
+  - Comprehensive automated test suite: 11 backend tests + 6 frontend tests (total 42 passing tests across project).
+  - Detailed documentation in `docs/road_network_foundation.md`.
 
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 7: Segment-Level Safety Evidence Scoring:** Street illumination, CCTV presence, crowd density, and time-of-day contextual modifier algorithms.
-2. **Phase 8: Trust-Weighted Community Intelligence:** Crowd incident reporting, corroboration tallying, and exponential time-decay weighting.
-3. **Phase 9: Closed-Loop Journey Feedback & Dynamic Reassessment:** Post-trip feedback ingestion and automatic segment score re-evaluation.
+1. **Phase 8: Infrastructure & Environmental Evidence Layer:** Street illumination audits, CCTV presence, police posts, and pedestrian footfall indicators linked to road segments.
+2. **Phase 9: Community Reports & Incident Intelligence:** Crowd incident reporting, safety alerts, and geo-referenced road-segment event linking.
+3. **Phase 10: Time-Dependent Risk Analysis:** Temporal variations, nocturnality indices, and dynamic time-of-day risk multipliers.
+4. **Phase 11: Trust-Weighted Community Intelligence:** Corroboration tallying, reporter credibility weighting, and exponential time-decay modeling.
+5. **Phase 12: Segment-Level Safety Assessment & Scoring:** Multi-factor safety evidence engine producing explainable segment safety evaluations.
+6. **Phase 13: Route-Level Safety Aggregation:** Composite safety scoring and trade-off comparisons across alternative corridors.
