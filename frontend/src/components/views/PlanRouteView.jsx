@@ -100,6 +100,25 @@ export function PlanRouteView({
     );
   };
 
+  // Switch preference dynamically across alternatives (Phase 10)
+  const handleSelectPreference = (newPref) => {
+    onUpdateJourneyState({ routePreference: newPref });
+    if (routes && routes.length > 0) {
+      const match =
+        routes.find((r) => r.recommended_for === newPref || r.route_type === newPref) ||
+        routes[0];
+      if (match) {
+        setSelectedRouteId(match.route_id);
+        setRoutes((prevRoutes) =>
+          prevRoutes.map((r) => ({
+            ...r,
+            is_selected: r.route_id === match.route_id,
+          }))
+        );
+      }
+    }
+  };
+
   // Clear current route alternatives
   const handleClearRoutes = () => {
     setRoutes([]);
@@ -235,12 +254,15 @@ export function PlanRouteView({
                 onViewEvidence={() => onNavigate && onNavigate(NAV_TABS.EVIDENCE)}
               />
 
-              {/* Calculated Route Alternatives Comparison Panel (Phase 6) */}
+              {/* Calculated Route Alternatives Comparison Panel (Phase 10 Trade-Off Engine) */}
               {routes && routes.length > 0 && (
                 <RouteComparisonPanel
                   routes={routes}
                   selectedRouteId={selectedRouteId}
+                  tradeoffSummary={submissionResponse?.tradeoff_summary}
+                  userPreference={routePreference}
                   onSelectRoute={handleSelectRoute}
+                  onSelectPreference={handleSelectPreference}
                   onClearRoutes={handleClearRoutes}
                 />
               )}

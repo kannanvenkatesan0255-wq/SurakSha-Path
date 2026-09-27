@@ -77,6 +77,32 @@ class RouteAlternative(BaseModel):
     segments: List[SegmentSummary] = Field(default_factory=list)
     is_synthetic: bool = False
 
+    # Phase 10: Safety-Time Trade-Off & Explainability Fields
+    tradeoff_explanation: Optional[str] = Field(
+        None, description="Clear, data-driven narrative explaining time vs. safety evidence trade-offs"
+    )
+    detour_penalty_minutes: float = Field(
+        0.0, description="Detour time penalty in minutes compared to the fastest alternative"
+    )
+    safety_advantage_points: Optional[float] = Field(
+        None, description="Safety score difference compared to the fastest alternative (+/- pts)"
+    )
+    preference_fit_score: Optional[float] = Field(
+        None, description="Quantitative alignment score (0-100) for the requested route preference"
+    )
+    evidence_coverage_ratio: Optional[float] = Field(
+        None, description="Proportion of route distance backed by verified evidence (0.0 - 1.0)"
+    )
+    recommended_for: Optional[str] = Field(
+        None, description="Best-fit strategy tag: FASTEST, BALANCED, SAFEST, or ALTERNATIVE"
+    )
+    bottleneck_segment_code: Optional[str] = Field(
+        None, description="Identifier of highest-risk or unlit segment on route"
+    )
+    bottleneck_reason: Optional[str] = Field(
+        None, description="Contextual explanation of highest-risk segment"
+    )
+
 class RoutePlanResponse(BaseModel):
     journey_id: str = Field(default_factory=lambda: f"JRN-{uuid.uuid4().hex[:8].upper()}")
     origin: LocationInput
@@ -87,7 +113,7 @@ class RoutePlanResponse(BaseModel):
     status: str = Field("SUCCESS", description="SUCCESS, NO_ROUTE_FOUND, or PROVIDER_ERROR")
     routing_status: str = Field(
         "COMPLETED_PHASE_6_ROUTING_ENGINE",
-        description="Indicates actual road-network geometry and metrics were generated"
+        description="Indicates actual road-network geometry and safety-time trade-off optimization were generated"
     )
     provider: str = Field("OpenStreetMap / OSRM Driving Engine")
     provider_notes: str = Field(
@@ -95,11 +121,19 @@ class RoutePlanResponse(BaseModel):
     )
     traffic_data_available: bool = Field(False, description="Live traffic sensors are not supplied by OSRM")
     preference_notice: str = Field(
-        "FASTEST selects the route with minimal travel duration. BALANCED and SAFEST currently present "
-        "alternative road corridors from the routing engine; multi-criteria safety evidence scoring will be integrated in Phase 7."
+        "FASTEST prioritizes minimal travel duration. BALANCED optimizes the trade-off between time and verified safety evidence. "
+        "SAFEST prioritizes road corridors with verified illumination, footfall, and surveillance within practical detour limits."
     )
     message: str = Field(...)
     alternatives: List[RouteAlternative] = Field(default_factory=list)
     selected_route_id: Optional[str] = None
     disclaimer: str
+
+    # Phase 10: Trade-Off Engine Metadata
+    tradeoff_summary: Optional[str] = Field(
+        None, description="Executive summary of the speed vs. safety evidence trade-off among available alternatives"
+    )
+    optimization_strategy: str = Field(
+        "PARETO_UTILITY_V1", description="Multi-objective trade-off method used for candidate ranking"
+    )
 

@@ -61,4 +61,20 @@ class Settings:
     # Community Moderation Configuration
     MODERATOR_KEY: str = os.getenv("MODERATOR_KEY", "suraksha-chennai-moderator-2026")
 
+    # Phase 10: Safety-Time Trade-Off & Route Preference Engine Settings
+    # Weights for Balanced route utility: U = w_safety * (S / 100) - w_time * (delta_t / t_min)
+    BALANCED_SAFETY_WEIGHT: float = float(os.getenv("BALANCED_SAFETY_WEIGHT", "0.60"))
+    BALANCED_TIME_WEIGHT: float = float(os.getenv("BALANCED_TIME_WEIGHT", "0.40"))
+
+    # Practical Detour Constraints for SAFEST candidate:
+    # A candidate route will not be selected as Safest without explanation if its travel duration
+    # exceeds MAX_SAFEST_DETOUR_RATIO * fastest_duration or exceeds fastest_duration + MAX_SAFEST_DETOUR_MINUTES.
+    MAX_SAFEST_DETOUR_RATIO: float = float(os.getenv("MAX_SAFEST_DETOUR_RATIO", "1.40"))  # Up to +40% travel time
+    MAX_SAFEST_DETOUR_MINUTES: float = float(os.getenv("MAX_SAFEST_DETOUR_MINUTES", "20.0"))  # Up to +20 minutes max detour
+
+    # Evidence coverage thresholds
+    MIN_COVERAGE_FOR_HIGH_CONFIDENCE: float = float(os.getenv("MIN_COVERAGE_FOR_HIGH_CONFIDENCE", "0.40"))
+    SPARSE_EVIDENCE_THRESHOLD: float = float(os.getenv("SPARSE_EVIDENCE_THRESHOLD", "0.25"))  # Below 25% is sparse
+    SPARSE_EVIDENCE_PENALTY_FACTOR: float = float(os.getenv("SPARSE_EVIDENCE_PENALTY_FACTOR", "0.85"))
+
 settings = Settings()

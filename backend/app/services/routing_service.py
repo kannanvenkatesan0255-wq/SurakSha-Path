@@ -18,6 +18,7 @@ from ..schemas.routing import (
     LocationInput,
 )
 from ..config import settings
+from .route_optimization_service import RouteOptimizationService, CandidateProfile
 
 logger = logging.getLogger(__name__)
 
@@ -265,10 +266,20 @@ class RoutingService:
 
         fastest_duration = float(unique_routes[0].get("duration", unique_routes[0].get("duration_seconds", 0)))
 
-        # 5. Build RouteAlternative models
-        alternatives: List[RouteAlternative] = []
+        # 5. Build CandidateProfiles with Segment Matching and Safety Evaluation
+        candidate_profiles: List[CandidateProfile] = []
 
-        type_mapping = ["FASTEST", "BALANCED", "SAFEST"]
+        # Instantiate services once per request to maximize in-memory segment cache reuse
+        seg_service = None
+        risk_service = None
+        if self.db:
+            try:
+                from .road_network_service import RoadNetworkService
+                from .risk_service import RiskService
+                seg_service = RoadNetworkService(self.db)
+                risk_service = RiskService(self.db)
+            except Exception as ex:
+                logger.warning(f"Failed to initialize spatial services: {ex}")
 
         for idx, r in enumerate(unique_routes):
             route_id = f"ROUTE-ALT-{idx + 1}"
@@ -282,138 +293,97 @@ class RoutingService:
                 leg = r["legs"][0]
                 summary_roads = leg.get("summary", "")
 
-            route_type = type_mapping[idx] if idx < len(type_mapping) else "ALTERNATIVE"
-
             if idx == 0:
-                title = f"Fastest Route via {summary_roads}" if summary_roads else "Primary Fastest Route"
+                title = f"Arterial Route via {summary_roads}" if summary_roads else "Primary Arterial Corridor"
             elif idx == 1:
-                title = f"Alternative Corridor via {summary_roads}" if summary_roads else "Balanced Route Alternative"
+                title = f"Alternative Corridor via {summary_roads}" if summary_roads else "Secondary Route Corridor"
             elif idx == 2:
-                title = f"Secondary Corridor via {summary_roads}" if summary_roads else "Secondary Route Alternative"
+                title = f"Tertiary Corridor via {summary_roads}" if summary_roads else "Tertiary Route Corridor"
             else:
-                title = f"Alternative Route {idx + 1}"
+                title = f"Corridor Alternative {idx + 1}"
 
-            delta_s = max(0.0, dur_s - fastest_duration)
-            delta_min = round(delta_s / 60.0, 1)
-
-            # Road network segmentation association (Phase 7) & Safety Assessment (Phase 8)
+            # Road network segmentation association & Safety Assessment
             matched_segment_summaries: List[SegmentSummary] = []
             route_safety = None
+            coverage_ratio = 0.0
+            comp_safety = None
+            comp_conf = 10.0
+            bottleneck_code = None
+            bottleneck_reason = None
 
-            if self.db and coords:
+            if seg_service and risk_service and coords:
                 try:
-                    from .road_network_service import RoadNetworkService
-                    from .risk_service import RiskService
-                    
-                    seg_service = RoadNetworkService(self.db)
-                    risk_service = RiskService(self.db)
-                    
                     match_res = seg_service.match_route_to_segments(coords, tolerance_meters=150.0)
                     
-                    # Compute comprehensive route safety assessment
+                    # Compute comprehensive route safety assessment (leveraging segment cache)
                     route_safety = risk_service.evaluate_route_safety(
                         route_id=route_id,
                         segments=match_res.matched_segments,
                         departure_time=request.departure_time,
                     )
-                    
-                    # Map segment assessments by segment_code
-                    eval_map = {a.segment_code: a for a in route_safety.segment_assessments}
-                    
-                    for m in match_res.matched_segments:
-                        seg_eval = eval_map.get(m.segment_code)
-                        factors = [
-                            f"Status: {seg_eval.status if seg_eval else 'UNASSESSED'}",
-                            f"Classification: {m.road_classification or 'Arterial'}",
-                        ]
-                        if seg_eval and seg_eval.contributing_factors:
-                            factors.extend([f.factor_name for f in seg_eval.contributing_factors[:2]])
-                        elif seg_eval and seg_eval.missing_data_warnings:
-                            factors.append(seg_eval.missing_data_warnings[0])
 
-                        matched_segment_summaries.append(
-                            SegmentSummary(
-                                segment_code=m.segment_code,
-                                name=m.name,
-                                length_meters=m.segment_length_meters,
-                                safety_score=seg_eval.safety_score if seg_eval else None,
-                                confidence_score=seg_eval.confidence_score if seg_eval else 10.0,
-                                key_factors=factors,
+                    if route_safety:
+                        comp_safety = route_safety.composite_safety_score
+                        comp_conf = route_safety.composite_confidence_score
+                        coverage_ratio = route_safety.length_coverage_ratio
+                        bottleneck_code = route_safety.highest_risk_segment_code
+                        bottleneck_reason = route_safety.highest_risk_reason
+
+                        # Map segment assessments by segment_code
+                        eval_map = {a.segment_code: a for a in route_safety.segment_assessments}
+                        for m in match_res.matched_segments:
+                            seg_eval = eval_map.get(m.segment_code)
+                            factors = [
+                                f"Status: {seg_eval.status if seg_eval else 'UNASSESSED'}",
+                                f"Classification: {m.road_classification or 'Arterial'}",
+                            ]
+                            if seg_eval and seg_eval.contributing_factors:
+                                factors.extend([f.factor_name for f in seg_eval.contributing_factors[:2]])
+                            elif seg_eval and seg_eval.missing_data_warnings:
+                                factors.append(seg_eval.missing_data_warnings[0])
+
+                            matched_segment_summaries.append(
+                                SegmentSummary(
+                                    segment_code=m.segment_code,
+                                    name=m.name,
+                                    length_meters=m.segment_length_meters,
+                                    safety_score=seg_eval.safety_score if seg_eval else None,
+                                    confidence_score=seg_eval.confidence_score if seg_eval else 10.0,
+                                    key_factors=factors,
+                                )
                             )
-                        )
                 except Exception as ex:
-                    logger.warning(f"Safety evaluation skipped for route {route_id}: {ex}")
+                    logger.warning(f"Safety evaluation failed for route {route_id}: {ex}")
 
-            # Status and disclaimer
-            if route_safety and route_safety.status in ("ASSESSED", "PARTIALLY_ASSESSED"):
-                assessment_status = f"EVALUATED_{route_safety.status}"
-                safety_disclaimer = (
-                    f"Evidence-Based Assessment ({route_safety.status}). "
-                    f"Coverage: {int(route_safety.length_coverage_ratio * 100)}% of route distance ({route_safety.assessed_segments_count}/{route_safety.total_segments_count} segments). "
-                    f"Overall risk level: {route_safety.overall_risk_level}. Does not guarantee personal safety."
-                )
-                comp_safety = route_safety.composite_safety_score
-                comp_conf = route_safety.composite_confidence_score
-            else:
-                assessment_status = "PENDING_PHASE_7_SAFETY_SCORING"
-                safety_disclaimer = (
-                    "Route geometry sourced from OpenStreetMap road network. "
-                    f"{len(matched_segment_summaries)} discrete road segments linked (Phase 7). "
-                    "Multi-factor safety evidence scoring will be computed in subsequent phases."
-                )
-                comp_safety = None
-                comp_conf = route_safety.composite_confidence_score if route_safety else 10.0
-
-            alt = RouteAlternative(
+            profile = CandidateProfile(
+                index=idx,
+                raw_route=r,
                 route_id=route_id,
-                route_type=route_type,
                 title=title,
-                summary=summary_roads,
-                metrics=RouteMetrics(
-                    distance_meters=round(dist_m, 1),
-                    distance_km=round(dist_m / 1000.0, 2),
-                    duration_seconds=round(dur_s, 1),
-                    duration_minutes=round(dur_s / 60.0, 1),
-                    duration_type="ESTIMATED_FREE_FLOW",
-                    traffic_aware=False,
-                ),
+                summary_roads=summary_roads,
+                distance_meters=dist_m,
+                duration_seconds=dur_s,
                 coordinates=coords,
-                is_selected=False,
-                safety_assessment_status=assessment_status,
-                safety_disclaimer=safety_disclaimer,
+                route_safety=route_safety,
+                segment_summaries=matched_segment_summaries,
                 safety_score=comp_safety,
                 confidence_score=comp_conf,
-                delta_time_seconds=delta_s,
-                delta_time_minutes=delta_min,
-                segments=matched_segment_summaries,
+                coverage_ratio=coverage_ratio,
+                bottleneck_segment_code=bottleneck_code,
+                bottleneck_reason=bottleneck_reason,
                 is_synthetic=is_offline_fallback,
             )
-            alternatives.append(alt)
+            candidate_profiles.append(profile)
 
-        # 6. Apply user's selected preference
-        user_pref = request.route_preference
-        selected_alt = None
-
-        if user_pref == "FASTEST":
-            selected_alt = alternatives[0]
-        elif user_pref == "BALANCED":
-            # Select second alternative if available, else first
-            selected_alt = alternatives[1] if len(alternatives) > 1 else alternatives[0]
-        elif user_pref == "SAFEST":
-            # If alternatives have evaluated safety scores, choose the highest score
-            scored_alts = [a for a in alternatives if a.safety_score is not None]
-            if scored_alts:
-                selected_alt = max(scored_alts, key=lambda a: a.safety_score)
-            else:
-                selected_alt = (
-                    alternatives[2] if len(alternatives) > 2
-                    else alternatives[1] if len(alternatives) > 1
-                    else alternatives[0]
-                )
-        else:
-            selected_alt = alternatives[0]
-
-        selected_alt.is_selected = True
+        # 6. Optimize and Rank Alternatives using Safety-Time Trade-Off Engine (Phase 10)
+        optimizer = RouteOptimizationService(
+            safety_weight=request.safety_weight_preference,
+            time_weight=1.0 - request.safety_weight_preference if request.safety_weight_preference is not None else None,
+        )
+        alternatives, selected_route_id, tradeoff_summary = optimizer.optimize_and_rank_routes(
+            candidates=candidate_profiles,
+            user_preference=request.route_preference,
+        )
 
         provider_name = (
             "Chennai Urban Corridor Verified Graph (Offline Fallback)"
@@ -444,11 +414,13 @@ class RoutingService:
             traffic_data_available=False,
             preference_notice=(
                 f"The '{request.route_preference}' preference is selected. "
-                f"Route alternatives reflect distinct road paths from the routing engine. "
-                "Phase 7 will attach micro-level segment lighting, CCTV, and crowd safety scores."
+                "Routes are evaluated using verified segment illumination, footfall, and police patrol coverage "
+                "balanced against estimated travel duration under practical detour constraints."
             ),
-            message=f"Calculated {len(alternatives)} route alternative(s) for Chennai journey.",
+            message=f"Calculated and optimized {len(alternatives)} route alternative(s) for Chennai journey.",
             alternatives=alternatives,
-            selected_route_id=selected_alt.route_id,
+            selected_route_id=selected_route_id,
+            tradeoff_summary=tradeoff_summary,
+            optimization_strategy="PARETO_UTILITY_V1",
             disclaimer=settings.DISCLAIMER_TEXT,
         )

@@ -81,6 +81,7 @@ suraksha-path/
 │   │   └── services/
 │   │       ├── __init__.py
 │   │       ├── routing_service.py   # Multi-route generation boundary
+│   │       ├── route_optimization_service.py # Phase 10 safety-time trade-off engine
 │   │       ├── risk_service.py      # Micro-level segment risk boundary
 │   │       ├── confidence_engine.py # Separate confidence calculation engine
 │   │       ├── evidence_service.py  # Evidence query & audit boundary
@@ -276,12 +277,24 @@ In two separate terminals:
   - Interactive UI: Chennai landmark quick-selectors, live filterable community feed, confirmation/dispute/flag buttons, and expandable mathematical explainability drawer.
   - Comprehensive test suite: 13 backend unit/integration tests + 7 frontend tests.
 
+- [x] **Phase 10: Safety–Time Trade-Off & Route Preference Engine:**
+  - Reusable, testable `RouteOptimizationService` implementing multi-objective Pareto utility balancing for `FASTEST`, `BALANCED`, and `SAFEST` strategies.
+  - Practical detour constraint enforcement on `SAFEST` candidate ($T \le 1.40 \cdot T_{\min}$ or $+20$ min max) with explicit warnings when exceeded.
+  - Dynamic candidate classification and assignment of distinct route types rather than static index mapping.
+  - Data-driven, metric-traceable trade-off explanations detailing travel time savings vs. segment safety scores.
+  - Strict distinction between Safety Score [15–95] and Data Confidence [10–100%].
+  - Evidence coverage accounting ($L_{\text{assessed}} / L_{\text{total}}$) with explicit warnings when coverage is below 25%.
+  - Single-route honesty: refuses to clone artificial duplicates when only 1 corridor is returned by the routing engine.
+  - In-memory segment assessment caching in `RiskService` to avoid redundant spatial evaluations within a request.
+  - UI integration: `RouteAlternativeCard` trade-off chips (+X min detour, +Y pts safety, % coverage), executive trade-off landscape callout in `RouteComparisonPanel`, and dynamic preference switching in `PlanRouteView`.
+  - Comprehensive automated test suite: 61 backend unit/integration tests + 33 frontend tests (94 total passing tests).
+  - Detailed documentation in `docs/safety_time_tradeoff_engine.md`.
+
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 10: Time-Dependent Dynamic Risk Analysis & Nocturnal Modeling**
-2. **Phase 11: Real-Time Route Recalibration & Dynamic Deviation Alerts**
-3. **Phase 12: Turn-by-Turn Safe Navigation Guidance**
-4. **Phase 13: Emergency SOS & Guardian Proximity Sharing**
-5. **Phase 14: Historical Safety Analytics & Urban Audit Export**
+1. **Phase 11: Real-Time Route Recalibration & Dynamic Deviation Alerts**
+2. **Phase 12: Turn-by-Turn Safe Navigation Guidance**
+3. **Phase 13: Emergency SOS & Guardian Proximity Sharing**
+4. **Phase 14: Historical Safety Analytics & Urban Audit Export**

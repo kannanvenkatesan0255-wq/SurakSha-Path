@@ -53,6 +53,7 @@ class RiskService:
     def __init__(self, db: Session):
         self.db = db
         self.evidence_service = EvidenceService(db)
+        self._segment_cache: Dict[str, SegmentSafetyAssessment] = {}
 
     def evaluate_segment_safety(
         self,
@@ -63,6 +64,10 @@ class RiskService:
         Evaluates a road segment's safety profile based strictly on verified evidence.
         Produces explicit status: ASSESSED, LIMITED_EVIDENCE, INSUFFICIENT_DATA, or STALE_EVIDENCE.
         """
+        cache_key = f"{segment_code}:{departure_time or 'none'}"
+        if cache_key in self._segment_cache:
+            return self._segment_cache[cache_key]
+
         segment = self.db.query(RoadSegment).filter(RoadSegment.segment_code == segment_code).first()
         if not segment:
             raise ValueError(f"Road segment '{segment_code}' not found in database.")
@@ -205,7 +210,7 @@ class RiskService:
             else:
                 temporal_context = f"Daylight departure ({departure_time}) evaluated."
 
-        return SegmentSafetyAssessment(
+        assessment_result = SegmentSafetyAssessment(
             segment_code=segment.segment_code,
             road_name=segment.name,
             corridor=segment.corridor,
@@ -222,6 +227,8 @@ class RiskService:
             methodology_version=METHODOLOGY_VERSION,
             is_synthetic=segment.is_synthetic,
         )
+        self._segment_cache[cache_key] = assessment_result
+        return assessment_result
 
     def evaluate_route_safety(
         self,
