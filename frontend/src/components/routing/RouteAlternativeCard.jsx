@@ -1,5 +1,6 @@
 import React from 'react';
 import { ROUTE_TYPES } from '../../utils/constants';
+import { RiskBadge } from '../common/RiskBadge';
 
 /**
  * RouteAlternativeCard component.
@@ -152,6 +153,75 @@ export function RouteAlternativeCard({
         </div>
       </div>
 
+      {/* Phase 8 Safety & Risk Assessment Engine Panel */}
+      <div
+        style={{
+          background: 'var(--color-surface-card)',
+          padding: 'var(--space-3)',
+          borderRadius: 'var(--radius-xs)',
+          border: '1px solid var(--color-border-subtle)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 'var(--space-2)',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+            SAFETY & RISK ASSESSMENT (PHASE 8)
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginTop: '2px' }}>
+            {route.safety_score !== null && route.safety_score !== undefined ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                  <span className="tabular-numbers" style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                    {typeof route.safety_score === 'number' ? route.safety_score.toFixed(1) : route.safety_score}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>/ 100</span>
+                </div>
+                <RiskBadge
+                  level={
+                    route.safety_score >= 70.0
+                      ? 'LOW'
+                      : route.safety_score >= 45.0
+                      ? 'MEDIUM'
+                      : 'HIGH'
+                  }
+                />
+              </>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <RiskBadge level="UNASSESSED" />
+                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                  (No baseline evidence assumed)
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Confidence & Coverage Indicator */}
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+            DATA CONFIDENCE
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '2px' }}>
+            <span
+              className="tabular-numbers"
+              style={{
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                color: 'var(--color-confidence-text)',
+              }}
+            >
+              {route.confidence_score !== undefined ? Math.round(route.confidence_score) : 10}%
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>reliability</span>
+          </div>
+        </div>
+      </div>
+
       {/* Traversed Road Segments (Phase 7 Geospatial Data Foundation) */}
       {route.segments && route.segments.length > 0 && (
         <div
@@ -195,6 +265,24 @@ export function RouteAlternativeCard({
                 {seg.length_meters && (
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.65rem' }}>
                     ({seg.length_meters >= 1000 ? (seg.length_meters / 1000).toFixed(1) + ' km' : Math.round(seg.length_meters) + ' m'})
+                  </span>
+                )}
+                {seg.safety_score !== null && seg.safety_score !== undefined ? (
+                  <span
+                    style={{
+                      fontSize: '0.65rem',
+                      background: 'rgba(59, 130, 246, 0.2)',
+                      color: 'var(--color-brand-cyan)',
+                      padding: '1px 4px',
+                      borderRadius: '3px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Score: {typeof seg.safety_score === 'number' ? seg.safety_score.toFixed(1) : seg.safety_score}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: '0.62rem', color: 'var(--color-text-muted)' }}>
+                    (Unassessed)
                   </span>
                 )}
               </span>

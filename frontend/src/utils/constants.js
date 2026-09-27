@@ -70,6 +70,13 @@ export const RISK_LEVELS = {
     variant: 'risk-high',
     description: 'Isolated stretch, poor illumination, or active alerts',
   },
+  UNKNOWN: {
+    key: 'UNKNOWN',
+    label: 'UNASSESSED',
+    fullLabel: 'UNASSESSED (INSUFFICIENT DATA)',
+    variant: 'status',
+    description: 'Insufficient verifiable safety evidence to calculate risk',
+  },
 };
 
 export const STATUS_TYPES = {
@@ -78,6 +85,10 @@ export const STATUS_TYPES = {
   LIMITED_EVIDENCE: { label: 'LIMITED EVIDENCE', variant: 'risk-medium' },
   UNDER_REVIEW: { label: 'UNDER REVIEW', variant: 'confidence' },
   SYNTHETIC_DATA: { label: 'SYNTHETIC DATA', variant: 'status' },
+  INSUFFICIENT_DATA: { label: 'INSUFFICIENT DATA', variant: 'status' },
+  ASSESSED: { label: 'ASSESSED', variant: 'info' },
+  PARTIALLY_ASSESSED: { label: 'PARTIALLY ASSESSED', variant: 'risk-medium' },
+  STALE_EVIDENCE: { label: 'STALE EVIDENCE', variant: 'risk-medium' },
 };
 
 export const ROUTE_TYPES = {

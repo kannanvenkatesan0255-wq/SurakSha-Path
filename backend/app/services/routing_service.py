@@ -296,27 +296,73 @@ class RoutingService:
             delta_s = max(0.0, dur_s - fastest_duration)
             delta_min = round(delta_s / 60.0, 1)
 
-            # Road network segmentation association (Phase 7)
+            # Road network segmentation association (Phase 7) & Safety Assessment (Phase 8)
             matched_segment_summaries: List[SegmentSummary] = []
+            route_safety = None
+
             if self.db and coords:
                 try:
                     from .road_network_service import RoadNetworkService
+                    from .risk_service import RiskService
+                    
                     seg_service = RoadNetworkService(self.db)
+                    risk_service = RiskService(self.db)
+                    
                     match_res = seg_service.match_route_to_segments(coords, tolerance_meters=150.0)
+                    
+                    # Compute comprehensive route safety assessment
+                    route_safety = risk_service.evaluate_route_safety(
+                        route_id=route_id,
+                        segments=match_res.matched_segments,
+                        departure_time=request.departure_time,
+                    )
+                    
+                    # Map segment assessments by segment_code
+                    eval_map = {a.segment_code: a for a in route_safety.segment_assessments}
+                    
                     for m in match_res.matched_segments:
+                        seg_eval = eval_map.get(m.segment_code)
+                        factors = [
+                            f"Status: {seg_eval.status if seg_eval else 'UNASSESSED'}",
+                            f"Classification: {m.road_classification or 'Arterial'}",
+                        ]
+                        if seg_eval and seg_eval.contributing_factors:
+                            factors.extend([f.factor_name for f in seg_eval.contributing_factors[:2]])
+                        elif seg_eval and seg_eval.missing_data_warnings:
+                            factors.append(seg_eval.missing_data_warnings[0])
+
                         matched_segment_summaries.append(
                             SegmentSummary(
                                 segment_code=m.segment_code,
                                 name=m.name,
                                 length_meters=m.segment_length_meters,
-                                key_factors=[
-                                    f"Classification: {m.road_classification or 'Arterial'}",
-                                    f"Corridor: {m.corridor or 'Chennai Metropolitan Area'}",
-                                ],
+                                safety_score=seg_eval.safety_score if seg_eval else None,
+                                confidence_score=seg_eval.confidence_score if seg_eval else 10.0,
+                                key_factors=factors,
                             )
                         )
                 except Exception as ex:
-                    logger.warning(f"Segment matching skipped for route {route_id}: {ex}")
+                    logger.warning(f"Safety evaluation skipped for route {route_id}: {ex}")
+
+            # Status and disclaimer
+            if route_safety and route_safety.status in ("ASSESSED", "PARTIALLY_ASSESSED"):
+                assessment_status = f"EVALUATED_{route_safety.status}"
+                safety_disclaimer = (
+                    f"Evidence-Based Assessment ({route_safety.status}). "
+                    f"Coverage: {int(route_safety.length_coverage_ratio * 100)}% of route distance ({route_safety.assessed_segments_count}/{route_safety.total_segments_count} segments). "
+                    f"Overall risk level: {route_safety.overall_risk_level}. Does not guarantee personal safety."
+                )
+                comp_safety = route_safety.composite_safety_score
+                comp_conf = route_safety.composite_confidence_score
+            else:
+                assessment_status = "PENDING_PHASE_7_SAFETY_SCORING"
+                safety_disclaimer = (
+                    "Route geometry sourced from OpenStreetMap road network. "
+                    f"{len(matched_segment_summaries)} discrete road segments linked (Phase 7). "
+                    "Multi-factor safety evidence scoring will be computed in subsequent phases."
+                )
+                comp_safety = None
+                comp_conf = route_safety.composite_confidence_score if route_safety else 10.0
 
             alt = RouteAlternative(
                 route_id=route_id,
@@ -333,12 +379,10 @@ class RoutingService:
                 ),
                 coordinates=coords,
                 is_selected=False,
-                safety_assessment_status="PENDING_PHASE_7_SAFETY_SCORING",
-                safety_disclaimer=(
-                    "Route geometry sourced from OpenStreetMap road network. "
-                    f"{len(matched_segment_summaries)} discrete road segments linked (Phase 7). "
-                    "Multi-factor safety evidence scoring will be computed in subsequent phases."
-                ),
+                safety_assessment_status=assessment_status,
+                safety_disclaimer=safety_disclaimer,
+                safety_score=comp_safety,
+                confidence_score=comp_conf,
                 delta_time_seconds=delta_s,
                 delta_time_minutes=delta_min,
                 segments=matched_segment_summaries,
@@ -356,12 +400,16 @@ class RoutingService:
             # Select second alternative if available, else first
             selected_alt = alternatives[1] if len(alternatives) > 1 else alternatives[0]
         elif user_pref == "SAFEST":
-            # Select third alternative if available, else second, else first
-            selected_alt = (
-                alternatives[2] if len(alternatives) > 2
-                else alternatives[1] if len(alternatives) > 1
-                else alternatives[0]
-            )
+            # If alternatives have evaluated safety scores, choose the highest score
+            scored_alts = [a for a in alternatives if a.safety_score is not None]
+            if scored_alts:
+                selected_alt = max(scored_alts, key=lambda a: a.safety_score)
+            else:
+                selected_alt = (
+                    alternatives[2] if len(alternatives) > 2
+                    else alternatives[1] if len(alternatives) > 1
+                    else alternatives[0]
+                )
         else:
             selected_alt = alternatives[0]
 

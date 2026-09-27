@@ -10,6 +10,7 @@ from sqlalchemy import (
     DateTime,
     Text,
     ForeignKey,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 from ..database import Base
@@ -56,6 +57,10 @@ class RoadSegment(Base):
     current_safety_score = Column(Float, default=70.0)  # Dynamically reassessed
     confidence_score = Column(Float, default=80.0)  # 0 to 100 (data completeness/recency)
     
+    # Assessment & Evidence State (Phase 8)
+    evidence_count = Column(Integer, default=0)
+    assessment_status = Column(String(32), default="UNASSESSED")  # UNASSESSED, ASSESSED, LIMITED_EVIDENCE, INSUFFICIENT_DATA, STALE_EVIDENCE
+
     # Metadata
     is_synthetic = Column(Boolean, default=True)  # Clear synthetic demonstration labeling
     created_at = Column(DateTime, default=utc_now)
@@ -67,47 +72,112 @@ class RoadSegment(Base):
 
 
 class EvidenceItem(Base):
-    """Represents a discrete piece of safety evidence tied to a road segment."""
+    """Represents a discrete, provenance-tracked piece of safety evidence."""
 
     __tablename__ = "evidence_items"
 
     id = Column(Integer, primary_key=True, index=True)
-    segment_id = Column(Integer, ForeignKey("road_segments.id"), index=True, nullable=False)
-    source_type = Column(String(64), nullable=False)  # "INFRASTRUCTURE", "COMMUNITY", "POLICE_STATION", "LIGHTING_AUDIT"
-    factor_name = Column(String(128), nullable=False)  # "Adequate Street Lighting", "Police Booth Proximity"
-    impact_score = Column(Float, default=0.0)  # Positive or negative impact on safety (-10.0 to +10.0)
-    confidence_weight = Column(Float, default=0.8)  # 0.0 to 1.0
-    freshness_timestamp = Column(DateTime, default=utc_now)
+    evidence_id = Column(String(64), unique=True, index=True, nullable=False)
+    segment_id = Column(Integer, ForeignKey("road_segments.id"), index=True, nullable=True)
+    segment_code = Column(String(64), index=True, nullable=True)  # Direct stable link
+    
+    # Categorization & Provenance
+    category = Column(String(64), index=True, nullable=False)  # LIGHTING, POLICE_PRESENCE, ROAD_CHARACTERISTIC, PEDESTRIAN_INFRASTRUCTURE, COMMUNITY_REPORT, INCIDENT
+    source_type = Column(String(64), nullable=False)  # SOURCED_PUBLIC_DATA, MUNICIPAL_AUDIT, COMMUNITY_OBSERVATION, THIRD_PARTY, SYNTHETIC_BENCHMARK
+    source_name = Column(String(128), nullable=False)  # e.g. "OpenStreetMap Contributors", "Greater Chennai Police"
+    source_reference = Column(String(255), nullable=True)  # e.g. "OSM way/24483756", "Station Outpost Directory"
+    
+    factor_name = Column(String(128), nullable=False)  # Human-readable factor label
+    impact_score = Column(Float, default=0.0)  # Relative heuristic influence (-10.0 to +10.0)
+    confidence_weight = Column(Float, default=0.8)  # Data reliability weight (0.0 to 1.0)
+    
+    # Spatial Attributes
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    
+    # Temporal & Freshness
+    observed_at = Column(DateTime, nullable=True)  # Actual real-world observation/event timestamp
+    ingested_at = Column(DateTime, default=utc_now)  # Database ingestion timestamp
+    freshness_timestamp = Column(DateTime, default=utc_now)  # Kept for backward compatibility
+    
     details = Column(Text, nullable=True)
-    is_synthetic = Column(Boolean, default=True)
+    attributes_json = Column(Text, nullable=True)  # Structured JSON for category-specific properties
+    verification_status = Column(String(32), default="UNVERIFIED")  # VERIFIED, CORROBORATED, UNVERIFIED, DISPUTED
+    is_synthetic = Column(Boolean, default=False)  # Distinguishes real sourced data from synthetic benchmarks
 
     segment = relationship("RoadSegment", back_populates="evidence_items")
 
 
 class CommunityReport(Base):
-    """Represents a crowd-sourced safety report with trust weighting."""
+    """Represents a crowd-sourced safety observation with trust weighting (Phase 9)."""
 
     __tablename__ = "community_reports"
 
     id = Column(Integer, primary_key=True, index=True)
+    report_id = Column(String(64), unique=True, index=True, nullable=False)
     segment_id = Column(Integer, ForeignKey("road_segments.id"), nullable=True, index=True)
-    category = Column(String(64), nullable=False)  # "POOR_LIGHTING", "DESERTED_AREA", "HARASSMENT", "ROAD_HAZARD", "POLICE_PATROL_ACTIVE"
+    segment_code = Column(String(64), nullable=True, index=True)
+    
+    # Classification & Content
+    category = Column(String(64), nullable=False, index=True)  # POOR_LIGHTING, DESERTED_STRETCH, OBSTRUCTED_FOOTPATH, etc.
+    title = Column(String(128), nullable=True)
     description = Column(Text, nullable=False)
+    location_name = Column(String(255), nullable=True)
+    
+    # Spatial Attributes
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     
     # Trust & Verification weighting
-    reporter_id = Column(String(64), default="anon_user")
-    reporter_reliability = Column(Float, default=0.8)  # 0.1 to 1.0 based on past verification
-    confirmation_count = Column(Integer, default=1)  # Community upvotes / corroborations
-    verification_status = Column(String(32), default="UNVERIFIED")  # "UNVERIFIED", "CORROBORATED", "OFFICIALLY_VERIFIED"
+    reporter_id = Column(String(64), default="anon_user", index=True)
+    reporter_reliability = Column(Float, default=0.75)  # 0.1 to 1.0 based on past verification
+    confirmation_count = Column(Integer, default=0)  # Distinct user corroborations
+    dispute_count = Column(Integer, default=0)  # Distinct user accuracy challenges
+    flag_count = Column(Integer, default=0)  # Moderation flags
     
-    # Timestamps for recency decay
-    reported_at = Column(DateTime, default=utc_now)
+    # Transparent Lifecycle State
+    verification_status = Column(String(32), default="SUBMITTED", index=True)  # SUBMITTED, UNDER_REVIEW, VERIFIED, DISPUTED, REJECTED, EXPIRED
+    status_notes = Column(Text, nullable=True)
+    
+    # Temporal & Freshness
+    observed_at = Column(DateTime, default=utc_now, nullable=False)  # Time of actual event/condition
+    reported_at = Column(DateTime, default=utc_now)  # Time of database submission
+    moderated_at = Column(DateTime, nullable=True)
+    moderated_by = Column(String(64), nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    
+    # Computed Calibrated Impact
+    effective_trust_weight = Column(Float, default=0.5)  # Composite W in [0.0, 1.0]
+    safety_score_impact = Column(Float, default=0.0)  # Signed effect on segment score (-10 to +8)
+    
     is_active = Column(Boolean, default=True)
-    is_synthetic = Column(Boolean, default=True)
+    is_synthetic = Column(Boolean, default=False)  # Distinguishes demo seeds from live community reports
 
+    # Relationships
     segment = relationship("RoadSegment", back_populates="community_reports")
+    interactions = relationship("ReportInteraction", back_populates="report", cascade="all, delete-orphan")
+
+
+class ReportInteraction(Base):
+    """
+    Tracks individual user interactions (confirmations, disputes, flags)
+    to strictly enforce single-interaction constraints and prevent manipulation.
+    """
+
+    __tablename__ = "report_interactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    report_id = Column(Integer, ForeignKey("community_reports.id"), nullable=False, index=True)
+    user_id = Column(String(64), nullable=False, index=True)
+    interaction_type = Column(String(32), nullable=False)  # "CONFIRM", "DISPUTE", "FLAG"
+    comments = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    __table_args__ = (
+        UniqueConstraint("report_id", "user_id", "interaction_type", name="uq_report_user_interaction"),
+    )
+
+    report = relationship("CommunityReport", back_populates="interactions")
 
 
 class RouteEvaluation(Base):

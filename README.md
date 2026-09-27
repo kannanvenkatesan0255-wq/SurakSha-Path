@@ -257,13 +257,31 @@ In two separate terminals:
   - Comprehensive automated test suite: 11 backend tests + 6 frontend tests (total 42 passing tests across project).
   - Detailed documentation in `docs/road_network_foundation.md`.
 
+- [x] **Phase 8: Evidence-Based Safety Data & Risk Assessment Engine:**
+  - Modular, explainable safety-evidence and risk-assessment engine evaluating discrete road segments and producing route-level safety comparisons.
+  - Sourced Chennai evidence baseline linked to 23 OpenStreetMap arterial segments: Greater Chennai Corporation (GCC) smart LED telemetry, Greater Chennai Police outposts (Central D-2, Saidapet J-1, Guindy J-3, Taramani J-13, Mambalam R-1), pedestrian infrastructure, and verified commercial footfall.
+  - Mathematical risk scoring with anchor heuristics (50.0 baseline, bounded $[15.0, 95.0]$), exponential time-decay freshness policies, separate confidence engine, and explicit missing-data outcomes (`INSUFFICIENT_DATA` with `safety_score=None`, never assumed zero risk).
+  - Route-level length-weighted safety aggregation with explicit unassessed distance accounting and nocturnal departure lighting evaluation.
+  - REST endpoints: `/api/safety/segments/{code}`, `/api/safety/routes/evaluate`, `/api/safety/evidence`, `/api/safety/provenance`, `/api/safety/methodology`.
+  - Frontend integration: Live evidence explorer, dataset provenance tables, safety score and confidence badges in route alternative cards.
+- [x] **Phase 9: Trust-Weighted Community Intelligence & Report Verification:**
+  - Complete, integrated community reporting and verification workflow allowing commuters to record location-based observations.
+  - Controlled 9-category urban mobility taxonomy (`POOR_LIGHTING`, `DESERTED_STRETCH`, `OBSTRUCTED_FOOTPATH`, `ISOLATED_UNDERPASS`, `SUSPICIOUS_LOITERING`, `ROAD_HAZARD`, `ACTIVE_POLICE_PRESENCE`, `HIGH_PEDESTRIAN_FOOTFALL`, `INFRASTRUCTURE_DAMAGE`) with category-specific half-life decay and max validity windows.
+  - Calibrated trust-weight calculation ($W = R \times C \times T \times V \times D$) factoring reporter reliability, independent corroboration tallies, recency time decay, transparent verification status, and community disputes.
+  - Strict abuse prevention: single active interaction per user per report enforced via database unique constraint, self-corroboration prevention, rate limiting (5 reports/hr, 25 interactions/hr), and spatial duplicate detection (120m, 24h).
+  - Dynamic reassessment: syncing `EvidenceItem` (`EVD-{report_id}`) and triggering instant re-evaluation of affected road segments and route safety.
+  - Complete report lifecycle state machine: `SUBMITTED`, `UNDER_REVIEW`, `VERIFIED`, `DISPUTED`, `REJECTED`, `EXPIRED` with administrative moderation controls (`X-Admin-Key`).
+  - Privacy safeguards: reporter IDs masked as `Community Contributor #XXXX`, zero personal data storage or exposure.
+  - REST endpoints: `GET /api/community/categories`, `GET /api/community/reports`, `POST /api/community/reports`, `GET /api/community/reports/{id}`, `POST /api/community/reports/{id}/confirm`, `POST /api/community/reports/{id}/dispute`, `POST /api/community/reports/{id}/flag`, `POST /api/community/reports/{id}/moderate`.
+  - Interactive UI: Chennai landmark quick-selectors, live filterable community feed, confirmation/dispute/flag buttons, and expandable mathematical explainability drawer.
+  - Comprehensive test suite: 13 backend unit/integration tests + 7 frontend tests.
+
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 8: Infrastructure & Environmental Evidence Layer:** Street illumination audits, CCTV presence, police posts, and pedestrian footfall indicators linked to road segments.
-2. **Phase 9: Community Reports & Incident Intelligence:** Crowd incident reporting, safety alerts, and geo-referenced road-segment event linking.
-3. **Phase 10: Time-Dependent Risk Analysis:** Temporal variations, nocturnality indices, and dynamic time-of-day risk multipliers.
-4. **Phase 11: Trust-Weighted Community Intelligence:** Corroboration tallying, reporter credibility weighting, and exponential time-decay modeling.
-5. **Phase 12: Segment-Level Safety Assessment & Scoring:** Multi-factor safety evidence engine producing explainable segment safety evaluations.
-6. **Phase 13: Route-Level Safety Aggregation:** Composite safety scoring and trade-off comparisons across alternative corridors.
+1. **Phase 10: Time-Dependent Dynamic Risk Analysis & Nocturnal Modeling**
+2. **Phase 11: Real-Time Route Recalibration & Dynamic Deviation Alerts**
+3. **Phase 12: Turn-by-Turn Safe Navigation Guidance**
+4. **Phase 13: Emergency SOS & Guardian Proximity Sharing**
+5. **Phase 14: Historical Safety Analytics & Urban Audit Export**

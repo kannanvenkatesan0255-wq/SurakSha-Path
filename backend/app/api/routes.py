@@ -1,11 +1,17 @@
-"""Centralized API routing definition."""
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, status, Header, Query
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .health import router as health_router
 from ..schemas.routing import RoutePlanRequest, RoutePlanResponse
-from ..schemas.community import CommunityReportCreate, CommunityReportResponse
+from ..schemas.community import (
+    CommunityReportCreate,
+    CommunityReportResponse,
+    ReportInteractionCreate,
+    ReportModerationAction,
+    CommunityReportsListResponse,
+    CategoryInfo,
+)
 from ..schemas.feedback import JourneyFeedbackCreate, FeedbackReassessmentResponse
 from ..services.routing_service import RoutingService
 from ..services.community_service import CommunityService
@@ -26,15 +32,166 @@ def plan_routes(
     service = RoutingService(db=db)
     return service.generate_route_alternatives(request)
 
-# Community Reporting endpoint
+# ==============================================================================
+# Phase 9: Trust-Weighted Community Intelligence Endpoints
+# ==============================================================================
+
+@api_router.get("/community/categories", response_model=List[CategoryInfo], tags=["Community"])
+def get_community_categories(
+    db: Session = Depends(get_db),
+) -> List[CategoryInfo]:
+    """Retrieve controlled observation categories, base impact, and decay rates."""
+    service = CommunityService(db=db)
+    return service.get_categories()
+
+
+@api_router.get("/community/reports", response_model=CommunityReportsListResponse, tags=["Community"])
+def list_community_reports(
+    category: Optional[str] = Query(None, description="Filter by observation category"),
+    status: Optional[str] = Query(None, description="Filter by verification status"),
+    segment_code: Optional[str] = Query(None, description="Filter by road segment code"),
+    is_active: Optional[bool] = Query(None, description="Filter active status"),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+) -> CommunityReportsListResponse:
+    """Retrieve community observation reports with privacy protection and trust weights."""
+    service = CommunityService(db=db)
+    items, total = service.list_reports(
+        category=category,
+        status=status,
+        segment_code=segment_code,
+        is_active=is_active,
+        limit=limit,
+        offset=offset,
+    )
+    formatted = [service.format_report_response(r) for r in items]
+    return CommunityReportsListResponse(items=formatted, total=total, limit=limit, offset=offset)
+
+
 @api_router.post("/community/reports", response_model=CommunityReportResponse, status_code=status.HTTP_201_CREATED, tags=["Community"])
-def create_report(
-    report: CommunityReportCreate,
+def create_community_report(
+    report_in: CommunityReportCreate,
+    x_user_id: Optional[str] = Header(None, description="Anonymous or session user identifier"),
     db: Session = Depends(get_db),
 ) -> CommunityReportResponse:
-    """Submit a crowd-sourced safety report with trust weighting."""
+    """Submit a location-based community safety observation with trust weighting."""
     service = CommunityService(db=db)
-    return service.submit_report(report)
+    user_id = x_user_id or "anon_user"
+    try:
+        report = service.submit_report(report_in, reporter_id=user_id)
+        return service.format_report_response(report)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@api_router.get("/community/reports/{report_id}", response_model=CommunityReportResponse, tags=["Community"])
+def get_community_report_detail(
+    report_id: str,
+    db: Session = Depends(get_db),
+) -> CommunityReportResponse:
+    """Retrieve detail, status, and explainability breakdown for a single community report."""
+    service = CommunityService(db=db)
+    report = service.get_report_by_id(report_id)
+    if not report:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Community report with ID '{report_id}' was not found.",
+        )
+    return service.format_report_response(report)
+
+
+@api_router.post("/community/reports/{report_id}/confirm", response_model=CommunityReportResponse, tags=["Community"])
+def confirm_community_report(
+    report_id: str,
+    x_user_id: Optional[str] = Header(None, description="User identifier"),
+    interaction: Optional[ReportInteractionCreate] = None,
+    db: Session = Depends(get_db),
+) -> CommunityReportResponse:
+    """Independently corroborate an observed safety condition."""
+    service = CommunityService(db=db)
+    user_id = x_user_id or "anon_user"
+    try:
+        comments = interaction.comments if interaction else None
+        updated = service.interact_with_report(
+            report_id=report_id,
+            user_id=user_id,
+            interaction_type="CONFIRM",
+            comments=comments,
+        )
+        return service.format_report_response(updated)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@api_router.post("/community/reports/{report_id}/dispute", response_model=CommunityReportResponse, tags=["Community"])
+def dispute_community_report(
+    report_id: str,
+    x_user_id: Optional[str] = Header(None, description="User identifier"),
+    interaction: Optional[ReportInteractionCreate] = None,
+    db: Session = Depends(get_db),
+) -> CommunityReportResponse:
+    """Indicate that an observation may be inaccurate, resolved, or outdated."""
+    service = CommunityService(db=db)
+    user_id = x_user_id or "anon_user"
+    try:
+        comments = interaction.comments if interaction else None
+        updated = service.interact_with_report(
+            report_id=report_id,
+            user_id=user_id,
+            interaction_type="DISPUTE",
+            comments=comments,
+        )
+        return service.format_report_response(updated)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@api_router.post("/community/reports/{report_id}/flag", response_model=CommunityReportResponse, tags=["Community"])
+def flag_community_report(
+    report_id: str,
+    x_user_id: Optional[str] = Header(None, description="User identifier"),
+    interaction: Optional[ReportInteractionCreate] = None,
+    db: Session = Depends(get_db),
+) -> CommunityReportResponse:
+    """Flag an observation for moderator inspection (e.g. spam, abuse, hate speech)."""
+    service = CommunityService(db=db)
+    user_id = x_user_id or "anon_user"
+    try:
+        comments = interaction.comments if interaction else None
+        updated = service.interact_with_report(
+            report_id=report_id,
+            user_id=user_id,
+            interaction_type="FLAG",
+            comments=comments,
+        )
+        return service.format_report_response(updated)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@api_router.post("/community/reports/{report_id}/moderate", response_model=CommunityReportResponse, tags=["Community"])
+def moderate_community_report(
+    report_id: str,
+    action: ReportModerationAction,
+    x_admin_key: Optional[str] = Header(None, description="Administrative authorization key"),
+    db: Session = Depends(get_db),
+) -> CommunityReportResponse:
+    """Perform verified moderation action (VERIFIED, REJECTED, UNDER_REVIEW)."""
+    service = CommunityService(db=db)
+    try:
+        updated = service.moderate_report(
+            report_id=report_id,
+            target_status=action.status,
+            moderator_id="admin_moderator",
+            moderator_key=x_admin_key or "",
+            notes=action.notes,
+        )
+        return service.format_report_response(updated)
+    except PermissionError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 # Feedback & Reassessment endpoint
 @api_router.post("/feedback", response_model=FeedbackReassessmentResponse, status_code=status.HTTP_201_CREATED, tags=["Feedback"])
@@ -206,3 +363,130 @@ def ingest_road_network(
     """Triggers road network dataset ingestion from the verified Chennai road network source."""
     service = RoadNetworkService(db=db)
     return service.ingest_road_network(force_reload=force_reload)
+
+
+# ==============================================================================
+# Phase 8: Evidence-Based Safety & Risk Assessment Endpoints
+# ==============================================================================
+
+from ..schemas.risk import (
+    SegmentSafetyAssessment,
+    RouteSafetyAssessment,
+    MethodologyInfo,
+)
+from ..schemas.evidence import (
+    EvidenceCreate,
+    EvidenceResponse,
+    EvidenceFilterParams,
+    EvidenceProvenanceReport,
+)
+from ..services.risk_service import RiskService
+from ..services.evidence_service import EvidenceService
+from pydantic import BaseModel
+
+
+class RouteEvaluationRequest(BaseModel):
+    route_id: str
+    segment_codes: List[str]
+    departure_time: Optional[str] = None
+
+
+@api_router.get("/safety/segments/{segment_code}", response_model=SegmentSafetyAssessment, tags=["Safety Assessment"])
+def get_segment_safety_assessment(
+    segment_code: str,
+    departure_time: Optional[str] = None,
+    db: Session = Depends(get_db),
+) -> SegmentSafetyAssessment:
+    """Retrieve evidence-based safety assessment and explainability breakdown for a road segment."""
+    service = RiskService(db=db)
+    try:
+        return service.evaluate_segment_safety(segment_code=segment_code, departure_time=departure_time)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@api_router.post("/safety/routes/evaluate", response_model=RouteSafetyAssessment, tags=["Safety Assessment"])
+def evaluate_route_safety(
+    request: RouteEvaluationRequest,
+    db: Session = Depends(get_db),
+) -> RouteSafetyAssessment:
+    """Evaluate aggregate safety profile across a sequential list of road segments."""
+    service = RiskService(db=db)
+    return service.evaluate_route_safety(
+        route_id=request.route_id,
+        segments=request.segment_codes,
+        departure_time=request.departure_time,
+    )
+
+
+@api_router.get("/safety/evidence", tags=["Safety Evidence"])
+def query_safety_evidence(
+    segment_code: Optional[str] = None,
+    category: Optional[str] = None,
+    source_type: Optional[str] = None,
+    verification_status: Optional[str] = None,
+    is_synthetic: Optional[bool] = None,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+    """Query safety evidence records with category, provenance, and segment filtering."""
+    params = EvidenceFilterParams(
+        segment_code=segment_code,
+        category=category,
+        source_type=source_type,
+        verification_status=verification_status,
+        is_synthetic=is_synthetic,
+        limit=limit,
+        offset=offset,
+    )
+    service = EvidenceService(db=db)
+    return service.query_evidence(params)
+
+
+@api_router.get("/safety/evidence/{evidence_id}", response_model=EvidenceResponse, tags=["Safety Evidence"])
+def get_evidence_detail(
+    evidence_id: str,
+    db: Session = Depends(get_db),
+) -> EvidenceResponse:
+    """Fetch single evidence item details and provenance."""
+    service = EvidenceService(db=db)
+    item = service.get_evidence_by_id(evidence_id)
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Evidence item with ID '{evidence_id}' was not found.",
+        )
+    return item
+
+
+@api_router.post("/safety/evidence", response_model=EvidenceResponse, status_code=status.HTTP_201_CREATED, tags=["Safety Evidence"])
+def create_safety_evidence(
+    evidence_in: EvidenceCreate,
+    db: Session = Depends(get_db),
+) -> EvidenceResponse:
+    """Ingest a new validated safety evidence record with spatial association."""
+    service = EvidenceService(db=db)
+    try:
+        return service.create_evidence(evidence_in)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@api_router.get("/safety/provenance", response_model=List[EvidenceProvenanceReport], tags=["Safety Evidence"])
+def get_safety_provenance(
+    db: Session = Depends(get_db),
+) -> List[EvidenceProvenanceReport]:
+    """Retrieve licensing, attribution, and provenance documentation for evidence datasets."""
+    service = EvidenceService(db=db)
+    return service.get_provenance_reports()
+
+
+@api_router.get("/safety/methodology", response_model=MethodologyInfo, tags=["Safety Assessment"])
+def get_safety_methodology(
+    db: Session = Depends(get_db),
+) -> MethodologyInfo:
+    """Returns methodology details, assumptions, evidence weights, and limitations."""
+    service = RiskService(db=db)
+    return service.get_methodology_info()
+

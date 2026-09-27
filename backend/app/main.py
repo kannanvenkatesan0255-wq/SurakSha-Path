@@ -37,8 +37,27 @@ async def lifespan(app: FastAPI):
                 logger.info(f"Ingested {summary.features_imported} road segments into Chennai database.")
             else:
                 logger.info(f"Chennai road network active with {segment_count} segments.")
+
+            # Automatically ingest Chennai safety evidence if table is empty (Phase 8)
+            from .models.domain import EvidenceItem
+            from .services.evidence_service import EvidenceService
+            evd_count = db.query(EvidenceItem).count()
+            if evd_count == 0:
+                logger.info("Ingesting Chennai safety evidence baseline from curated dataset...")
+                evd_path = os.path.join(os.path.dirname(__file__), "data", "chennai_safety_evidence.json")
+                if os.path.exists(evd_path):
+                    evd_svc = EvidenceService(db)
+                    evd_summary = evd_svc.ingest_evidence_dataset(evd_path)
+                    logger.info(f"Ingested {evd_summary['imported_count']} safety evidence items into database.")
+            else:
+                logger.info(f"Chennai safety evidence active with {evd_count} items.")
+
+            # Automatically seed demo community reports if empty (Phase 9)
+            from .services.community_service import CommunityService
+            comm_svc = CommunityService(db)
+            comm_svc.seed_demo_reports()
     except Exception as ex:
-        logger.warning(f"Initial road-network ingestion check skipped: {ex}")
+        logger.warning(f"Initial road-network/evidence/community ingestion check skipped: {ex}")
 
     yield
     logger.info("Shutting down Suraksha Path application...")

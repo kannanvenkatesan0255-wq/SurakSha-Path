@@ -58,4 +58,7 @@ class Settings:
         "It does not guarantee personal safety and does not predict crime events."
     )
 
+    # Community Moderation Configuration
+    MODERATOR_KEY: str = os.getenv("MODERATOR_KEY", "suraksha-chennai-moderator-2026")
+
 settings = Settings()

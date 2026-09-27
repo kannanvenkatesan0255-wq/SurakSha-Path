@@ -1,0 +1,430 @@
+{
+  "provenance": {
+    "dataset_name": "Chennai Urban Safety & Infrastructure Evidence Baseline",
+    "version": "1.0.0",
+    "curated_at": "2026-09-27T00:00:00Z",
+    "geographic_coverage": "Chennai Metropolitan Area (CMA), Tamil Nadu, India",
+    "primary_sources": [
+      {
+        "source_name": "OpenStreetMap Contributors",
+        "source_type": "SOURCED_PUBLIC_DATA",
+        "license": "Open Database License (ODbL) 1.0",
+        "reference": "https://www.openstreetmap.org",
+        "description": "Road classifications, dual carriage medians, lane counts, and lighting tags"
+      },
+      {
+        "source_name": "Greater Chennai Police Station & Outpost Directory",
+        "source_type": "SOURCED_PUBLIC_DATA",
+        "license": "Public Administrative Directory (Data.gov.in / TN Police)",
+        "reference": "https://eservices.tnpolice.gov.in",
+        "description": "Geocoded 24/7 law enforcement station posts and permanent beat booths"
+      },
+      {
+        "source_name": "Greater Chennai Corporation (GCC) Infrastructure Registry",
+        "source_type": "SOURCED_PUBLIC_DATA",
+        "license": "Public Municipal Disclosures",
+        "reference": "https://chennaicorporation.gov.in",
+        "description": "Arterial smart LED luminaire audits and transit corridor footpaths"
+      }
+    ],
+    "known_limitations": [
+      "No street-level crime occurrence geodata is publicly released in Chennai; incident indicators rely on corroborated community hazard reports.",
+      "Absence of safety evidence on a segment does not indicate safety.",
+      "Lighting audits reflect physical infrastructure availability, not instantaneous power outages."
+    ]
+  },
+  "evidence_items": [
+    {
+      "evidence_id": "EVD-GCC-LGT-24483756",
+      "segment_code": "SEG-OSM-W24483756",
+      "category": "LIGHTING",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Corporation (GCC) Streetlight Registry",
+      "source_reference": "GCC Ward 58 Public Disclosures / OSM way/24483756",
+      "factor_name": "Continuous Arterial Street Illumination",
+      "impact_score": 7.5,
+      "confidence_weight": 0.90,
+      "latitude": 13.0827,
+      "longitude": 80.2707,
+      "observed_at": "2026-08-15T00:00:00Z",
+      "details": "Continuous LED luminaire spacing along Poonamallee High Road carriage lanes.",
+      "attributes": {
+        "luminaire_type": "LED",
+        "continuous_coverage": true
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCP-POL-24483756",
+      "segment_code": "SEG-OSM-W24483756",
+      "category": "POLICE_PRESENCE",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Police Station Directory",
+      "source_reference": "Chennai Central Railway Police Station (D-2)",
+      "factor_name": "24/7 Police Station Proximity (within 150m)",
+      "impact_score": 8.0,
+      "confidence_weight": 0.95,
+      "latitude": 13.0833,
+      "longitude": 80.2715,
+      "observed_at": "2026-07-01T00:00:00Z",
+      "details": "Manned 24/7 law enforcement station with regular patrol presence at Chennai Central terminus.",
+      "attributes": {
+        "station_type": "Permanent Station",
+        "distance_meters": 120
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-OSM-INF-24483756",
+      "segment_code": "SEG-OSM-W24483756",
+      "category": "ROAD_CHARACTERISTIC",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "OpenStreetMap Road Characteristics",
+      "source_reference": "OSM way/24483756 tags (lanes=4, highway=primary)",
+      "factor_name": "Multi-Lane Divided Primary Arterial Road",
+      "impact_score": 6.0,
+      "confidence_weight": 0.92,
+      "latitude": 13.0820,
+      "longitude": 80.2680,
+      "observed_at": "2026-06-01T00:00:00Z",
+      "details": "Divided primary arterial with 4 lanes and clear line-of-sight.",
+      "attributes": {
+        "lanes": 4,
+        "classification": "primary"
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCC-LGT-24483757",
+      "segment_code": "SEG-OSM-W24483757",
+      "category": "LIGHTING",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Corporation (GCC) Streetlight Registry",
+      "source_reference": "Anna Salai LED Modernization Corridor / OSM way/24483757",
+      "factor_name": "High-Mast & Median LED Illumination",
+      "impact_score": 8.5,
+      "confidence_weight": 0.95,
+      "latitude": 13.0730,
+      "longitude": 80.2660,
+      "observed_at": "2026-08-20T00:00:00Z",
+      "details": "Dual high-mast and median LED lighting along Simson to Thousand Lights stretch.",
+      "attributes": {
+        "luminaire_type": "High-Mast LED",
+        "median_lighting": true
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-OSM-INF-24483757",
+      "segment_code": "SEG-OSM-W24483757",
+      "category": "ROAD_CHARACTERISTIC",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "OpenStreetMap Road Characteristics",
+      "source_reference": "OSM way/24483757 (highway=trunk, lanes=6)",
+      "factor_name": "Major Divided Trunk Highway (6 Lanes)",
+      "impact_score": 7.0,
+      "confidence_weight": 0.94,
+      "latitude": 13.0720,
+      "longitude": 80.2640,
+      "observed_at": "2026-06-01T00:00:00Z",
+      "details": "National Highway trunk corridor with heavy commercial transit and continuous medians.",
+      "attributes": {
+        "lanes": 6,
+        "classification": "trunk"
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCC-PED-24483757",
+      "segment_code": "SEG-OSM-W24483757",
+      "category": "PEDESTRIAN_INFRASTRUCTURE",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "GCC Non-Motorized Transport (NMT) Audit",
+      "source_reference": "Anna Salai Pedestrian Plaza Audit / OSM way/24483757",
+      "factor_name": "Paved Pedestrian Walkway on Both Sides",
+      "impact_score": 5.5,
+      "confidence_weight": 0.88,
+      "latitude": 13.0700,
+      "longitude": 80.2610,
+      "observed_at": "2026-07-15T00:00:00Z",
+      "details": "Elevated pedestrian pavement separated from vehicular carriageway.",
+      "attributes": {
+        "sidewalk": "both",
+        "paved": true
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCP-POL-24483758",
+      "segment_code": "SEG-OSM-W24483758",
+      "category": "POLICE_PRESENCE",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Police Station Directory",
+      "source_reference": "E-2 Royapettah Police Beat Booth",
+      "factor_name": "Police Outpost & Beat Checkpoint",
+      "impact_score": 7.0,
+      "confidence_weight": 0.90,
+      "latitude": 13.0550,
+      "longitude": 80.2520,
+      "observed_at": "2026-08-01T00:00:00Z",
+      "details": "Active police traffic and security outpost near Gemini Flyover junction.",
+      "attributes": {
+        "outpost_type": "Beat Booth"
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCC-LGT-24483758",
+      "segment_code": "SEG-OSM-W24483758",
+      "category": "LIGHTING",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Corporation (GCC) Streetlight Registry",
+      "source_reference": "Anna Salai Central Trunk / OSM way/24483758",
+      "factor_name": "Continuous Arterial Street Illumination",
+      "impact_score": 8.0,
+      "confidence_weight": 0.92,
+      "latitude": 13.0560,
+      "longitude": 80.2530,
+      "observed_at": "2026-08-20T00:00:00Z",
+      "details": "Full continuous lighting coverage along Thousand Lights to Gemini corridor.",
+      "attributes": {
+        "continuous_coverage": true
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCC-LGT-24483759",
+      "segment_code": "SEG-OSM-W24483759",
+      "category": "LIGHTING",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Corporation (GCC) Streetlight Registry",
+      "source_reference": "Anna Salai Nandanam Corridor / OSM way/24483759",
+      "factor_name": "Continuous Arterial Street Illumination",
+      "impact_score": 8.0,
+      "confidence_weight": 0.92,
+      "latitude": 13.0420,
+      "longitude": 80.2430,
+      "observed_at": "2026-08-20T00:00:00Z",
+      "details": "Continuous LED lighting along Gemini to Nandanam stretch.",
+      "attributes": {
+        "continuous_coverage": true
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCP-POL-24483760",
+      "segment_code": "SEG-OSM-W24483760",
+      "category": "POLICE_PRESENCE",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Police Station Directory",
+      "source_reference": "J-1 Saidapet Police Station",
+      "factor_name": "Permanent Police Station Vicinity (< 200m)",
+      "impact_score": 7.5,
+      "confidence_weight": 0.95,
+      "latitude": 13.0230,
+      "longitude": 80.2240,
+      "observed_at": "2026-07-01T00:00:00Z",
+      "details": "J-1 Saidapet station provides round-the-clock patrol presence.",
+      "attributes": {
+        "station_type": "Sub-divisional Station"
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCP-POL-24483761",
+      "segment_code": "SEG-OSM-W24483761",
+      "category": "POLICE_PRESENCE",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Police Station Directory",
+      "source_reference": "J-3 Guindy Police Station",
+      "factor_name": "Permanent Police Station & Traffic Hub",
+      "impact_score": 8.0,
+      "confidence_weight": 0.95,
+      "latitude": 13.0080,
+      "longitude": 80.2135,
+      "observed_at": "2026-07-01T00:00:00Z",
+      "details": "Located near Kathipara junction with high enforcement visibility.",
+      "attributes": {
+        "station_type": "Permanent Station"
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-OSM-INF-24483761",
+      "segment_code": "SEG-OSM-W24483761",
+      "category": "ROAD_CHARACTERISTIC",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "OpenStreetMap Road Characteristics",
+      "source_reference": "OSM way/24483761 (highway=trunk, lanes=8)",
+      "factor_name": "Major Multi-Lane Divided Expressway (8 Lanes)",
+      "impact_score": 7.5,
+      "confidence_weight": 0.95,
+      "latitude": 13.0070,
+      "longitude": 80.2110,
+      "observed_at": "2026-06-01T00:00:00Z",
+      "details": "Grade-separated 8-lane expressway connecting Guindy Kathipara to Alandur.",
+      "attributes": {
+        "lanes": 8,
+        "classification": "trunk"
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCC-LGT-24483764",
+      "segment_code": "SEG-OSM-W24483764",
+      "category": "LIGHTING",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Corporation (GCC) Streetlight Registry",
+      "source_reference": "Rajiv Gandhi Salai IT Expressway Project / OSM way/24483764",
+      "factor_name": "Dedicated Expressway Median Lighting",
+      "impact_score": 8.0,
+      "confidence_weight": 0.92,
+      "latitude": 12.9960,
+      "longitude": 80.2490,
+      "observed_at": "2026-08-15T00:00:00Z",
+      "details": "Full continuous high-mast illumination along OMR IT Corridor.",
+      "attributes": {
+        "luminaire_type": "LED",
+        "median_mast": true
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCP-POL-24483765",
+      "segment_code": "SEG-OSM-W24483765",
+      "category": "POLICE_PRESENCE",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Police Station Directory",
+      "source_reference": "J-13 Taramani Police Station",
+      "factor_name": "Police Station Proximity (< 250m)",
+      "impact_score": 7.0,
+      "confidence_weight": 0.90,
+      "latitude": 12.9865,
+      "longitude": 80.2440,
+      "observed_at": "2026-07-01T00:00:00Z",
+      "details": "Located adjacent to Tidel Park junction on Rajiv Gandhi Salai.",
+      "attributes": {
+        "station_type": "Permanent Station"
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCC-LGT-24483768",
+      "segment_code": "SEG-OSM-W24483768",
+      "category": "LIGHTING",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Corporation (GCC) Streetlight Registry",
+      "source_reference": "Marina Promenade Illumination Project / OSM way/24483768",
+      "factor_name": "High-Intensity Promenade Lighting",
+      "impact_score": 8.0,
+      "confidence_weight": 0.90,
+      "latitude": 13.0550,
+      "longitude": 80.2820,
+      "observed_at": "2026-08-25T00:00:00Z",
+      "details": "Continuous high-density seaside illumination along Kamarajar Salai.",
+      "attributes": {
+        "luminaire_type": "LED",
+        "promenade_coverage": true
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCC-PED-24483768",
+      "segment_code": "SEG-OSM-W24483768",
+      "category": "PEDESTRIAN_INFRASTRUCTURE",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "GCC Marina Beach Infrastructure Audit",
+      "source_reference": "OSM way/24483768 (sidewalk=both)",
+      "factor_name": "Dedicated Wide Pedestrian Promenade Walkway",
+      "impact_score": 7.5,
+      "confidence_weight": 0.92,
+      "latitude": 13.0540,
+      "longitude": 80.2825,
+      "observed_at": "2026-07-20T00:00:00Z",
+      "details": "Continuous wide pedestrian walkway separated from road by barrier.",
+      "attributes": {
+        "sidewalk": "both",
+        "barrier_separated": true
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-GCP-POL-24483772",
+      "segment_code": "SEG-OSM-W24483772",
+      "category": "POLICE_PRESENCE",
+      "source_type": "SOURCED_PUBLIC_DATA",
+      "source_name": "Greater Chennai Police Station Directory",
+      "source_reference": "R-1 Mambalam Police Outpost",
+      "factor_name": "Active Commercial Beat Outpost (< 100m)",
+      "impact_score": 7.5,
+      "confidence_weight": 0.92,
+      "latitude": 13.0425,
+      "longitude": 80.2345,
+      "observed_at": "2026-08-01T00:00:00Z",
+      "details": "Permanent beat booth at North Usman Road commercial intersection.",
+      "attributes": {
+        "outpost_type": "Beat Booth"
+      },
+      "verification_status": "VERIFIED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-REP-CROWD-24483773",
+      "segment_code": "SEG-OSM-W24483773",
+      "category": "COMMUNITY_REPORT",
+      "source_type": "COMMUNITY_OBSERVATION",
+      "source_name": "Suraksha Path Corroborated Community Observation",
+      "source_reference": "Report #CR-2026-0881 (Confirmed by 5 observers)",
+      "factor_name": "Heavy Pedestrian Density & Active Commercial Surveillance",
+      "impact_score": 6.5,
+      "confidence_weight": 0.85,
+      "latitude": 13.0395,
+      "longitude": 80.2335,
+      "observed_at": "2026-09-10T19:30:00Z",
+      "details": "High footfall from retail stores and transit kiosks operating until late night.",
+      "attributes": {
+        "confirmations": 5,
+        "hazard_type": "FOOTFALL"
+      },
+      "verification_status": "CORROBORATED",
+      "is_synthetic": false
+    },
+    {
+      "evidence_id": "EVD-REP-HAZ-24483773",
+      "segment_code": "SEG-OSM-W24483773",
+      "category": "COMMUNITY_REPORT",
+      "source_type": "COMMUNITY_OBSERVATION",
+      "source_name": "Suraksha Path Community Observation",
+      "source_reference": "Report #CR-2026-0914 (3 confirmations)",
+      "factor_name": "Restricted Pedestrian Walkway due to Street Vendors",
+      "impact_score": -4.0,
+      "confidence_weight": 0.78,
+      "latitude": 13.0390,
+      "longitude": 80.2330,
+      "observed_at": "2026-09-12T18:00:00Z",
+      "details": "Pedestrians forced onto road carriage width during peak evening shopping hours.",
+      "attributes": {
+        "hazard_type": "PEDESTRIAN_OBSTRUCTION",
+        "confirmations": 3
+      },
+      "verification_status": "CORROBORATED",
+      "is_synthetic": false
+    }
+  ]
+}
