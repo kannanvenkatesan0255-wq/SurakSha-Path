@@ -164,9 +164,12 @@ def test_request_size_limit_rejection(client):
 
 def test_bearer_token_moderation_authorization(client):
     """Verify that Bearer tokens work identically to X-Admin-Key for moderation."""
+    import uuid
+    user_id = f"test_user_{uuid.uuid4().hex[:6]}"
     # First submit a test community report
     report_res = client.post(
         "/api/community/reports",
+        headers={"X-User-Id": user_id},
         json={
             "category": "POOR_LIGHTING",
             "description": "Dim street lamps along inner ring road stretch",
@@ -206,7 +209,8 @@ def test_unauthorized_moderation_rejected(client):
 
 def test_self_moderation_prevention(client):
     """Verify that a moderator cannot self-verify their own submitted community report."""
-    reporter_id = "moderator_ramesh"
+    import uuid
+    reporter_id = f"moderator_{uuid.uuid4().hex[:6]}"
 
     # Submit report as moderator_ramesh
     report_res = client.post(
@@ -240,8 +244,10 @@ def test_self_moderation_prevention(client):
 
 def test_input_sanitization_in_community_report_submission(client):
     """Verify that malicious script tags in report submission are neutralized."""
+    import uuid
     res = client.post(
         "/api/community/reports",
+        headers={"X-User-Id": f"xss_user_{uuid.uuid4().hex[:6]}"},
         json={
             "category": "POOR_LIGHTING",
             "description": "<script>alert('xss')</script>Dark street section near school",

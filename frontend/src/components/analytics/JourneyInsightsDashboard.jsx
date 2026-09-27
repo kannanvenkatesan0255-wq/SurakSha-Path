@@ -3,12 +3,10 @@ import { SectionPanel } from '../common/SectionPanel';
 import { MetricDisplay } from '../common/MetricDisplay';
 import { Button } from '../common/Button';
 import { EmptyState } from '../common/EmptyState';
-import { StatusBadge } from '../common/StatusBadge';
 import {
   loadJourneyHistory,
   clearJourneyHistory,
   calculateJourneyMetrics,
-  CHENNAI_DEMO_JOURNEYS,
 } from '../../services/journeyStorage';
 
 /**

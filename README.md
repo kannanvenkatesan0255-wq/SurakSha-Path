@@ -376,13 +376,24 @@ In two separate terminals:
   - Comprehensive automated test suite: 124 backend unit/integration tests + 87 frontend tests (**211 total passing tests across the workspace**).
   - Detailed documentation in `docs/security_and_production_readiness.md`.
 
+- [x] **Phase 18: End-to-End Integration, User Acceptance Testing & Bug Fixing:**
+  - Complete end-to-end integration and stabilization of all 8 core user workflows (Flows A through H) across frontend and backend.
+  - Comprehensive feature inventory audit covering route planning, interactive maps, segment risk assessment, community reporting, journey monitoring, check-ins, SOS prototype, safety analytics, route preferences, and security/privacy boundaries.
+  - Cross-component state consistency verification between route planner, Leaflet map overlays, journey tracking state machine, local archival storage, and insights dashboard.
+  - Automated backend integration test suite (`backend/tests/test_e2e_integration.py`) covering all 8 workflows with deterministic synthetic test fixtures.
+  - Automated frontend integration test suite (`frontend/src/tests/e2e_integration.test.js`) covering navigation, route selection, explainability, check-in cycles, SOS workflows, metrics aggregation, preferences, and privacy controls.
+  - Fixed subtle integration defects: cleaned up unused imports, prevented rate-limit collisions in persistent databases, and resolved storage key assertions.
+  - Zero-error frontend production build (`npm run build`) and zero-error linter (`oxlint`).
+  - Comprehensive automated test suite: 132 backend unit/integration tests + 95 frontend tests (**227 total passing tests across the workspace**).
+  - Detailed documentation in `docs/e2e_integration_and_uat.md`.
+
 ---
 
 ## 12. Upcoming Roadmap Phases
 
 1. **Phase 16: Offline PWA & Offline Network Caching**
-2. **Phase 18: Collaborative Safe Haven & Community Guardian Network**
-3. **Phase 19: Civic Authority Open Data Integration & Automated Spatial Auditing**
+2. **Phase 19: Civic Authority Open Data Integration & Automated Spatial Auditing**
+
 
 
 
