@@ -36,12 +36,13 @@ Suraksha Path introduces a transparent, verifiable routing paradigm that evaluat
 | Layer | Technology | Version | Purpose |
 | :--- | :--- | :--- | :--- |
 | **Frontend** | React + Vite | React 19, Vite 8 | Fast, modern component-based cartographic UI |
+| **Mapping Engine** | Leaflet | 1.9.4 | Interactive geospatial canvas & custom vector overlays |
 | **Styling** | Vanilla CSS (Design Tokens) | CSS3 / Glassmorphic | Curated palette, dark theme, fluid typography |
 | **Backend** | Python + FastAPI | Python 3.13, FastAPI 0.139 | High-performance asynchronous REST API |
 | **ASGI Server** | Uvicorn | 0.51.0 | Fast ASGI production/development server |
 | **Database** | SQLite + SQLAlchemy | SQLAlchemy 2.0 | Spatial graph schema, zero-credential local DB |
 | **Data Validation** | Pydantic v2 | 2.13.4 | Strict schema serialization and request validation |
-| **Test Suite** | Python `unittest` | Built-in | Automated API and database verification |
+| **Test Suite** | Python `unittest` + Node test runner | Built-in | Automated API, database, and map logic verification |
 
 ---
 
@@ -198,13 +199,22 @@ In two separate terminals:
 
 ---
 
-## 10. Testing & Verification Commands
+* **Run Full Test Suite (Backend + Frontend):**
+  ```bash
+  npm test
+  ```
+  *(Executes Python unittest suite and Node test runner, verifying all API contracts and map utilities).*
 
 * **Run Backend Unit Tests:**
   ```bash
   npm run test:backend
   ```
-  *(Executes `python -m unittest discover -s backend/tests -p "test_*.py"` verifying health endpoints and database connectivity).*
+
+* **Run Frontend Unit Tests:**
+  ```bash
+  npm run test:frontend
+  ```
+  *(Executes `node --test src/tests/*.test.js` verifying coordinates validation, Haversine calculations, basemap providers, and layer schemas).*
 
 * **Run Frontend Build Verification:**
   ```bash
@@ -220,18 +230,28 @@ In two separate terminals:
 - [x] **Phase 2: Application Architecture & Project Foundation:** Decoupled FastAPI backend + React 19 frontend, SQLite database with SQLAlchemy domain models, health check endpoint, centralized API client, automated unit tests.
 - [x] **Phase 3: Professional UI Design System & Navigation:**
   - Distinctive, restrained geospatial design tokens (`index.css`) with dark cartographic canvas, high-contrast semantic risk colors (LOW, MEDIUM, HIGH paired strictly with text labels), and tabular numerals.
-  - Comprehensive reusable domain components: `AppHeader`, `PrimaryNavigation`, `PageHeader`, `StatusBadge`, `RiskBadge`, `MetricDisplay`, `SectionPanel`, `EmptyState`, `ErrorState`, `LoadingState`, `FeedbackMessage`, `Button`, `Input`.
-  - Functional, non-marketing `HomeView` focused on the core principle: **Safety ≠ Distance**.
-  - Integrated `PlanRouteView` combining journey parameters, `MapWorkspace` cartographic boundary, and multi-route alternative comparison cards (`FASTEST`, `BALANCED`, `SAFEST`).
-  - Structured domain views: `EvidenceView`, `CommunityView`, and `ActivityView`.
-  - Accessible, responsive layout for desktop, tablet, and touch-friendly mobile devices.
+  - Comprehensive reusable domain components (`AppShell`, `AppHeader`, `PrimaryNavigation`, `ServiceStatusBar`, `StatusBadge`, `Button`, etc.).
+  - Functional views: `HomeView`, `PlanRouteView`, `EvidenceView`, `CommunityView`, and `ActivityView`.
+- [x] **Phase 4: Route Planner & Journey Configuration:**
+  - Interactive location inputs with curated Chennai location catalog suggestions and location swap control (`⇅`).
+  - Temporal context controls (journey date & departure time presets) and safety–time preference selector (`FASTEST`, `BALANCED`, `SAFEST`).
+  - Strict validation preventing empty or identical endpoints and past dates.
+  - Typed backend API contract `POST /api/routes/plan` returning honest `PENDING_ROUTING_ENGINE_PHASE_5` without fabricating mock routes or scores.
+- [x] **Phase 5: Interactive Chennai Map & Geospatial Workspace:**
+  - Integrated Leaflet 1.9.4 cartographic engine centered on Chennai Metropolitan Area (`13.0827° N, 80.2707° E`, zoom 12).
+  - Configurable basemaps: CartoDB Dark Matter (default nocturnal theme), CartoDB Voyager (street navigation), and OpenStreetMap.
+  - High-contrast, accessible `L.divIcon` markers: Origin (Emerald A / 📍) and Destination (Amber B / 🏁) with pulsing visual aura and non-color-exclusive shapes.
+  - Interactive map click-to-select workflow with Chennai landmark proximity matching and exact coordinate readouts.
+  - Accessible floating controls: Zoom in/out, Reset View to Chennai center, Fit Endpoints, and Basemap switcher.
+  - Cartographic status HUD & Legend with coordinate readouts, air distance in km, active markers, and visible attribution.
+  - Layer overlay registration points for verified infrastructure (police posts, lighting stretches) and future safety heatmaps.
+  - Automated unit test suite (`map.test.js`) and complete documentation (`docs/map_workspace.md`).
 
 ---
 
 ## 12. Upcoming Roadmap Phases
 
-1. **Phase 4: Chennai Geospatial Data Pipeline & Segment-Level Risk Engine:** Mathematical formulation of lighting, CCTV, police presence, crowd density, time-of-day contextual modifiers, Safety Score (0–100), and separate Confidence Score (0–100).
-2. **Phase 5: Interactive Cartographic Map (Leaflet.js) & Multi-Route Visualizer:** Dynamic vector tiles, origin/destination pin-drop, route polyline rendering, and segment risk heatmaps across Chennai corridors.
-3. **Phase 6: Trust-Weighted Community Intelligence:** Crowd reporting submission, corroboration tallying, and exponential time-decay weighting.
-4. **Phase 7: Closed-Loop Journey Feedback & Dynamic Reassessment:** Post-trip feedback ingestion and automatic segment score re-evaluation.
-5. **Phase 8: End-to-End Verification, Performance Optimization & Final Delivery.**
+1. **Phase 6: Multi-Criteria Routing Engine & Alternative Route Generation:** A* / contraction hierarchies with travel-time and safety edge weighting.
+2. **Phase 7: Segment-Level Safety Evidence Scoring:** Street illumination, CCTV presence, crowd density, and time-of-day contextual modifier algorithms.
+3. **Phase 8: Trust-Weighted Community Intelligence:** Crowd incident reporting, corroboration tallying, and exponential time-decay weighting.
+4. **Phase 9: Closed-Loop Journey Feedback & Dynamic Reassessment:** Post-trip feedback ingestion and automatic segment score re-evaluation.

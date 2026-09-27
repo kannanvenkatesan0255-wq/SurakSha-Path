@@ -326,6 +326,18 @@ export function PlanRouteView({
             destination={destination}
             activeCorridor="Chennai Demonstration Corridor"
             selectedRouteType={routePreference}
+            onSelectOrigin={(loc) => {
+              onUpdateJourneyState({ origin: loc.name });
+            }}
+            onSelectDestination={(loc) => {
+              onUpdateJourneyState({ destination: loc.name });
+            }}
+            onClearOrigin={() => {
+              onUpdateJourneyState({ origin: '' });
+            }}
+            onClearDestination={() => {
+              onUpdateJourneyState({ destination: '' });
+            }}
           />
         </div>
       </div>

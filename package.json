@@ -8,6 +8,8 @@
     "dev:backend": "python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000",
     "build:frontend": "npm --prefix frontend run build",
     "test:backend": "python -m unittest discover -s backend/tests -p \"test_*.py\"",
+    "test:frontend": "npm --prefix frontend test",
+    "test": "npm run test:backend && npm run test:frontend",
     "init:db": "python -c \"from backend.app.database import init_db; init_db()\""
   },
   "keywords": [

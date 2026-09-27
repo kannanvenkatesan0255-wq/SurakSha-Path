@@ -373,3 +373,224 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
 }
+
+/* ==============================================================================
+   LEAFLET MAP, CUSTOM PIN MARKERS & POPUP OVERRIDES (PHASE 5)
+   ============================================================================== */
+
+/* Leaflet Container Defaults */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background-color: #070b12 !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* Leaflet Attribution Bar */
+.leaflet-control-attribution {
+  background: rgba(7, 11, 18, 0.88) !important;
+  color: var(--color-text-muted) !important;
+  font-size: 0.68rem !important;
+  padding: 3px 8px !important;
+  border-top-left-radius: var(--radius-xs);
+  border: 1px solid var(--color-border-subtle);
+  backdrop-filter: blur(4px);
+}
+
+.leaflet-control-attribution a {
+  color: var(--color-brand-cyan) !important;
+  text-decoration: none;
+}
+
+.leaflet-control-attribution a:hover {
+  text-decoration: underline;
+}
+
+/* Hide Default Leaflet Zoom Controls (Replaced by Custom Accessible Controls) */
+.leaflet-control-zoom {
+  display: none !important;
+}
+
+/* Custom Marker Base */
+.suraksha-pin-marker {
+  position: relative;
+  width: 36px;
+  height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.suraksha-pin-marker:hover {
+  transform: translateY(-3px) scale(1.08);
+}
+
+.suraksha-pin-marker .pin-body {
+  width: 34px;
+  height: 34px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f172a;
+  border: 2px solid #3b82f6;
+  position: relative;
+  z-index: 2;
+}
+
+.suraksha-pin-marker .pin-body span {
+  transform: rotate(45deg);
+}
+
+.suraksha-pin-marker .pin-icon {
+  font-size: 0.85rem;
+}
+
+.suraksha-pin-marker .pin-letter {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #ffffff;
+  color: #020617;
+  font-size: 0.65rem;
+  font-weight: 800;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #000;
+}
+
+/* Origin Variant (Emerald / A) */
+.suraksha-pin-marker.origin .pin-body {
+  border-color: #10b981;
+  background: #064e3b;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+}
+
+.suraksha-pin-marker.origin .pin-letter {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* Destination Variant (Amber / B) */
+.suraksha-pin-marker.destination .pin-body {
+  border-color: #f59e0b;
+  background: #78350f;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+}
+
+.suraksha-pin-marker.destination .pin-letter {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+/* Selection Variant (Cyan / Target) */
+.suraksha-pin-marker.selection .pin-body {
+  border-color: #06b6d4;
+  background: #164e63;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+}
+
+/* Marker Pulsing Rings */
+.pin-pulse {
+  position: absolute;
+  top: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(16, 185, 129, 0.6);
+  opacity: 0;
+  animation: marker-pulse 2s infinite ease-out;
+  pointer-events: none;
+}
+
+.suraksha-pin-marker.destination .pin-pulse {
+  border-color: rgba(245, 158, 11, 0.6);
+}
+
+.suraksha-pin-marker.selection .pin-pulse {
+  border-color: rgba(6, 182, 212, 0.8);
+}
+
+@keyframes marker-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Infrastructure Badges */
+.suraksha-infra-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.suraksha-infra-badge:hover {
+  transform: scale(1.15);
+}
+
+.suraksha-infra-badge.infra-police {
+  background: #1e3a8a;
+  border-color: #3b82f6;
+}
+
+.suraksha-infra-badge.infra-lighting {
+  background: #0369a1;
+  border-color: #38bdf8;
+}
+
+.suraksha-infra-badge.infra-cctv {
+  background: #581c87;
+  border-color: #a855f7;
+}
+
+/* Leaflet Dark Popup Overrides */
+.leaflet-popup-content-wrapper {
+  background: #0d1424 !important;
+  color: #f8fafc !important;
+  border: 1px solid var(--color-border-medium) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7) !important;
+  padding: 6px !important;
+}
+
+.leaflet-popup-content {
+  margin: 8px 10px !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  background: #0d1424 !important;
+  border: 1px solid var(--color-border-medium) !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: #94a3b8 !important;
+  padding: 6px !important;
+  font-size: 16px !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  color: #f8fafc !important;
+}
+
