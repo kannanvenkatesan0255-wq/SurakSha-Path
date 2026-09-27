@@ -1,5 +1,6 @@
 """Main FastAPI entry point for Suraksha Path."""
 
+import os
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
