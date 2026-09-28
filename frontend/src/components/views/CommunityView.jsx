@@ -430,8 +430,8 @@ export function CommunityView() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '4px' }}>
+                    <div style={{ minWidth: 0, flex: '1 1 260px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)', marginBottom: '4px' }}>
                         <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-brand-cyan)' }}>
                           {report.report_id}
                         </span>
@@ -451,15 +451,15 @@ export function CommunityView() {
                         )}
                       </div>
 
-                      <div style={{ fontSize: '0.94rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                      <div style={{ fontSize: '0.94rem', fontWeight: 600, color: 'var(--color-text-primary)', overflowWrap: 'break-word' }}>
                         {report.location_name || `${report.latitude.toFixed(4)}, ${report.longitude.toFixed(4)}`}
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', overflowWrap: 'break-word' }}>
                         Category: <strong>{report.category_label || report.category}</strong> • Reporter: {report.reporter_display}
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
                       <RiskBadge level={riskReduction} />
                       <div
                         className="tabular-numbers"
@@ -477,13 +477,13 @@ export function CommunityView() {
                     </div>
                   </div>
 
-                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: 'var(--space-1) 0', lineHeight: 1.45 }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: 'var(--space-1) 0', lineHeight: 1.45, overflowWrap: 'break-word' }}>
                     {report.description}
                   </p>
 
                   {/* Actions & Interactions Row */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)', borderTop: '1px solid var(--color-border-subtle)', paddingTop: 'var(--space-2)' }}>
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       <button
                         onClick={() => handleConfirm(report.report_id)}
                         className="btn btn-secondary"

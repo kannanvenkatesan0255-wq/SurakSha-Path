@@ -80,7 +80,7 @@ export function RouteAlternativeCard({
     >
       {/* Header: Title, Strategy Tag, and Active Indicator */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
             <span style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
               {title || typeConfig.title}
@@ -314,11 +314,11 @@ export function RouteAlternativeCard({
           gap: 'var(--space-2)',
         }}
       >
-        <div>
+        <div style={{ flex: '1 1 140px', minWidth: 0 }}>
           <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
             SAFETY SCORE (ADVISORY)
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginTop: '2px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginTop: '2px', flexWrap: 'wrap' }}>
             {route.safety_score !== null && route.safety_score !== undefined ? (
               <>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
@@ -349,11 +349,11 @@ export function RouteAlternativeCard({
         </div>
 
         {/* Confidence & Coverage Indicator (distinct from Safety Score) */}
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ flex: '1 1 140px', minWidth: 0 }}>
           <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
             DATA RELIABILITY (CONFIDENCE)
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', marginTop: '2px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
             <span
               className="tabular-numbers"
               style={{

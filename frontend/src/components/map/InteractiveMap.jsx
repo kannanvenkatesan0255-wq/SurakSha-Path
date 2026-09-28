@@ -123,15 +123,17 @@ export function InteractiveMap({
         attributionControl: false,
       });
 
-      const basemapConfig = getActiveBasemap('DARK_MATTER');
+      const basemapConfig = getActiveBasemap();
       const tileLayer = L.tileLayer(basemapConfig.url, {
         attribution: basemapConfig.attribution,
-        subdomains: basemapConfig.subdomains,
-        maxZoom: basemapConfig.maxZoom,
+        subdomains: basemapConfig.subdomains || '',
+        maxZoom: basemapConfig.maxZoom || 19,
+        tileSize: basemapConfig.tileSize || 256,
+        zoomOffset: basemapConfig.zoomOffset || 0,
       });
 
       tileLayer.on('tileerror', () => {
-        setTileWarning('Notice: Some basemap tiles failed to load. Check internet connectivity.');
+        setTileWarning('Notice: Some basemap tiles failed to load. Falling back to open tile service if persistent.');
       });
 
       tileLayer.addTo(map);
@@ -909,9 +911,10 @@ export function InteractiveMap({
       {/* Selected Road Segment Inspector Panel (Phase 7) */}
       {selectedSegment && (
         <div
+          className="map-segment-inspector"
           style={{
             position: 'absolute',
-            top: 'var(--space-3)',
+            bottom: 'var(--space-8)',
             left: 'var(--space-3)',
             zIndex: 450,
             background: 'rgba(13, 20, 36, 0.95)',
@@ -919,7 +922,7 @@ export function InteractiveMap({
             border: '1px solid var(--color-brand-cyan)',
             borderRadius: 'var(--radius-sm)',
             padding: '8px 12px',
-            maxWidth: '300px',
+            maxWidth: 'min(320px, calc(100% - 24px))',
             boxShadow: 'var(--shadow-lg)',
             display: 'flex',
             flexDirection: 'column',

@@ -65,6 +65,8 @@ export function SosConfirmationModal({
           border: isActivate ? '2px solid #ef4444' : '2px solid var(--color-brand-blue)',
           borderRadius: 'var(--radius-md)',
           maxWidth: '480px',
+          maxHeight: 'calc(100vh - 32px)',
+          overflowY: 'auto',
           width: '100%',
           padding: 'var(--space-6)',
           boxShadow: isActivate ? '0 0 30px rgba(239, 68, 68, 0.4)' : 'var(--shadow-lg)',
@@ -73,17 +75,18 @@ export function SosConfirmationModal({
           gap: 'var(--space-4)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <span style={{ fontSize: '2rem' }} aria-hidden="true">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0 }}>
+          <span style={{ fontSize: '2rem', flexShrink: 0 }} aria-hidden="true">
             {isActivate ? '🚨' : '🛡️'}
           </span>
-          <div>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <h3
               id="sos-modal-title"
               style={{
                 margin: 0,
                 fontSize: '1.25rem',
                 color: isActivate ? '#ef4444' : 'var(--color-text-primary)',
+                overflowWrap: 'break-word',
               }}
             >
               {isActivate ? 'Confirm In-App SOS Activation' : 'Confirm SOS Resolution'}
@@ -104,6 +107,7 @@ export function SosConfirmationModal({
             padding: 'var(--space-3)',
             borderRadius: 'var(--radius-sm)',
             border: '1px solid var(--color-border-subtle)',
+            overflowWrap: 'break-word',
           }}
         >
           {isActivate ? (
@@ -139,6 +143,7 @@ export function SosConfirmationModal({
         <div
           style={{
             display: 'flex',
+            flexWrap: 'wrap',
             justifyContent: 'flex-end',
             gap: 'var(--space-3)',
             marginTop: 'var(--space-2)',

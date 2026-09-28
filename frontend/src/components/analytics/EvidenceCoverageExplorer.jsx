@@ -171,7 +171,7 @@ export function EvidenceCoverageExplorer({ activeRoute = null }) {
 
         {/* Evidence Stream Breakdown */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
               Chennai Route Evidence Streams ({streams.length})
             </span>
@@ -207,23 +207,25 @@ export function EvidenceCoverageExplorer({ activeRoute = null }) {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 'var(--space-2)',
                       cursor: 'pointer',
                       textAlign: 'left',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                      <span style={{ fontSize: '1.2rem' }} aria-hidden="true">{stream.icon}</span>
-                      <div>
-                        <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0, flex: '1 1 200px' }}>
+                      <span style={{ fontSize: '1.2rem', flexShrink: 0 }} aria-hidden="true">{stream.icon}</span>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text-primary)', overflowWrap: 'break-word' }}>
                           {stream.title}
                         </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', overflowWrap: 'break-word' }}>
                           Freshness: {stream.freshness}
                         </div>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexShrink: 0 }}>
                       <span
                         style={{
                           fontSize: '0.72rem',

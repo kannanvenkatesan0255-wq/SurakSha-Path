@@ -55,15 +55,18 @@ export function MapWorkspace({
     >
       {/* Top Floating Spatial Context Pill */}
       <div
+        className="map-spatial-pill-container"
         style={{
           position: 'absolute',
           top: 'var(--space-3)',
           left: 'var(--space-3)',
+          maxWidth: 'calc(100% - 64px)',
           zIndex: 400,
           pointerEvents: 'none',
         }}
       >
         <div
+          className="map-spatial-pill"
           style={{
             pointerEvents: 'auto',
             background: 'rgba(13, 20, 36, 0.94)',
@@ -75,20 +78,23 @@ export function MapWorkspace({
             alignItems: 'center',
             gap: 'var(--space-2)',
             boxShadow: 'var(--shadow-md)',
+            flexWrap: 'wrap',
           }}
         >
-          <span aria-hidden="true" style={{ color: 'var(--color-brand-cyan)', fontSize: '1rem' }}>
+          <span aria-hidden="true" style={{ color: 'var(--color-brand-cyan)', fontSize: '1rem', flexShrink: 0 }}>
             🧭
           </span>
-          <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Chennai Metro Spatial Canvas
             </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
+            <div className="map-spatial-coords" style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               13.0827° N, 80.2707° E • {activeCorridor}
             </div>
           </div>
-          <StatusBadge label="PHASE 6 ROUTE ENGINE" variant="status" />
+          <span className="map-spatial-engine-badge">
+            <StatusBadge label="PHASE 6 ROUTE ENGINE" variant="status" />
+          </span>
           {routes && routes.length > 0 ? (
             <StatusBadge label={`${routes.length} Alternatives`} variant="info" />
           ) : (
@@ -100,7 +106,7 @@ export function MapWorkspace({
       </div>
 
       {/* Main Interactive Leaflet Map Canvas */}
-      <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
+      <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', minWidth: 0 }}>
         <InteractiveMap
           originLocation={resolvedOrigin}
           destinationLocation={resolvedDestination}
@@ -119,6 +125,17 @@ export function MapWorkspace({
 
       {/* Embedded Children (e.g. Floating inspection drawers if passed) */}
       {children}
+
+      <style>{`
+        @media (max-width: 640px) {
+          .map-spatial-engine-badge {
+            display: none !important;
+          }
+          .map-spatial-coords {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -280,11 +280,11 @@ export function RouteExplainabilityDashboard({
           gap: 'var(--space-2)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-          <span aria-hidden="true" style={{ fontSize: '1.25rem' }}>🛡️</span>
-          <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap', minWidth: 0, flex: '1 1 280px' }}>
+          <span aria-hidden="true" style={{ fontSize: '1.25rem', flexShrink: 0 }}>🛡️</span>
+          <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-primary)', overflowWrap: 'break-word' }}>
                 Route Assessment & Explainability Dashboard
               </h3>
               <Badge variant="info">{report.route_type}</Badge>
@@ -304,15 +304,15 @@ export function RouteExplainabilityDashboard({
                 </span>
               )}
             </div>
-            <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--color-text-muted)' }}>
+            <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--color-text-muted)', overflowWrap: 'break-word' }}>
               {report.route_title} • {report.duration_minutes} min • {report.distance_km} km • Updated {new Date(report.assessment_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
         </div>
 
         {/* Tab Controls & Close Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <div style={{ display: 'flex', background: 'rgba(15, 23, 42, 0.6)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-subtle)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', minWidth: 0 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', background: 'rgba(15, 23, 42, 0.6)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border-subtle)', maxWidth: '100%', gap: '2px' }}>
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'context', label: 'Time & Weather', icon: '🌤️' },
@@ -340,6 +340,7 @@ export function RouteExplainabilityDashboard({
                     alignItems: 'center',
                     gap: '4px',
                     transition: 'all var(--transition-fast)',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   <span aria-hidden="true">{tab.icon}</span>
@@ -1127,7 +1128,7 @@ export function RouteExplainabilityDashboard({
 
             {/* Segments Table */}
             <div style={{ overflowX: 'auto', border: '1px solid var(--color-border-medium)', borderRadius: 'var(--radius-sm)' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem', textAlign: 'left' }}>
+              <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', fontSize: '0.76rem', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ background: 'rgba(30, 41, 59, 0.8)', borderBottom: '1px solid var(--color-border-medium)', color: 'var(--color-text-muted)' }}>
                     <th style={{ padding: '8px 10px', width: '36px' }}>#</th>
@@ -1240,7 +1241,7 @@ export function RouteExplainabilityDashboard({
             </div>
 
             <div style={{ overflowX: 'auto', border: '1px solid var(--color-border-medium)', borderRadius: 'var(--radius-sm)' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem', textAlign: 'left' }}>
+              <table style={{ width: '100%', minWidth: '720px', borderCollapse: 'collapse', fontSize: '0.76rem', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ background: 'rgba(30, 41, 59, 0.8)', borderBottom: '1px solid var(--color-border-medium)', color: 'var(--color-text-muted)' }}>
                     <th style={{ padding: '8px 10px' }}>Corridor Alternative</th>

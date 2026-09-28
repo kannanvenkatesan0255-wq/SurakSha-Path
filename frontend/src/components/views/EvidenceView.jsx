@@ -117,7 +117,7 @@ export function EvidenceView() {
             No evidence records found for selected filter.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--space-4)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 'var(--space-4)' }}>
             {filteredEvidence.map((factor) => {
               const impact = factor.impact_score || 0;
               const impactStr = impact >= 0 ? `+${impact.toFixed(1)} Safety Score` : `${impact.toFixed(1)} Safety Score`;
@@ -136,9 +136,9 @@ export function EvidenceView() {
                     gap: 'var(--space-2)',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
-                    <div>
-                      <h4 style={{ fontSize: '0.92rem', color: 'var(--color-text-primary)', margin: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+                    <div style={{ minWidth: 0, flex: '1 1 200px' }}>
+                      <h4 style={{ fontSize: '0.92rem', color: 'var(--color-text-primary)', margin: 0, overflowWrap: 'break-word' }}>
                         {factor.factor_name}
                       </h4>
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
@@ -205,7 +205,7 @@ export function EvidenceView() {
           title="Data Provenance & Dataset Transparency"
           subtitle="Documented coverage, source references, update cadence, and license terms"
         >
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'var(--space-3)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 'var(--space-3)' }}>
             {provenanceList.map((prov, pIdx) => (
               <div
                 key={pIdx}

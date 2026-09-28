@@ -20,6 +20,32 @@ export const CHENNAI_METRO_BOUNDS = [
 
 // Basemap Tile Providers (with open-source / zero-credential defaults and full attribution)
 export const BASEMAP_PROVIDERS = {
+  MAPBOX_DARK: {
+    id: 'MAPBOX_DARK',
+    name: 'Mapbox Dark Navigation',
+    label: 'Mapbox Dark (Nocturnal)',
+    url: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/512/{z}/{x}/{y}?access_token={token}',
+    attribution:
+      '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+    subdomains: '',
+    tileSize: 512,
+    zoomOffset: -1,
+    maxZoom: 19,
+    description: 'High-contrast Mapbox nocturnal style calibrated for Chennai road safety overlays',
+  },
+  MAPBOX_STREETS: {
+    id: 'MAPBOX_STREETS',
+    name: 'Mapbox Streets',
+    label: 'Mapbox Streets (Daylight)',
+    url: 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/512/{z}/{x}/{y}?access_token={token}',
+    attribution:
+      '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+    subdomains: '',
+    tileSize: 512,
+    zoomOffset: -1,
+    maxZoom: 19,
+    description: 'Detailed daylight Mapbox urban basemap with building footprints and transit labels',
+  },
   DARK_MATTER: {
     id: 'DARK_MATTER',
     name: 'CartoDB Dark Matter',
@@ -28,6 +54,8 @@ export const BASEMAP_PROVIDERS = {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
     subdomains: 'abcd',
+    tileSize: 256,
+    zoomOffset: 0,
     maxZoom: 19,
     description: 'High-contrast nocturnal basemap optimized for safety evidence visualization',
   },
@@ -39,6 +67,8 @@ export const BASEMAP_PROVIDERS = {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
     subdomains: 'abcd',
+    tileSize: 256,
+    zoomOffset: 0,
     maxZoom: 19,
     description: 'Detailed daylight urban basemap with building footprints and transit labels',
   },
@@ -50,6 +80,8 @@ export const BASEMAP_PROVIDERS = {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
     subdomains: 'abc',
+    tileSize: 256,
+    zoomOffset: 0,
     maxZoom: 19,
     description: 'Standard community OpenStreetMap tiles',
   },
@@ -58,7 +90,7 @@ export const BASEMAP_PROVIDERS = {
 /**
  * Returns the active basemap configuration, honoring any environment variable overrides.
  */
-export function getActiveBasemap(providerKey = 'DARK_MATTER') {
+export function getActiveBasemap(providerKey = null) {
   // Check for custom environment variable overrides (e.g., self-hosted tile server or proxy)
   const envTileUrl = import.meta.env?.VITE_MAP_TILE_URL;
   const envAttribution = import.meta.env?.VITE_MAP_ATTRIBUTION;
@@ -71,12 +103,40 @@ export function getActiveBasemap(providerKey = 'DARK_MATTER') {
       url: envTileUrl,
       attribution: envAttribution || '&copy; Custom Map Provider',
       subdomains: 'abcd',
+      tileSize: 256,
+      zoomOffset: 0,
       maxZoom: 19,
       description: 'Configured via VITE_MAP_TILE_URL environment variable',
     };
   }
 
-  return BASEMAP_PROVIDERS[providerKey] || BASEMAP_PROVIDERS.DARK_MATTER;
+  const mapboxToken = import.meta.env?.VITE_MAPBOX_TOKEN;
+  const mapProvider = import.meta.env?.VITE_MAP_PROVIDER;
+
+  // Resolve target key
+  let effectiveKey = providerKey;
+  if (!effectiveKey) {
+    if (mapboxToken && mapProvider === 'MAPBOX') {
+      effectiveKey = 'MAPBOX_DARK';
+    } else {
+      effectiveKey = 'DARK_MATTER';
+    }
+  }
+
+  // If specific Mapbox provider requested or resolved
+  if (effectiveKey === 'MAPBOX_DARK' || effectiveKey === 'MAPBOX_STREETS') {
+    const selected = BASEMAP_PROVIDERS[effectiveKey];
+    if (mapboxToken) {
+      return {
+        ...selected,
+        url: selected.url.replace('{token}', mapboxToken),
+      };
+    }
+    // Graceful fallback if token is missing
+    return BASEMAP_PROVIDERS.DARK_MATTER;
+  }
+
+  return BASEMAP_PROVIDERS[effectiveKey] || BASEMAP_PROVIDERS.DARK_MATTER;
 }
 
 /**

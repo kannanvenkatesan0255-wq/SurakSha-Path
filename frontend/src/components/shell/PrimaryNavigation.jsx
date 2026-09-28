@@ -71,9 +71,9 @@ export function PrimaryNavigation({
               }}
             >
               <span aria-hidden="true" style={{ fontSize: '1.15rem' }}>{item.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ lineHeight: 1.2 }}>{item.label}</div>
-                <div style={{ fontSize: '0.72rem', color: isActive ? '#93c5fd' : 'var(--color-text-muted)', marginTop: '2px' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ lineHeight: 1.2, overflowWrap: 'break-word' }}>{item.label}</div>
+                <div style={{ fontSize: '0.72rem', color: isActive ? '#93c5fd' : 'var(--color-text-muted)', marginTop: '2px', overflowWrap: 'break-word' }}>
                   {item.description}
                 </div>
               </div>
@@ -167,19 +167,24 @@ export function PrimaryNavigation({
               key={item.id}
               onClick={() => handleItemClick(item.id)}
               aria-current={isActive ? 'page' : undefined}
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-multiline"
               style={{
                 justifyContent: 'flex-start',
                 padding: 'var(--space-3)',
                 background: isActive ? 'var(--color-brand-blue-subtle)' : undefined,
                 borderColor: isActive ? 'var(--color-brand-blue)' : undefined,
                 color: isActive ? '#ffffff' : undefined,
+                whiteSpace: 'normal',
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                textAlign: 'left',
               }}
             >
-              <span aria-hidden="true" style={{ fontSize: '1.2rem', marginRight: 'var(--space-2)' }}>{item.icon}</span>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 600 }}>{item.label}</div>
-                <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>{item.description}</div>
+              <span aria-hidden="true" style={{ fontSize: '1.2rem', marginRight: 'var(--space-2)', flexShrink: 0 }}>{item.icon}</span>
+              <div style={{ textAlign: 'left', minWidth: 0, flex: 1 }}>
+                <div style={{ fontWeight: 600, overflowWrap: 'break-word' }}>{item.label}</div>
+                <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', overflowWrap: 'break-word' }}>{item.description}</div>
               </div>
             </button>
           );

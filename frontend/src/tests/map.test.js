@@ -7,6 +7,7 @@ import {
   MIN_ZOOM,
   MAX_ZOOM,
   CHENNAI_METRO_BOUNDS,
+  BASEMAP_PROVIDERS,
   getActiveBasemap,
   isValidCoordinate,
   formatCoordinates,
@@ -54,6 +55,22 @@ test('Map Configuration: Basemap providers include Dark Matter, Voyager, and OSM
   const osm = getActiveBasemap('OSM_STANDARD');
   assert.equal(osm.id, 'OSM_STANDARD');
   assert.ok(osm.url.includes('tile.openstreetmap.org'));
+});
+
+test('Map Configuration: Mapbox basemap styles are defined with high-DPI scaling and attribution', () => {
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_DARK);
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_DARK.id, 'MAPBOX_DARK');
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_DARK.url.includes('api.mapbox.com'));
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_DARK.tileSize, 512);
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_DARK.zoomOffset, -1);
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_DARK.attribution.includes('Mapbox'));
+
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_STREETS);
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_STREETS.id, 'MAPBOX_STREETS');
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_STREETS.url.includes('api.mapbox.com'));
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_STREETS.tileSize, 512);
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_STREETS.zoomOffset, -1);
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_STREETS.attribution.includes('Mapbox'));
 });
 
 test('Coordinate Validation: Accurately validates geographic boundaries', () => {

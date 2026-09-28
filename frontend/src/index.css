@@ -93,6 +93,17 @@
   --max-content-width: 1440px;
   --transition-fast: 140ms ease;
   --transition-normal: 220ms ease;
+
+  /* Documented Z-Index Stacking Hierarchy */
+  --z-base: 1;
+  --z-map-controls: 400;
+  --z-map-overlay: 450;
+  --z-dropdown: 500;
+  --z-header: 1000;
+  --z-drawer-backdrop: 1100;
+  --z-drawer: 1200;
+  --z-modal-backdrop: 9000;
+  --z-modal: 9999;
 }
 
 /* Reset & Box Sizing */
@@ -111,12 +122,16 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  overflow-x: hidden;
+  overflow-wrap: break-word;
 }
 
 #root {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Tabular Numerals for Cartographic Metrics */
@@ -135,12 +150,17 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-primary);
   line-height: 1.25;
   letter-spacing: -0.015em;
+  overflow-wrap: break-word;
 }
 
 h1 { font-size: 1.85rem; }
 h2 { font-size: 1.45rem; }
 h3 { font-size: 1.18rem; }
 h4 { font-size: 1.02rem; font-weight: 600; }
+
+p, span, div, label {
+  overflow-wrap: break-word;
+}
 
 p {
   color: var(--color-text-secondary);
@@ -221,6 +241,11 @@ a:hover {
 .btn-sm {
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
+}
+
+.btn-multiline {
+  white-space: normal !important;
+  text-align: left;
 }
 
 /* Form Controls */
@@ -609,4 +634,56 @@ a:hover {
 .suraksha-route-tooltip::before {
   border-top-color: #0d1424 !important;
 }
+
+/* ==============================================================================
+   LAYOUT & OVERFLOW PROTECTION UTILITIES (PHASE 2 & 3)
+   ============================================================================== */
+
+/* Ensure flexible containers and children can shrink */
+.min-w-0 {
+  min-width: 0 !important;
+}
+
+.truncate-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wrap-text {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+/* Responsive Table Wrapper */
+.table-responsive-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-medium);
+}
+
+.table-responsive-wrapper table {
+  min-width: 600px;
+}
+
+/* Mobile Responsive Typography & Container Scaling */
+@media (max-width: 768px) {
+  h1 { font-size: 1.45rem !important; }
+  h2 { font-size: 1.25rem !important; }
+  h3 { font-size: 1.05rem !important; }
+
+  .page-header {
+    margin-bottom: var(--space-4) !important;
+    padding-bottom: var(--space-3) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.25rem !important; }
+  h2 { font-size: 1.1rem !important; }
+  h3 { font-size: 0.98rem !important; }
+}
+
 

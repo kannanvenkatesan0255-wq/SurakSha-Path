@@ -105,6 +105,7 @@ export function RouteSafetyAnalyticsView({
           <table
             style={{
               width: '100%',
+              minWidth: '650px',
               borderCollapse: 'collapse',
               fontSize: '0.85rem',
               textAlign: 'left',

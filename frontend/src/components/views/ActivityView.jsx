@@ -292,7 +292,7 @@ export function ActivityView() {
 
       {/* TAB 1: SUBMIT FEEDBACK */}
       {activeTab === 'submit' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 'var(--space-6)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'var(--space-6)' }}>
           {/* Submission Form */}
           <SectionPanel
             title="Submit Road or Assessment Observation"
@@ -432,7 +432,7 @@ export function ActivityView() {
                   placeholder="e.g. commuter_anna_salai"
                 />
                 <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                  Will be displayed as <code>{FeedbackService ? 'che****er_77' : 'usr_****'}</code> to protect privacy.
+                  Will be displayed as <code>{reporterId ? `${reporterId.slice(0, 3)}****` : 'usr_****'}</code> to protect privacy.
                 </span>
               </div>
 

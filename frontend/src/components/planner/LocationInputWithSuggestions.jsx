@@ -182,7 +182,7 @@ export function LocationInputWithSuggestions({
             top: 'calc(100% + 4px)',
             left: 0,
             right: 0,
-            zIndex: 50,
+            zIndex: 'var(--z-dropdown, 600)',
             background: 'var(--color-surface-panel)',
             border: '1px solid var(--color-border-active)',
             borderRadius: 'var(--radius-sm)',
@@ -214,11 +214,11 @@ export function LocationInputWithSuggestions({
                   gap: 'var(--space-2)',
                 }}
               >
-                <div>
-                  <div style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: '0.86rem', fontWeight: 600, color: 'var(--color-text-primary)', overflowWrap: 'break-word' }}>
                     {item.name}
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)' }}>
+                  <div style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', overflowWrap: 'break-word' }}>
                     {item.corridor}
                   </div>
                 </div>
@@ -231,6 +231,7 @@ export function LocationInputWithSuggestions({
                     borderRadius: 'var(--radius-xs)',
                     border: '1px solid var(--color-border-subtle)',
                     whiteSpace: 'nowrap',
+                    flexShrink: 0,
                   }}
                 >
                   Chennai Catalog

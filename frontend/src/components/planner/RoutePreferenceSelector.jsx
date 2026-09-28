@@ -35,11 +35,11 @@ export function RoutePreferenceSelector({ value = 'BALANCED', onChange }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span className="form-label" style={{ margin: 0 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-1)' }}>
+        <span className="form-label" style={{ margin: 0, minWidth: 0 }}>
           Route Selection Preference
         </span>
-        <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+        <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', minWidth: 0 }}>
           Guides path prioritization; not a safety guarantee
         </span>
       </div>

@@ -68,8 +68,8 @@ export function JourneyDateTimeControls({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
       {/* Top Label & Official Timezone Tag */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+        <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-secondary)', minWidth: 0 }}>
           Journey Schedule
         </span>
         <span
@@ -80,6 +80,7 @@ export function JourneyDateTimeControls({
             padding: '1px 6px',
             borderRadius: 'var(--radius-pill)',
             border: '1px solid rgba(56, 189, 248, 0.25)',
+            whiteSpace: 'nowrap',
           }}
           title="Chennai is in the Indian Standard Time (IST) zone without Daylight Saving Time"
         >
@@ -87,7 +88,7 @@ export function JourneyDateTimeControls({
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: 'var(--space-3)' }}>
         {/* Date Input */}
         <div>
           <label htmlFor="journey-date-input" className="form-label">

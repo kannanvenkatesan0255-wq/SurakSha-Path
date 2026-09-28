@@ -829,15 +829,16 @@ export function JourneyMonitoringWorkspace({
 
       {/* Main Workspace Grid: Controls & Summary (Left) + Interactive Map (Right) */}
       <div
+        className="journey-monitoring-layout"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(380px, 460px) 1fr',
+          gridTemplateColumns: 'minmax(min(100%, 380px), 460px) minmax(0, 1fr)',
           gap: 'var(--space-6)',
           alignItems: 'start',
         }}
       >
         {/* Left Column: Lifecycle, Settings, SOS Controls, Contacts & History */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minWidth: 0 }}>
           {/* Journey Status Card */}
           <SectionPanel
             title="Journey Safety Monitoring"
@@ -1512,7 +1513,7 @@ export function JourneyMonitoringWorkspace({
         </div>
 
         {/* Right Column: Interactive Map with Route & Commuter Pin (Step 6) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '620px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '620px', minWidth: 0 }}>
           <MapWorkspace
             origin={origin}
             destination={destination}
@@ -1533,6 +1534,14 @@ export function JourneyMonitoringWorkspace({
         onConfirm={handleConfirmSosModal}
         onCancel={() => setSosModalOpen(false)}
       />
+
+      <style>{`
+        @media (max-width: 960px) {
+          .journey-monitoring-layout {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

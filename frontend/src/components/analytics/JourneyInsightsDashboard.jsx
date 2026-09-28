@@ -635,6 +635,7 @@ export function JourneyInsightsDashboard({ onNavigateToPlanner = null }) {
               <table
                 style={{
                   width: '100%',
+                  minWidth: '600px',
                   fontSize: '0.82rem',
                   borderCollapse: 'collapse',
                   textAlign: 'left',

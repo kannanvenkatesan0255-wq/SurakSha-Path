@@ -43,6 +43,7 @@ export function AppShell({
           display: 'flex',
           flex: 1,
           width: '100%',
+          minWidth: 0,
         }}
       >
         {/* Primary Navigation Sidebar */}
@@ -57,13 +58,16 @@ export function AppShell({
         <main
           id="main-content"
           role="main"
+          className="app-main-content"
           style={{
             flex: 1,
+            minWidth: 0,
             padding: 'var(--space-6)',
             overflowY: 'auto',
             maxWidth: 'calc(var(--max-content-width) + var(--sidebar-width))',
             margin: '0 auto',
             width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           {children}

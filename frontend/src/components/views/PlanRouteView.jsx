@@ -281,13 +281,13 @@ export function PlanRouteView({
         className="planner-layout"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(380px, 460px) 1fr',
+          gridTemplateColumns: 'minmax(min(100%, 380px), 460px) minmax(0, 1fr)',
           gap: 'var(--space-6)',
           alignItems: 'start',
         }}
       >
         {/* Left Column: Journey Form or Validation Result Card */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minWidth: 0 }}>
           {submissionResponse ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               {/* Result Confirmation Card */}
@@ -512,7 +512,7 @@ export function PlanRouteView({
             title="Chennai Corridor Presets"
             subtitle="Quick-fill origins and destinations for testing"
           >
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 'var(--space-2)' }}>
               {CHENNAI_PRESETS.slice(0, 4).map((preset) => (
                 <button
                   key={preset.id}
@@ -539,7 +539,7 @@ export function PlanRouteView({
         </div>
 
         {/* Right Column: Cartographic Workspace Viewport (Task 10) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '600px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '600px', minWidth: 0 }}>
           <MapWorkspace
             origin={origin}
             destination={destination}

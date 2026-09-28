@@ -15,6 +15,7 @@ export function AppHeader({
 }) {
   return (
     <header
+      className="app-header"
       style={{
         height: 'var(--header-height)',
         backgroundColor: 'var(--color-surface-panel)',
@@ -25,11 +26,13 @@ export function AppHeader({
         padding: '0 var(--space-6)',
         position: 'sticky',
         top: 0,
-        zIndex: 100,
+        zIndex: 1000,
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
       {/* Brand Identity & Urban Context */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', minWidth: 0 }}>
         {/* Mobile Hamburger Toggle */}
         <button
           onClick={onToggleMobileMenu}
@@ -40,24 +43,25 @@ export function AppHeader({
             padding: 'var(--space-2)',
             display: 'none',
             fontSize: '1.2rem',
+            flexShrink: 0,
           }}
         >
           {isMobileMenuOpen ? '✕' : '☰'}
         </button>
 
         {/* Brand Icon & Name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', minWidth: 0 }}>
           <div
             style={{
-              width: '36px',
-              height: '36px',
+              width: '34px',
+              height: '34px',
               borderRadius: 'var(--radius-sm)',
               background: 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#ffffff',
-              fontSize: '1.15rem',
+              fontSize: '1.1rem',
               boxShadow: 'var(--shadow-sm)',
               flexShrink: 0,
             }}
@@ -65,14 +69,16 @@ export function AppHeader({
           >
             🛡️
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-              <span style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text-primary)' }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+              <span className="app-brand-title" style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text-primary)', whiteSpace: 'nowrap' }}>
                 SURAKSHA PATH
               </span>
-              <StatusBadge label="CHENNAI" variant="info" />
+              <span className="header-chennai-badge">
+                <StatusBadge label="CHENNAI" variant="info" />
+              </span>
             </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', letterSpacing: '0.01em' }}>
+            <div className="app-brand-subtitle" style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Context-Aware Route Intelligence
             </div>
           </div>
@@ -80,9 +86,10 @@ export function AppHeader({
       </div>
 
       {/* Right: Live Telemetry Indicator & City Focus */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexShrink: 0 }}>
         {/* Backend Connectivity Status */}
         <div
+          className="header-telemetry"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -92,6 +99,7 @@ export function AppHeader({
             borderRadius: 'var(--radius-sm)',
             border: '1px solid var(--color-border-subtle)',
             fontSize: '0.78rem',
+            whiteSpace: 'nowrap',
           }}
         >
           {healthLoading ? (
@@ -100,8 +108,8 @@ export function AppHeader({
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
               <span className="pulse-dot" style={{ color: 'var(--color-risk-low)' }} aria-hidden="true" />
               <span style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>API Ready</span>
-              <span style={{ color: 'var(--color-text-muted)' }}>|</span>
-              <span style={{ color: 'var(--color-text-secondary)' }}>DB: {healthData.database.database_type.toUpperCase()}</span>
+              <span className="header-db-tag" style={{ color: 'var(--color-text-muted)' }}>|</span>
+              <span className="header-db-tag" style={{ color: 'var(--color-text-secondary)' }}>DB: {healthData.database.database_type.toUpperCase()}</span>
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
@@ -120,13 +128,35 @@ export function AppHeader({
         </div>
 
         {/* Prototype Tag */}
-        <StatusBadge label="PROTOTYPE" variant="status" />
+        <div className="header-prototype-badge">
+          <StatusBadge label="PROTOTYPE" variant="status" />
+        </div>
       </div>
 
       <style>{`
         @media (max-width: 768px) {
+          .app-header {
+            padding: 0 var(--space-3) !important;
+          }
           .mobile-menu-toggle {
             display: inline-flex !important;
+          }
+          .header-prototype-badge {
+            display: none !important;
+          }
+        }
+        @media (max-width: 540px) {
+          .header-db-tag {
+            display: none !important;
+          }
+          .header-chennai-badge {
+            display: none !important;
+          }
+          .app-brand-subtitle {
+            display: none !important;
+          }
+          .app-brand-title {
+            font-size: 0.98rem !important;
           }
         }
       `}</style>
