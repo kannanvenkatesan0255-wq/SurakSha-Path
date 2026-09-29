@@ -11,7 +11,11 @@ class ApiClient {
   }
 
   async request(endpoint, options = {}) {
-    const url = `${this.baseUrl}/${endpoint.replace(/^\/+/, '')}`;
+    let cleanEndpoint = endpoint.replace(/^\/+/, '');
+    if (this.baseUrl.endsWith('/api') && cleanEndpoint.startsWith('api/')) {
+      cleanEndpoint = cleanEndpoint.slice(4);
+    }
+    const url = `${this.baseUrl}/${cleanEndpoint}`;
     const headers = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
