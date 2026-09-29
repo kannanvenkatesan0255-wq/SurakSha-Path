@@ -22,10 +22,12 @@ import {
   CHENNAI_METRO_BOUNDS,
   getActiveBasemap,
   getMapboxToken,
+  setMapboxToken,
   isValidCoordinate,
   formatCoordinates,
   haversineDistanceKm,
 } from './mapConfig';
+import { MapTokenModal } from './MapTokenModal';
 import {
   createOriginDivIcon,
   createDestinationDivIcon,
@@ -79,9 +81,10 @@ export function InteractiveMap({
   const [currentCenter, setCurrentCenter] = useState(DEFAULT_CHENNAI_CENTER);
   const [currentZoom, setCurrentZoom] = useState(DEFAULT_ZOOM);
   const [activeBasemap, setActiveBasemap] = useState(() =>
-    getMapboxToken() ? 'MAPBOX_OUTDOORS' : 'DARK_MATTER'
+    getMapboxToken() ? 'MAPBOX_OUTDOORS' : 'FREE_OUTDOORS'
   );
   const [clickMode, setClickMode] = useState('INSPECT');
+  const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
   const [activeLayers, setActiveLayers] = useState({
     lighting: true,
     police: true,
@@ -328,8 +331,15 @@ export function InteractiveMap({
       zoomOffset: config.zoomOffset || 0,
     });
 
+    let tileErrorCount = 0;
     newTileLayer.on('tileerror', () => {
-      setTileWarning('Notice: Basemap tiles encountering network issues. Falling back to open tile service if persistent.');
+      tileErrorCount += 1;
+      if (tileErrorCount >= 4 && activeBasemap.startsWith('MAPBOX_')) {
+        setTileWarning('Mapbox tiles could not load. Automatically switched to OpenStreetMap / CartoDB.');
+        setActiveBasemap('DARK_MATTER');
+      } else {
+        setTileWarning('Notice: Basemap tiles encountering network issues. Falling back to open tile service if persistent.');
+      }
     });
 
     newTileLayer.addTo(mapRef.current);
@@ -817,18 +827,37 @@ export function InteractiveMap({
 
   const handleToggleBasemap = useCallback(() => {
     setActiveBasemap((prev) => {
-      if (prev === 'MAPBOX_OUTDOORS') return 'MAPBOX_SATELLITE';
-      if (prev === 'MAPBOX_SATELLITE') return 'MAPBOX_STREETS';
-      if (prev === 'MAPBOX_STREETS') return 'MAPBOX_DARK';
-      if (prev === 'MAPBOX_DARK') return 'MAPBOX_OUTDOORS';
-      if (prev === 'DARK_MATTER') return 'VOYAGER';
-      if (prev === 'VOYAGER') return 'DARK_MATTER';
-      return getMapboxToken() ? 'MAPBOX_OUTDOORS' : 'DARK_MATTER';
+      const isOutdoors = prev === 'MAPBOX_OUTDOORS' || prev === 'FREE_OUTDOORS';
+      const isSatellite = prev === 'MAPBOX_SATELLITE' || prev === 'FREE_SATELLITE';
+      const isStreets = prev === 'MAPBOX_STREETS' || prev === 'VOYAGER' || prev === 'OSM_STANDARD';
+      const hasToken = Boolean(getMapboxToken());
+
+      if (isOutdoors) return hasToken ? 'MAPBOX_SATELLITE' : 'FREE_SATELLITE';
+      if (isSatellite) return hasToken ? 'MAPBOX_STREETS' : 'VOYAGER';
+      if (isStreets) return hasToken ? 'MAPBOX_DARK' : 'DARK_MATTER';
+      return hasToken ? 'MAPBOX_OUTDOORS' : 'FREE_OUTDOORS';
     });
   }, []);
 
   const handleToggleLayer = useCallback((layerKey) => {
     setActiveLayers((prev) => ({ ...prev, [layerKey]: !prev[layerKey] }));
+  }, []);
+
+  const handleSaveToken = useCallback((newToken) => {
+    setMapboxToken(newToken);
+    setActiveBasemap('MAPBOX_OUTDOORS');
+    setTileWarning(null);
+  }, []);
+
+  const handleResetToken = useCallback(() => {
+    setMapboxToken('');
+    setActiveBasemap('FREE_OUTDOORS');
+    setTileWarning(null);
+  }, []);
+
+  const handleSwitchToOpenTiles = useCallback(() => {
+    setActiveBasemap('DARK_MATTER');
+    setTileWarning(null);
   }, []);
 
   const hasEndpoints = Boolean(
@@ -1003,6 +1032,49 @@ export function InteractiveMap({
         </div>
       )}
 
+      {/* Tile Issue Warning Notification with Dismissal */}
+      {tileWarning && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'var(--space-3)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1500,
+            background: 'rgba(15, 23, 42, 0.95)',
+            border: '1px solid var(--color-brand-amber)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '6px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: 'var(--shadow-lg)',
+            maxWidth: 'min(460px, calc(100% - 24px))',
+          }}
+        >
+          <span style={{ fontSize: '0.9rem' }}>⚠️</span>
+          <span style={{ fontSize: '0.74rem', color: 'var(--color-text-primary)', flex: 1, lineHeight: 1.3 }}>
+            {tileWarning}
+          </span>
+          <button
+            type="button"
+            onClick={() => setTileWarning(null)}
+            aria-label="Dismiss warning"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--color-text-muted)',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              padding: '2px',
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Floating Map Controls */}
       <MapControls
         onZoomIn={handleZoomIn}
@@ -1017,6 +1089,17 @@ export function InteractiveMap({
         onToggleLayer={handleToggleLayer}
         clickMode={clickMode}
         onChangeClickMode={setClickMode}
+        onOpenTokenModal={() => setIsTokenModalOpen(true)}
+      />
+
+      {/* Mapbox Token Configuration Modal */}
+      <MapTokenModal
+        isOpen={isTokenModalOpen}
+        onClose={() => setIsTokenModalOpen(false)}
+        currentToken={getMapboxToken()}
+        onSaveToken={handleSaveToken}
+        onResetToken={handleResetToken}
+        onSwitchToOpenTiles={handleSwitchToOpenTiles}
       />
 
       {/* Bottom Cartographic Status HUD & Legend */}

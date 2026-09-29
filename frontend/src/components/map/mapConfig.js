@@ -111,21 +111,102 @@ export const BASEMAP_PROVIDERS = {
     maxZoom: 19,
     description: 'Standard community OpenStreetMap tiles',
   },
+  // Zero-credential high-performance basemaps (100% Free, No API key required):
+  FREE_SATELLITE: {
+    id: 'FREE_SATELLITE',
+    name: 'ESRI World Imagery Satellite',
+    label: 'Real Satellite (Zero Key Required)',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution:
+      'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    subdomains: '',
+    tileSize: 256,
+    zoomOffset: 0,
+    maxZoom: 18,
+    description: 'Real high-resolution photorealistic satellite imagery (Zero API key required)',
+  },
+  FREE_OUTDOORS: {
+    id: 'FREE_OUTDOORS',
+    name: 'CartoDB Voyager (Green & White)',
+    label: 'Green & White (Zero Key Required)',
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
+    subdomains: 'abcd',
+    tileSize: 256,
+    zoomOffset: 0,
+    maxZoom: 19,
+    description: 'Clean white roads, green parks, and urban topography (Zero API key required)',
+  },
 };
 
 /**
- * Resolves the Mapbox API access token from environment variables or global scope.
+ * Resolves the Mapbox API access token with layered fallback:
+ * 1. Explicit Vite environment variable (VITE_MAPBOX_TOKEN)
+ * 2. URL search parameter (?mapbox_token=... or ?map_token=...)
+ * 3. Browser localStorage override (suraksha_mapbox_token)
+ * 4. Window global override (window.__MAPBOX_TOKEN__)
  */
 export function getMapboxToken() {
-  return (
-    import.meta.env?.VITE_MAPBOX_TOKEN ||
-    (typeof window !== 'undefined' && window.__MAPBOX_TOKEN__) ||
-    ''
-  );
+  const envToken =
+    typeof import.meta !== 'undefined' && import.meta.env?.VITE_MAPBOX_TOKEN;
+  if (envToken && typeof envToken === 'string' && envToken.trim().length > 0) {
+    return envToken.trim();
+  }
+
+  if (typeof window !== 'undefined') {
+    // Check URL query parameters (e.g. ?mapbox_token=pk.xxx)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlToken = params.get('mapbox_token') || params.get('map_token');
+      if (urlToken && urlToken.trim().startsWith('pk.')) {
+        window.localStorage?.setItem('suraksha_mapbox_token', urlToken.trim());
+        return urlToken.trim();
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+
+    // Check localStorage
+    try {
+      const stored = window.localStorage?.getItem('suraksha_mapbox_token');
+      if (stored && typeof stored === 'string' && stored.trim().length > 0) {
+        return stored.trim();
+      }
+    } catch {
+      // Ignore localStorage access errors
+    }
+
+    // Check window global override
+    if (window.__MAPBOX_TOKEN__ && typeof window.__MAPBOX_TOKEN__ === 'string') {
+      return window.__MAPBOX_TOKEN__.trim();
+    }
+  }
+
+  return '';
+}
+
+/**
+ * Persists a user-provided Mapbox token to localStorage for live in-browser updates.
+ */
+export function setMapboxToken(token) {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      if (token && typeof token === 'string' && token.trim().length > 0) {
+        window.localStorage.setItem('suraksha_mapbox_token', token.trim());
+      } else {
+        window.localStorage.removeItem('suraksha_mapbox_token');
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }
 }
 
 /**
  * Returns the active basemap configuration, honoring any environment variable overrides.
+ * Provides seamless zero-credential fallback (FREE_SATELLITE & FREE_OUTDOORS) when no token is present,
+ * completely preventing any "API key is required" errors.
  */
 export function getActiveBasemap(providerKey = null) {
   // Check for custom environment variable overrides (e.g., self-hosted tile server or proxy)
@@ -152,28 +233,56 @@ export function getActiveBasemap(providerKey = null) {
   // Resolve target key
   let effectiveKey = providerKey;
   if (!effectiveKey) {
-    effectiveKey = mapboxToken ? 'MAPBOX_OUTDOORS' : 'DARK_MATTER';
+    effectiveKey = mapboxToken ? 'MAPBOX_OUTDOORS' : 'FREE_OUTDOORS';
   }
 
-  // If specific Mapbox provider requested or resolved
-  if (
-    effectiveKey === 'MAPBOX_OUTDOORS' ||
-    effectiveKey === 'MAPBOX_SATELLITE' ||
-    effectiveKey === 'MAPBOX_STREETS' ||
-    effectiveKey === 'MAPBOX_DARK'
-  ) {
-    const selected = BASEMAP_PROVIDERS[effectiveKey];
-    if (mapboxToken && selected) {
+  // 1. Green & White / Outdoors View:
+  if (effectiveKey === 'MAPBOX_OUTDOORS' || effectiveKey === 'FREE_OUTDOORS') {
+    if (mapboxToken) {
       return {
-        ...selected,
-        url: selected.url.replace('{token}', mapboxToken),
+        ...BASEMAP_PROVIDERS.MAPBOX_OUTDOORS,
+        url: BASEMAP_PROVIDERS.MAPBOX_OUTDOORS.url.replace('{token}', mapboxToken),
       };
     }
-    // Graceful fallback if token is missing
+    // Zero-credential fallback: CartoDB Voyager clean white roads & green parks
+    return BASEMAP_PROVIDERS.FREE_OUTDOORS;
+  }
+
+  // 2. Real Satellite Aerial View:
+  if (effectiveKey === 'MAPBOX_SATELLITE' || effectiveKey === 'FREE_SATELLITE') {
+    if (mapboxToken) {
+      return {
+        ...BASEMAP_PROVIDERS.MAPBOX_SATELLITE,
+        url: BASEMAP_PROVIDERS.MAPBOX_SATELLITE.url.replace('{token}', mapboxToken),
+      };
+    }
+    // Zero-credential fallback: ESRI World Imagery Photorealistic Satellite
+    return BASEMAP_PROVIDERS.FREE_SATELLITE;
+  }
+
+  // 3. Daylight Streets View:
+  if (effectiveKey === 'MAPBOX_STREETS') {
+    if (mapboxToken) {
+      return {
+        ...BASEMAP_PROVIDERS.MAPBOX_STREETS,
+        url: BASEMAP_PROVIDERS.MAPBOX_STREETS.url.replace('{token}', mapboxToken),
+      };
+    }
+    return BASEMAP_PROVIDERS.OSM_STANDARD;
+  }
+
+  // 4. Nocturnal Dark View:
+  if (effectiveKey === 'MAPBOX_DARK' || effectiveKey === 'DARK_MATTER') {
+    if (mapboxToken && BASEMAP_PROVIDERS.MAPBOX_DARK) {
+      return {
+        ...BASEMAP_PROVIDERS.MAPBOX_DARK,
+        url: BASEMAP_PROVIDERS.MAPBOX_DARK.url.replace('{token}', mapboxToken),
+      };
+    }
     return BASEMAP_PROVIDERS.DARK_MATTER;
   }
 
-  return BASEMAP_PROVIDERS[effectiveKey] || BASEMAP_PROVIDERS.DARK_MATTER;
+  return BASEMAP_PROVIDERS[effectiveKey] || BASEMAP_PROVIDERS.FREE_OUTDOORS;
 }
 
 /**

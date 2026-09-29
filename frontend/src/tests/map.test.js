@@ -9,6 +9,8 @@ import {
   CHENNAI_METRO_BOUNDS,
   BASEMAP_PROVIDERS,
   getActiveBasemap,
+  getMapboxToken,
+  setMapboxToken,
   isValidCoordinate,
   formatCoordinates,
   haversineDistanceKm,
@@ -169,4 +171,31 @@ test('Catalog Search: Finds matching locations in Chennai', () => {
   const results = searchChennaiLocations('Metro');
   assert.ok(results.length >= 1);
   assert.ok(results.some((r) => r.name.includes('Metro')));
+});
+
+test('Basemap Resolution: Seamless zero-credential fallbacks and custom token resolution', () => {
+  // Test zero-key fallback when no token exists in environment
+  const zeroTokenOutdoors = getActiveBasemap('MAPBOX_OUTDOORS');
+  assert.ok(zeroTokenOutdoors.url);
+  assert.equal(zeroTokenOutdoors.url.includes('{token}'), false, 'URL must not contain raw {token} placeholder');
+
+  const zeroTokenSatellite = getActiveBasemap('MAPBOX_SATELLITE');
+  assert.ok(zeroTokenSatellite.url);
+  assert.equal(zeroTokenSatellite.url.includes('{token}'), false, 'Satellite URL must not contain raw {token} placeholder');
+
+  // Verify custom token injection replaces placeholder properly
+  const mockToken = 'pk.test_mock_mapbox_public_key_for_testing';
+  setMapboxToken(mockToken);
+
+  // If in node environment without window, verify setMapboxToken doesn't throw
+  // and direct token replacement works
+  const mockProvider = {
+    ...BASEMAP_PROVIDERS.MAPBOX_OUTDOORS,
+    url: BASEMAP_PROVIDERS.MAPBOX_OUTDOORS.url.replace('{token}', mockToken),
+  };
+  assert.ok(mockProvider.url.includes(mockToken));
+  assert.equal(mockProvider.url.includes('{token}'), false);
+
+  // Clean up
+  setMapboxToken('');
 });

@@ -23,6 +23,7 @@ export function MapControls({
   onToggleLayer,
   clickMode = 'INSPECT',
   onChangeClickMode,
+  onOpenTokenModal,
 }) {
   return (
     <>
@@ -195,136 +196,131 @@ export function MapControls({
               MAP:
             </span>
 
-            {activeBasemap.startsWith('MAPBOX_') ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => (onSelectBasemap ? onSelectBasemap('MAPBOX_OUTDOORS') : onToggleBasemap())}
-                  style={{
-                    background: activeBasemap === 'MAPBOX_OUTDOORS' ? 'rgba(16, 185, 129, 0.25)' : 'transparent',
-                    border: `1px solid ${activeBasemap === 'MAPBOX_OUTDOORS' ? '#10b981' : 'transparent'}`,
-                    color: activeBasemap === 'MAPBOX_OUTDOORS' ? '#34d399' : 'var(--color-text-secondary)',
-                    borderRadius: 'var(--radius-xs)',
-                    fontSize: '0.68rem',
-                    fontWeight: activeBasemap === 'MAPBOX_OUTDOORS' ? 700 : 500,
-                    padding: '2px 6px',
-                    height: '24px',
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-fast)',
-                    whiteSpace: 'nowrap',
-                  }}
-                  title="Green & White View (Mapbox Outdoors: natural terrain, green parks & clean white roads)"
-                  aria-pressed={activeBasemap === 'MAPBOX_OUTDOORS'}
-                >
-                  🌲 Green/White
-                </button>
+            {(() => {
+              const isOutdoors = activeBasemap === 'MAPBOX_OUTDOORS' || activeBasemap === 'FREE_OUTDOORS';
+              const isSatellite = activeBasemap === 'MAPBOX_SATELLITE' || activeBasemap === 'FREE_SATELLITE';
+              const isStreets = activeBasemap === 'MAPBOX_STREETS' || activeBasemap === 'VOYAGER' || activeBasemap === 'OSM_STANDARD';
+              const isDark = activeBasemap === 'MAPBOX_DARK' || activeBasemap === 'DARK_MATTER';
 
-                <button
-                  type="button"
-                  onClick={() => (onSelectBasemap ? onSelectBasemap('MAPBOX_SATELLITE') : onToggleBasemap())}
-                  style={{
-                    background: activeBasemap === 'MAPBOX_SATELLITE' ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
-                    border: `1px solid ${activeBasemap === 'MAPBOX_SATELLITE' ? '#3b82f6' : 'transparent'}`,
-                    color: activeBasemap === 'MAPBOX_SATELLITE' ? '#60a5fa' : 'var(--color-text-secondary)',
-                    borderRadius: 'var(--radius-xs)',
-                    fontSize: '0.68rem',
-                    fontWeight: activeBasemap === 'MAPBOX_SATELLITE' ? 700 : 500,
-                    padding: '2px 6px',
-                    height: '24px',
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-fast)',
-                    whiteSpace: 'nowrap',
-                  }}
-                  title="Satellite View (Real photorealistic aerial satellite imagery with streets)"
-                  aria-pressed={activeBasemap === 'MAPBOX_SATELLITE'}
-                >
-                  🛰️ Satellite
-                </button>
+              return (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => (onSelectBasemap ? onSelectBasemap('MAPBOX_OUTDOORS') : onToggleBasemap())}
+                    style={{
+                      background: isOutdoors ? 'rgba(16, 185, 129, 0.25)' : 'transparent',
+                      border: `1px solid ${isOutdoors ? '#10b981' : 'transparent'}`,
+                      color: isOutdoors ? '#34d399' : 'var(--color-text-secondary)',
+                      borderRadius: 'var(--radius-xs)',
+                      fontSize: '0.68rem',
+                      fontWeight: isOutdoors ? 700 : 500,
+                      padding: '2px 6px',
+                      height: '24px',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title="Green & White View: natural terrain, green parks & clean white roads (Zero key required)"
+                    aria-pressed={isOutdoors}
+                  >
+                    🌲 Green/White
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => (onSelectBasemap ? onSelectBasemap('MAPBOX_STREETS') : onToggleBasemap())}
-                  style={{
-                    background: activeBasemap === 'MAPBOX_STREETS' ? 'rgba(245, 158, 11, 0.25)' : 'transparent',
-                    border: `1px solid ${activeBasemap === 'MAPBOX_STREETS' ? '#f59e0b' : 'transparent'}`,
-                    color: activeBasemap === 'MAPBOX_STREETS' ? '#fbbf24' : 'var(--color-text-secondary)',
-                    borderRadius: 'var(--radius-xs)',
-                    fontSize: '0.68rem',
-                    fontWeight: activeBasemap === 'MAPBOX_STREETS' ? 700 : 500,
-                    padding: '2px 6px',
-                    height: '24px',
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-fast)',
-                    whiteSpace: 'nowrap',
-                  }}
-                  title="Daylight Streets (Mapbox Streets urban road network)"
-                  aria-pressed={activeBasemap === 'MAPBOX_STREETS'}
-                >
-                  🏙️ Streets
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => (onSelectBasemap ? onSelectBasemap('MAPBOX_SATELLITE') : onToggleBasemap())}
+                    style={{
+                      background: isSatellite ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
+                      border: `1px solid ${isSatellite ? '#3b82f6' : 'transparent'}`,
+                      color: isSatellite ? '#60a5fa' : 'var(--color-text-secondary)',
+                      borderRadius: 'var(--radius-xs)',
+                      fontSize: '0.68rem',
+                      fontWeight: isSatellite ? 700 : 500,
+                      padding: '2px 6px',
+                      height: '24px',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title="Satellite View: real photorealistic aerial satellite imagery (Zero key required)"
+                    aria-pressed={isSatellite}
+                  >
+                    🛰️ Satellite
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => (onSelectBasemap ? onSelectBasemap('MAPBOX_DARK') : onToggleBasemap())}
-                  style={{
-                    background: activeBasemap === 'MAPBOX_DARK' ? 'rgba(139, 92, 246, 0.25)' : 'transparent',
-                    border: `1px solid ${activeBasemap === 'MAPBOX_DARK' ? '#8b5cf6' : 'transparent'}`,
-                    color: activeBasemap === 'MAPBOX_DARK' ? '#a78bfa' : 'var(--color-text-secondary)',
-                    borderRadius: 'var(--radius-xs)',
-                    fontSize: '0.68rem',
-                    fontWeight: activeBasemap === 'MAPBOX_DARK' ? 700 : 500,
-                    padding: '2px 6px',
-                    height: '24px',
-                    cursor: 'pointer',
-                    transition: 'all var(--transition-fast)',
-                    whiteSpace: 'nowrap',
-                  }}
-                  title="Dark Mode (Mapbox Dark nocturnal canvas)"
-                  aria-pressed={activeBasemap === 'MAPBOX_DARK'}
-                >
-                  🌙 Dark
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => (onSelectBasemap ? onSelectBasemap('DARK_MATTER') : onToggleBasemap())}
-                  style={{
-                    background: activeBasemap === 'DARK_MATTER' ? 'var(--color-surface-elevated)' : 'transparent',
-                    border: `1px solid ${activeBasemap === 'DARK_MATTER' ? 'var(--color-brand-blue)' : 'transparent'}`,
-                    color: activeBasemap === 'DARK_MATTER' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                    borderRadius: 'var(--radius-xs)',
-                    fontSize: '0.68rem',
-                    padding: '2px 6px',
-                    height: '24px',
-                    cursor: 'pointer',
-                  }}
-                  title="Dark Canvas (CartoDB Dark Matter)"
-                  aria-pressed={activeBasemap === 'DARK_MATTER'}
-                >
-                  🌙 Dark
-                </button>
-                <button
-                  type="button"
-                  onClick={() => (onSelectBasemap ? onSelectBasemap('VOYAGER') : onToggleBasemap())}
-                  style={{
-                    background: activeBasemap === 'VOYAGER' ? 'var(--color-surface-elevated)' : 'transparent',
-                    border: `1px solid ${activeBasemap === 'VOYAGER' ? 'var(--color-brand-blue)' : 'transparent'}`,
-                    color: activeBasemap === 'VOYAGER' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                    borderRadius: 'var(--radius-xs)',
-                    fontSize: '0.68rem',
-                    padding: '2px 6px',
-                    height: '24px',
-                    cursor: 'pointer',
-                  }}
-                  title="Street Navigation (CartoDB Voyager)"
-                  aria-pressed={activeBasemap === 'VOYAGER'}
-                >
-                  🏙️ Street
-                </button>
-              </>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => (onSelectBasemap ? onSelectBasemap('MAPBOX_STREETS') : onToggleBasemap())}
+                    style={{
+                      background: isStreets ? 'rgba(245, 158, 11, 0.25)' : 'transparent',
+                      border: `1px solid ${isStreets ? '#f59e0b' : 'transparent'}`,
+                      color: isStreets ? '#fbbf24' : 'var(--color-text-secondary)',
+                      borderRadius: 'var(--radius-xs)',
+                      fontSize: '0.68rem',
+                      fontWeight: isStreets ? 700 : 500,
+                      padding: '2px 6px',
+                      height: '24px',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title="Daylight Streets: urban road network with building footprints"
+                    aria-pressed={isStreets}
+                  >
+                    🏙️ Streets
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => (onSelectBasemap ? onSelectBasemap('MAPBOX_DARK') : onToggleBasemap())}
+                    style={{
+                      background: isDark ? 'rgba(139, 92, 246, 0.25)' : 'transparent',
+                      border: `1px solid ${isDark ? '#8b5cf6' : 'transparent'}`,
+                      color: isDark ? '#a78bfa' : 'var(--color-text-secondary)',
+                      borderRadius: 'var(--radius-xs)',
+                      fontSize: '0.68rem',
+                      fontWeight: isDark ? 700 : 500,
+                      padding: '2px 6px',
+                      height: '24px',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title="Dark Mode: nocturnal high-contrast canvas"
+                    aria-pressed={isDark}
+                  >
+                    🌙 Dark
+                  </button>
+                </>
+              );
+            })()}
+
+            {/* Mapbox API Key Settings Button */}
+            <button
+              type="button"
+              onClick={onOpenTokenModal}
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid var(--color-border-medium)',
+                color: 'var(--color-text-secondary)',
+                borderRadius: 'var(--radius-xs)',
+                fontSize: '0.66rem',
+                fontWeight: 600,
+                padding: '2px 5px',
+                height: '24px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                marginLeft: '2px',
+                whiteSpace: 'nowrap',
+              }}
+              title="Mapbox API Key Settings (view or update your key)"
+              aria-label="Mapbox API Key Settings"
+            >
+              <span>🔑</span>
+              <span>Key</span>
+            </button>
           </div>
 
           {/* Quick Layer Badges */}
