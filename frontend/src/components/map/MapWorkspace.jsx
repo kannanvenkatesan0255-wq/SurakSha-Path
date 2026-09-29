@@ -36,11 +36,11 @@ export function MapWorkspace({
 
   return (
     <div
-      className="map-workspace-container"
+      className="map-workspace-container map-workspace-viewport"
       style={{
         position: 'relative',
         width: '100%',
-        minHeight: '620px',
+        minHeight: '560px',
         height: '100%',
         backgroundColor: '#070b12',
         border: '1px solid var(--color-border-medium)',
@@ -127,6 +127,12 @@ export function MapWorkspace({
       {children}
 
       <style>{`
+        @media (max-width: 768px) {
+          .map-workspace-container.map-workspace-viewport {
+            min-height: 380px !important;
+            height: 52vh !important;
+          }
+        }
         @media (max-width: 640px) {
           .map-spatial-engine-badge {
             display: none !important;

@@ -4,6 +4,7 @@ import { Button } from '../common/Button';
 import { TextInput } from '../common/Input';
 import { MapWorkspace } from '../map/MapWorkspace';
 import { SosConfirmationModal } from './SosConfirmationModal';
+import { EmergencyHelplineDirectory } from '../common/EmergencyHelplineDirectory';
 import {
   JOURNEY_STATUSES,
   CHECK_IN_INTERVALS,
@@ -677,76 +678,9 @@ export function JourneyMonitoringWorkspace({
             Please tap the emergency numbers below to dial real-world responders directly from your phone.
           </div>
 
-          {/* Quick Dial Shortcuts */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
-            <a
-              href="tel:100"
-              className="btn btn-sm"
-              style={{
-                background: '#dc2626',
-                color: '#ffffff',
-                fontWeight: 700,
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            >
-              📞 Dial Police (100 / 112)
-            </a>
-            <a
-              href="tel:1091"
-              className="btn btn-sm"
-              style={{
-                background: '#9333ea',
-                color: '#ffffff',
-                fontWeight: 700,
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            >
-              📞 Women Helpline (1091)
-            </a>
-            <a
-              href="tel:108"
-              className="btn btn-sm"
-              style={{
-                background: '#ea580c',
-                color: '#ffffff',
-                fontWeight: 700,
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            >
-              📞 Ambulance (108)
-            </a>
-            <a
-              href="tel:1913"
-              className="btn btn-sm"
-              style={{
-                background: '#0284c7',
-                color: '#ffffff',
-                fontWeight: 700,
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            >
-              📞 GCC Flood Helpline (1913)
-            </a>
+          {/* Real Emergency Calling Directory */}
+          <div style={{ marginTop: 'var(--space-2)' }}>
+            <EmergencyHelplineDirectory helplines={helplines} compact={false} />
           </div>
         </div>
       )}
@@ -1198,47 +1132,9 @@ export function JourneyMonitoringWorkspace({
                 </div>
               )}
 
-              {/* Public Helplines List */}
-              <div
-                style={{
-                  background: 'var(--color-surface-card)',
-                  border: '1px solid var(--color-border-subtle)',
-                  borderRadius: 'var(--radius-xs)',
-                  padding: 'var(--space-2)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  marginTop: 'var(--space-1)',
-                }}
-              >
-                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                  CHENNAI EMERGENCY HELPLINES DIRECTORY
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '0.74rem' }}>
-                  {helplines.slice(0, 4).map((h, idx) => (
-                    <a
-                      key={idx}
-                      href={h.dial_uri || h.dialUri || `tel:${h.number}`}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '4px 6px',
-                        background: 'rgba(15, 23, 42, 0.4)',
-                        borderRadius: '3px',
-                        color: 'var(--color-text-primary)',
-                        textDecoration: 'none',
-                        border: '1px solid var(--color-border-subtle)',
-                      }}
-                      title={`Call ${h.name}`}
-                    >
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {h.category || h.name}
-                      </span>
-                      <strong style={{ color: 'var(--color-brand-cyan)' }}>{h.number}</strong>
-                    </a>
-                  ))}
-                </div>
+              {/* Real Emergency Calling Directory */}
+              <div style={{ marginTop: 'var(--space-2)' }}>
+                <EmergencyHelplineDirectory helplines={helplines} compact={false} />
               </div>
             </div>
           </SectionPanel>

@@ -1,6 +1,7 @@
 """Integration tests for Phase 13 Contextual API endpoints."""
 
 import unittest
+from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
@@ -35,8 +36,9 @@ class TestContextualAPI(unittest.TestCase):
 
     def test_post_evaluate_context_endpoint(self):
         """POST /api/context/evaluate evaluates solar and weather for a specific date and time."""
+        future_date = (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d")
         payload = {
-            "journey_date": "2026-09-28",
+            "journey_date": future_date,
             "departure_time": "20:30",
             "segment_codes": ["SEG-OSM-W24483756"],
         }
@@ -44,7 +46,7 @@ class TestContextualAPI(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         data = res.json()
 
-        self.assertEqual(data["journey_date"], "2026-09-28")
+        self.assertEqual(data["journey_date"], future_date)
         self.assertEqual(data["departure_time"], "20:30")
         self.assertTrue(data["is_departure_future"])
         self.assertEqual(data["solar_context"]["solar_phase"], "NIGHT_EARLY")

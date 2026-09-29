@@ -271,13 +271,25 @@ export function InteractiveMap({
         }, 50);
       });
 
-      // ResizeObserver to handle layout and sidebar changes
+      // Debounced resize handler for smooth responsive transitions & mobile orientation flips
+      let resizeTimer = null;
+      const handleResize = () => {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (mapRef.current) {
+            mapRef.current.invalidateSize();
+          }
+        }, 80);
+      };
+
       const resizeObserver = new ResizeObserver(() => {
-        if (mapRef.current) {
-          mapRef.current.invalidateSize();
-        }
+        handleResize();
       });
-      resizeObserver.observe(mapContainerRef.current);
+      if (mapContainerRef.current) {
+        resizeObserver.observe(mapContainerRef.current);
+      }
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', handleResize);
 
       mapRef.current = map;
       setMapReady(true);
@@ -287,6 +299,11 @@ export function InteractiveMap({
     }
 
     return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;

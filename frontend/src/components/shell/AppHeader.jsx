@@ -12,6 +12,7 @@ export function AppHeader({
   onRefreshHealth,
   isMobileMenuOpen,
   onToggleMobileMenu,
+  onOpenSosModal,
 }) {
   return (
     <header
@@ -126,6 +127,34 @@ export function AppHeader({
             </div>
           )}
         </div>
+
+        {/* Prominent Emergency SOS Header Action */}
+        <button
+          type="button"
+          onClick={onOpenSosModal}
+          className="btn header-sos-btn"
+          style={{
+            background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+            color: '#ffffff',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '4px 10px',
+            fontSize: '0.8rem',
+            fontWeight: 800,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            boxShadow: '0 2px 8px rgba(220, 38, 38, 0.4)',
+            cursor: 'pointer',
+            minHeight: '36px',
+            whiteSpace: 'nowrap',
+          }}
+          aria-label="Open emergency helpline directory"
+          title="Open Chennai Emergency Helplines (112, 100, 1091, 108)"
+        >
+          <span aria-hidden="true" style={{ fontSize: '1rem' }}>🚨</span>
+          <span className="header-sos-label">SOS CALL</span>
+        </button>
 
         {/* Prototype Tag */}
         <div className="header-prototype-badge">

@@ -686,4 +686,130 @@ a:hover {
   h3 { font-size: 0.98rem !important; }
 }
 
+/* ==============================================================================
+   RESPONSIVE MOBILE, TABLET & DESKTOP SYSTEM
+   Handles 320px, 375px, 390px, 768px, 1024px, 1366px, 1920px viewports
+   ============================================================================== */
+
+/* Safe area support for notched phones and modern displays */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+/* Touch-friendly touch targets on coarse pointer devices */
+@media (pointer: coarse) {
+  button, a.btn, input[type="button"], input[type="submit"] {
+    min-height: 44px;
+  }
+}
+
+/* Handheld mobile viewports (<= 768px) */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 58px;
+    --sidebar-width: 0px;
+  }
+
+  .app-header {
+    padding-left: max(var(--space-3), env(safe-area-inset-left, 12px)) !important;
+    padding-right: max(var(--space-3), env(safe-area-inset-right, 12px)) !important;
+  }
+
+  .app-main-content {
+    padding: var(--space-3) !important;
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 12px)) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Two column layouts collapse to 1 column */
+  .planner-layout,
+  .analytics-grid,
+  .evidence-layout,
+  .community-layout,
+  .activity-layout {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-4) !important;
+  }
+
+  /* Map workspace takes comfortable height on mobile */
+  .map-workspace-viewport {
+    min-height: 380px !important;
+    height: 50vh !important;
+  }
+
+  /* Emergency directory responsive cards */
+  .emergency-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Form actions stack on mobile */
+  .form-actions-bar {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .form-actions-bar button,
+  .form-actions-bar a {
+    width: 100% !important;
+  }
+
+  /* Modal responsive sizing */
+  .emergency-modal-content {
+    max-height: 94vh !important;
+    width: calc(100% - 16px) !important;
+    margin: 8px !important;
+  }
+}
+
+/* Tablet viewports (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+
+  .planner-layout {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-5) !important;
+  }
+
+  .map-workspace-viewport {
+    min-height: 480px !important;
+  }
+}
+
+/* Desktop & Laptop viewports (1025px to 1440px) */
+@media (min-width: 1025px) {
+  .planner-layout {
+    grid-template-columns: minmax(min(100%, 380px), 440px) minmax(0, 1fr) !important;
+  }
+}
+
+/* Ultra-wide monitors (>= 1441px) */
+@media (min-width: 1441px) {
+  .app-main-content {
+    max-width: 1680px !important;
+  }
+}
+
+/* Narrow mobile screens (<= 390px, including 375px and 320px) */
+@media (max-width: 390px) {
+  .app-brand-title {
+    font-size: 0.88rem !important;
+  }
+  .header-sos-label {
+    display: none !important;
+  }
+  .header-sos-btn {
+    padding: 4px 8px !important;
+  }
+  .emergency-dial-number {
+    font-size: 1.2rem !important;
+  }
+}
+
+
 

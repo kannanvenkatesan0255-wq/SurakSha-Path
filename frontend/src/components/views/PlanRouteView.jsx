@@ -539,7 +539,7 @@ export function PlanRouteView({
         </div>
 
         {/* Right Column: Cartographic Workspace Viewport (Task 10) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '600px', minWidth: 0 }}>
+        <div className="planner-map-column" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minWidth: 0 }}>
           <MapWorkspace
             origin={origin}
             destination={destination}
@@ -599,6 +599,14 @@ export function PlanRouteView({
         @media (max-width: 960px) {
           .planner-layout {
             grid-template-columns: 1fr !important;
+          }
+          .planner-map-column {
+            min-height: 380px !important;
+          }
+        }
+        @media (min-width: 961px) {
+          .planner-map-column {
+            min-height: 600px;
           }
         }
       `}</style>

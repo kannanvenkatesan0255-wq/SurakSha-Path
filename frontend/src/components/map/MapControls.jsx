@@ -103,7 +103,7 @@ export function MapControls({
           display: 'flex',
           flexDirection: 'column',
           gap: '6px',
-          maxWidth: '320px',
+          maxWidth: 'min(460px, calc(100% - 16px))',
         }}
       >
         {/* Map Click Action Mode Selector */}
@@ -166,7 +166,8 @@ export function MapControls({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '8px',
+            gap: '6px',
+            flexWrap: 'wrap',
             boxShadow: 'var(--shadow-md)',
           }}
         >
@@ -357,6 +358,17 @@ export function MapControls({
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .map-mode-controls {
+            bottom: 38px !important;
+            left: 6px !important;
+            right: 6px !important;
+            max-width: calc(100% - 12px) !important;
+          }
+        }
+      `}</style>
     </>
   );
 }
