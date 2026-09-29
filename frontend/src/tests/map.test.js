@@ -58,6 +58,20 @@ test('Map Configuration: Basemap providers include Dark Matter, Voyager, and OSM
 });
 
 test('Map Configuration: Mapbox basemap styles are defined with high-DPI scaling and attribution', () => {
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_OUTDOORS);
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_OUTDOORS.id, 'MAPBOX_OUTDOORS');
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_OUTDOORS.url.includes('api.mapbox.com'));
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_OUTDOORS.tileSize, 512);
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_OUTDOORS.zoomOffset, -1);
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_OUTDOORS.attribution.includes('Mapbox'));
+
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_SATELLITE);
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_SATELLITE.id, 'MAPBOX_SATELLITE');
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_SATELLITE.url.includes('api.mapbox.com'));
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_SATELLITE.tileSize, 512);
+  assert.equal(BASEMAP_PROVIDERS.MAPBOX_SATELLITE.zoomOffset, -1);
+  assert.ok(BASEMAP_PROVIDERS.MAPBOX_SATELLITE.attribution.includes('Mapbox'));
+
   assert.ok(BASEMAP_PROVIDERS.MAPBOX_DARK);
   assert.equal(BASEMAP_PROVIDERS.MAPBOX_DARK.id, 'MAPBOX_DARK');
   assert.ok(BASEMAP_PROVIDERS.MAPBOX_DARK.url.includes('api.mapbox.com'));

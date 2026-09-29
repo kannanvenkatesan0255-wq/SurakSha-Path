@@ -79,7 +79,7 @@ export function InteractiveMap({
   const [currentCenter, setCurrentCenter] = useState(DEFAULT_CHENNAI_CENTER);
   const [currentZoom, setCurrentZoom] = useState(DEFAULT_ZOOM);
   const [activeBasemap, setActiveBasemap] = useState(() =>
-    getMapboxToken() ? 'MAPBOX_DARK' : 'DARK_MATTER'
+    getMapboxToken() ? 'MAPBOX_OUTDOORS' : 'DARK_MATTER'
   );
   const [clickMode, setClickMode] = useState('INSPECT');
   const [activeLayers, setActiveLayers] = useState({
@@ -792,13 +792,21 @@ export function InteractiveMap({
     }
   }, [routes, selectedRouteId, originLocation, destinationLocation]);
 
+  const handleSelectBasemap = useCallback((basemapKey) => {
+    if (basemapKey) {
+      setActiveBasemap(basemapKey);
+    }
+  }, []);
+
   const handleToggleBasemap = useCallback(() => {
     setActiveBasemap((prev) => {
-      if (prev === 'MAPBOX_DARK') return 'MAPBOX_STREETS';
+      if (prev === 'MAPBOX_OUTDOORS') return 'MAPBOX_SATELLITE';
+      if (prev === 'MAPBOX_SATELLITE') return 'MAPBOX_STREETS';
       if (prev === 'MAPBOX_STREETS') return 'MAPBOX_DARK';
+      if (prev === 'MAPBOX_DARK') return 'MAPBOX_OUTDOORS';
       if (prev === 'DARK_MATTER') return 'VOYAGER';
       if (prev === 'VOYAGER') return 'DARK_MATTER';
-      return getMapboxToken() ? 'MAPBOX_DARK' : 'DARK_MATTER';
+      return getMapboxToken() ? 'MAPBOX_OUTDOORS' : 'DARK_MATTER';
     });
   }, []);
 
@@ -987,6 +995,7 @@ export function InteractiveMap({
         hasEndpoints={hasEndpoints}
         activeBasemap={activeBasemap}
         onToggleBasemap={handleToggleBasemap}
+        onSelectBasemap={handleSelectBasemap}
         activeLayers={activeLayers}
         onToggleLayer={handleToggleLayer}
         clickMode={clickMode}

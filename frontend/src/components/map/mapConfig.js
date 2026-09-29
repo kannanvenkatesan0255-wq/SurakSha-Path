@@ -20,18 +20,31 @@ export const CHENNAI_METRO_BOUNDS = [
 
 // Basemap Tile Providers (with open-source / zero-credential defaults and full attribution)
 export const BASEMAP_PROVIDERS = {
-  MAPBOX_DARK: {
-    id: 'MAPBOX_DARK',
-    name: 'Mapbox Dark Navigation',
-    label: 'Mapbox Dark (Nocturnal)',
-    url: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/512/{z}/{x}/{y}?access_token={token}',
+  MAPBOX_OUTDOORS: {
+    id: 'MAPBOX_OUTDOORS',
+    name: 'Mapbox Outdoors',
+    label: 'Green & White (Outdoors)',
+    url: 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/512/{z}/{x}/{y}?access_token={token}',
     attribution:
       '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
     subdomains: '',
     tileSize: 512,
     zoomOffset: -1,
     maxZoom: 19,
-    description: 'High-contrast Mapbox nocturnal style calibrated for Chennai road safety overlays',
+    description: 'Natural green terrain and parks with clean white road network and clear topography',
+  },
+  MAPBOX_SATELLITE: {
+    id: 'MAPBOX_SATELLITE',
+    name: 'Mapbox Satellite Hybrid',
+    label: 'Satellite (Aerial Imagery)',
+    url: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/512/{z}/{x}/{y}?access_token={token}',
+    attribution:
+      '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; Maxar',
+    subdomains: '',
+    tileSize: 512,
+    zoomOffset: -1,
+    maxZoom: 19,
+    description: 'Real high-resolution photorealistic satellite imagery with street and landmark overlays',
   },
   MAPBOX_STREETS: {
     id: 'MAPBOX_STREETS',
@@ -45,6 +58,19 @@ export const BASEMAP_PROVIDERS = {
     zoomOffset: -1,
     maxZoom: 19,
     description: 'Detailed daylight Mapbox urban basemap with building footprints and transit labels',
+  },
+  MAPBOX_DARK: {
+    id: 'MAPBOX_DARK',
+    name: 'Mapbox Dark Navigation',
+    label: 'Mapbox Dark (Nocturnal)',
+    url: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/512/{z}/{x}/{y}?access_token={token}',
+    attribution:
+      '&copy; <a href="https://www.mapbox.com/about/maps/" target="_blank" rel="noopener noreferrer">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+    subdomains: '',
+    tileSize: 512,
+    zoomOffset: -1,
+    maxZoom: 19,
+    description: 'High-contrast Mapbox nocturnal style calibrated for Chennai road safety overlays',
   },
   DARK_MATTER: {
     id: 'DARK_MATTER',
@@ -126,13 +152,18 @@ export function getActiveBasemap(providerKey = null) {
   // Resolve target key
   let effectiveKey = providerKey;
   if (!effectiveKey) {
-    effectiveKey = mapboxToken ? 'MAPBOX_DARK' : 'DARK_MATTER';
+    effectiveKey = mapboxToken ? 'MAPBOX_OUTDOORS' : 'DARK_MATTER';
   }
 
   // If specific Mapbox provider requested or resolved
-  if (effectiveKey === 'MAPBOX_DARK' || effectiveKey === 'MAPBOX_STREETS') {
+  if (
+    effectiveKey === 'MAPBOX_OUTDOORS' ||
+    effectiveKey === 'MAPBOX_SATELLITE' ||
+    effectiveKey === 'MAPBOX_STREETS' ||
+    effectiveKey === 'MAPBOX_DARK'
+  ) {
     const selected = BASEMAP_PROVIDERS[effectiveKey];
-    if (mapboxToken) {
+    if (mapboxToken && selected) {
       return {
         ...selected,
         url: selected.url.replace('{token}', mapboxToken),
