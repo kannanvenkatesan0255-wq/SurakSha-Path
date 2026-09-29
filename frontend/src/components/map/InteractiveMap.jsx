@@ -21,6 +21,7 @@ import {
   MAX_ZOOM,
   CHENNAI_METRO_BOUNDS,
   getActiveBasemap,
+  getMapboxToken,
   isValidCoordinate,
   formatCoordinates,
   haversineDistanceKm,
@@ -77,7 +78,9 @@ export function InteractiveMap({
 
   const [currentCenter, setCurrentCenter] = useState(DEFAULT_CHENNAI_CENTER);
   const [currentZoom, setCurrentZoom] = useState(DEFAULT_ZOOM);
-  const [activeBasemap, setActiveBasemap] = useState('DARK_MATTER');
+  const [activeBasemap, setActiveBasemap] = useState(() =>
+    getMapboxToken() ? 'MAPBOX_DARK' : 'DARK_MATTER'
+  );
   const [clickMode, setClickMode] = useState('INSPECT');
   const [activeLayers, setActiveLayers] = useState({
     lighting: true,
@@ -302,8 +305,14 @@ export function InteractiveMap({
     const config = getActiveBasemap(activeBasemap);
     const newTileLayer = L.tileLayer(config.url, {
       attribution: config.attribution,
-      subdomains: config.subdomains,
-      maxZoom: config.maxZoom,
+      subdomains: config.subdomains || '',
+      maxZoom: config.maxZoom || 19,
+      tileSize: config.tileSize || 256,
+      zoomOffset: config.zoomOffset || 0,
+    });
+
+    newTileLayer.on('tileerror', () => {
+      setTileWarning('Notice: Basemap tiles encountering network issues. Falling back to open tile service if persistent.');
     });
 
     newTileLayer.addTo(mapRef.current);
@@ -784,7 +793,13 @@ export function InteractiveMap({
   }, [routes, selectedRouteId, originLocation, destinationLocation]);
 
   const handleToggleBasemap = useCallback(() => {
-    setActiveBasemap((prev) => (prev === 'DARK_MATTER' ? 'VOYAGER' : 'DARK_MATTER'));
+    setActiveBasemap((prev) => {
+      if (prev === 'MAPBOX_DARK') return 'MAPBOX_STREETS';
+      if (prev === 'MAPBOX_STREETS') return 'MAPBOX_DARK';
+      if (prev === 'DARK_MATTER') return 'VOYAGER';
+      if (prev === 'VOYAGER') return 'DARK_MATTER';
+      return getMapboxToken() ? 'MAPBOX_DARK' : 'DARK_MATTER';
+    });
   }, []);
 
   const handleToggleLayer = useCallback((layerKey) => {

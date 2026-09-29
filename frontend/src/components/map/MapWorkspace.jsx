@@ -93,7 +93,7 @@ export function MapWorkspace({
             </div>
           </div>
           <span className="map-spatial-engine-badge">
-            <StatusBadge label="PHASE 6 ROUTE ENGINE" variant="status" />
+            <StatusBadge label="MAPBOX HIGH-DPI" variant="info" />
           </span>
           {routes && routes.length > 0 ? (
             <StatusBadge label={`${routes.length} Alternatives`} variant="info" />

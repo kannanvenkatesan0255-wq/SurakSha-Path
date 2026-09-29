@@ -88,6 +88,17 @@ export const BASEMAP_PROVIDERS = {
 };
 
 /**
+ * Resolves the Mapbox API access token from environment variables or global scope.
+ */
+export function getMapboxToken() {
+  return (
+    import.meta.env?.VITE_MAPBOX_TOKEN ||
+    (typeof window !== 'undefined' && window.__MAPBOX_TOKEN__) ||
+    ''
+  );
+}
+
+/**
  * Returns the active basemap configuration, honoring any environment variable overrides.
  */
 export function getActiveBasemap(providerKey = null) {
@@ -110,17 +121,12 @@ export function getActiveBasemap(providerKey = null) {
     };
   }
 
-  const mapboxToken = import.meta.env?.VITE_MAPBOX_TOKEN;
-  const mapProvider = import.meta.env?.VITE_MAP_PROVIDER;
+  const mapboxToken = getMapboxToken();
 
   // Resolve target key
   let effectiveKey = providerKey;
   if (!effectiveKey) {
-    if (mapboxToken && mapProvider === 'MAPBOX') {
-      effectiveKey = 'MAPBOX_DARK';
-    } else {
-      effectiveKey = 'DARK_MATTER';
-    }
+    effectiveKey = mapboxToken ? 'MAPBOX_DARK' : 'DARK_MATTER';
   }
 
   // If specific Mapbox provider requested or resolved

@@ -175,10 +175,12 @@ export function MapControls({
             onClick={onToggleBasemap}
             className="btn btn-subtle btn-sm"
             style={{ fontSize: '0.72rem', padding: '2px 6px', height: '24px' }}
-            aria-label="Toggle between Dark Canvas and Street basemaps"
-            title={`Switch to ${activeBasemap === 'DARK_MATTER' ? 'Street (Daylight)' : 'Dark Canvas'}`}
+            aria-label="Toggle between Mapbox Dark and Mapbox Streets basemaps"
+            title={`Switch to ${activeBasemap === 'MAPBOX_DARK' ? 'Mapbox Streets (Daylight)' : 'Mapbox Dark (Nocturnal)'}`}
           >
-            <span>🗺️ {activeBasemap === 'DARK_MATTER' ? 'Dark Canvas' : 'Street'}</span>
+            <span>
+              🗺️ {activeBasemap === 'MAPBOX_DARK' ? 'Mapbox Dark' : activeBasemap === 'MAPBOX_STREETS' ? 'Mapbox Streets' : activeBasemap === 'DARK_MATTER' ? 'Dark Canvas' : 'Street'}
+            </span>
           </button>
 
           {/* Quick Layer Badges */}
