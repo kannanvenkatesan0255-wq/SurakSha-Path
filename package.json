@@ -4,6 +4,7 @@
   "description": "Evidence-based, context-aware safe route navigation prototype for Chennai, India",
   "private": true,
   "scripts": {
+    "build": "npm --prefix frontend run build",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "python -m uvicorn backend.app.main:app --reload --host 127.0.0.1 --port 8000",
     "build:frontend": "npm --prefix frontend run build",

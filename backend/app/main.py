@@ -92,6 +92,7 @@ app.add_middleware(RequestSizeLimitMiddleware, max_bytes=1_048_576)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"^https://.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-Admin-Key", "X-User-Id", "X-Client-Version"],

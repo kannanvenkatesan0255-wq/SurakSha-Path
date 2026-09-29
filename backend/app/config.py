@@ -28,18 +28,41 @@ class Settings:
     PORT: int = int(os.getenv("BACKEND_PORT", "8000"))
 
     # CORS Configuration
+    _cors_env = os.getenv("CORS_ORIGINS", "")
     CORS_ORIGINS: List[str] = [
+        origin.strip() for origin in _cors_env.split(",") if origin.strip()
+    ] if _cors_env else [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
 
-    # Database Configuration (SQLite default with data directory in project root)
-    DATA_DIR: Path = ROOT_DIR / "data"
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    # Serverless cloud detection (Vercel / AWS Lambda)
+    IS_SERVERLESS: bool = (
+        os.getenv("VERCEL") is not None
+        or os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
+        or os.getenv("SERVERLESS", "false").lower() in ("true", "1", "yes")
+    )
+
+    # Database Configuration (SQLite default with data directory in project root, or /tmp in serverless)
+    if IS_SERVERLESS:
+        DATA_DIR: Path = Path("/tmp")
+    else:
+        DATA_DIR: Path = ROOT_DIR / "data"
+
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        DATA_DIR = Path("/tmp")
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+
     DEFAULT_DB_PATH = str(DATA_DIR / "suraksha_path.db").replace("\\", "/")
-    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
+    _raw_db_url = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
+    # Normalize postgres:// to postgresql:// for SQLAlchemy 2.x
+    if _raw_db_url.startswith("postgres://"):
+        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL: str = _raw_db_url
 
     # Geospatial Default Context
     DEFAULT_CITY: str = os.getenv("DEFAULT_CITY", "Chennai, India")

@@ -36,72 +36,73 @@ def init_db() -> None:
         Base.metadata.create_all(bind=engine)
 
         # Ensure Phase 7 & 8 columns exist in road_segments table (for pre-existing SQLite databases)
-        with engine.connect() as conn:
-            cursor = conn.execute(text("PRAGMA table_info(road_segments)"))
-            existing_cols = {row[1] for row in cursor.fetchall()}
-            
-            new_road_segment_columns = [
-                ("source_feature_id", "VARCHAR(64)"),
-                ("road_classification", "VARCHAR(64)"),
-                ("source_dataset", "VARCHAR(128) DEFAULT 'OpenStreetMap / Chennai Network'"),
-                ("source_metadata_json", "TEXT"),
-                ("from_node_id", "VARCHAR(64)"),
-                ("to_node_id", "VARCHAR(64)"),
-                ("evidence_count", "INTEGER DEFAULT 0"),
-                ("assessment_status", "VARCHAR(32) DEFAULT 'UNASSESSED'"),
-            ]
-            for col_name, col_type in new_road_segment_columns:
-                if col_name not in existing_cols:
-                    conn.execute(text(f"ALTER TABLE road_segments ADD COLUMN {col_name} {col_type}"))
-                    logger.info(f"Added column {col_name} to road_segments table.")
+        if engine.dialect.name == "sqlite":
+            with engine.connect() as conn:
+                cursor = conn.execute(text("PRAGMA table_info(road_segments)"))
+                existing_cols = {row[1] for row in cursor.fetchall()}
+                
+                new_road_segment_columns = [
+                    ("source_feature_id", "VARCHAR(64)"),
+                    ("road_classification", "VARCHAR(64)"),
+                    ("source_dataset", "VARCHAR(128) DEFAULT 'OpenStreetMap / Chennai Network'"),
+                    ("source_metadata_json", "TEXT"),
+                    ("from_node_id", "VARCHAR(64)"),
+                    ("to_node_id", "VARCHAR(64)"),
+                    ("evidence_count", "INTEGER DEFAULT 0"),
+                    ("assessment_status", "VARCHAR(32) DEFAULT 'UNASSESSED'"),
+                ]
+                for col_name, col_type in new_road_segment_columns:
+                    if col_name not in existing_cols:
+                        conn.execute(text(f"ALTER TABLE road_segments ADD COLUMN {col_name} {col_type}"))
+                        logger.info(f"Added column {col_name} to road_segments table.")
 
-            # Ensure Phase 8 columns exist in evidence_items table
-            evd_cursor = conn.execute(text("PRAGMA table_info(evidence_items)"))
-            existing_evd_cols = {row[1] for row in evd_cursor.fetchall()}
-            
-            new_evidence_columns = [
-                ("evidence_id", "VARCHAR(64)"),
-                ("segment_code", "VARCHAR(64)"),
-                ("category", "VARCHAR(64) DEFAULT 'INFRASTRUCTURE'"),
-                ("source_name", "VARCHAR(128) DEFAULT 'OpenStreetMap Contributors'"),
-                ("source_reference", "VARCHAR(255)"),
-                ("latitude", "FLOAT"),
-                ("longitude", "FLOAT"),
-                ("observed_at", "DATETIME"),
-                ("ingested_at", "DATETIME"),
-                ("attributes_json", "TEXT"),
-                ("verification_status", "VARCHAR(32) DEFAULT 'UNVERIFIED'"),
-            ]
-            for col_name, col_type in new_evidence_columns:
-                if col_name not in existing_evd_cols:
-                    conn.execute(text(f"ALTER TABLE evidence_items ADD COLUMN {col_name} {col_type}"))
-                    logger.info(f"Added column {col_name} to evidence_items table.")
+                # Ensure Phase 8 columns exist in evidence_items table
+                evd_cursor = conn.execute(text("PRAGMA table_info(evidence_items)"))
+                existing_evd_cols = {row[1] for row in evd_cursor.fetchall()}
+                
+                new_evidence_columns = [
+                    ("evidence_id", "VARCHAR(64)"),
+                    ("segment_code", "VARCHAR(64)"),
+                    ("category", "VARCHAR(64) DEFAULT 'INFRASTRUCTURE'"),
+                    ("source_name", "VARCHAR(128) DEFAULT 'OpenStreetMap Contributors'"),
+                    ("source_reference", "VARCHAR(255)"),
+                    ("latitude", "FLOAT"),
+                    ("longitude", "FLOAT"),
+                    ("observed_at", "DATETIME"),
+                    ("ingested_at", "DATETIME"),
+                    ("attributes_json", "TEXT"),
+                    ("verification_status", "VARCHAR(32) DEFAULT 'UNVERIFIED'"),
+                ]
+                for col_name, col_type in new_evidence_columns:
+                    if col_name not in existing_evd_cols:
+                        conn.execute(text(f"ALTER TABLE evidence_items ADD COLUMN {col_name} {col_type}"))
+                        logger.info(f"Added column {col_name} to evidence_items table.")
 
-            # Ensure Phase 9 columns exist in community_reports table
-            rep_cursor = conn.execute(text("PRAGMA table_info(community_reports)"))
-            existing_rep_cols = {row[1] for row in rep_cursor.fetchall()}
-            
-            new_report_columns = [
-                ("report_id", "VARCHAR(64)"),
-                ("segment_code", "VARCHAR(64)"),
-                ("title", "VARCHAR(128)"),
-                ("location_name", "VARCHAR(255)"),
-                ("dispute_count", "INTEGER DEFAULT 0"),
-                ("flag_count", "INTEGER DEFAULT 0"),
-                ("status_notes", "TEXT"),
-                ("observed_at", "DATETIME"),
-                ("moderated_at", "DATETIME"),
-                ("moderated_by", "VARCHAR(64)"),
-                ("expires_at", "DATETIME"),
-                ("effective_trust_weight", "FLOAT DEFAULT 0.5"),
-                ("safety_score_impact", "FLOAT DEFAULT 0.0"),
-            ]
-            for col_name, col_type in new_report_columns:
-                if col_name not in existing_rep_cols:
-                    conn.execute(text(f"ALTER TABLE community_reports ADD COLUMN {col_name} {col_type}"))
-                    logger.info(f"Added column {col_name} to community_reports table.")
+                # Ensure Phase 9 columns exist in community_reports table
+                rep_cursor = conn.execute(text("PRAGMA table_info(community_reports)"))
+                existing_rep_cols = {row[1] for row in rep_cursor.fetchall()}
+                
+                new_report_columns = [
+                    ("report_id", "VARCHAR(64)"),
+                    ("segment_code", "VARCHAR(64)"),
+                    ("title", "VARCHAR(128)"),
+                    ("location_name", "VARCHAR(255)"),
+                    ("dispute_count", "INTEGER DEFAULT 0"),
+                    ("flag_count", "INTEGER DEFAULT 0"),
+                    ("status_notes", "TEXT"),
+                    ("observed_at", "DATETIME"),
+                    ("moderated_at", "DATETIME"),
+                    ("moderated_by", "VARCHAR(64)"),
+                    ("expires_at", "DATETIME"),
+                    ("effective_trust_weight", "FLOAT DEFAULT 0.5"),
+                    ("safety_score_impact", "FLOAT DEFAULT 0.0"),
+                ]
+                for col_name, col_type in new_report_columns:
+                    if col_name not in existing_rep_cols:
+                        conn.execute(text(f"ALTER TABLE community_reports ADD COLUMN {col_name} {col_type}"))
+                        logger.info(f"Added column {col_name} to community_reports table.")
 
-            conn.commit()
+                conn.commit()
 
         logger.info("Database tables initialized successfully.")
     except Exception as e:
