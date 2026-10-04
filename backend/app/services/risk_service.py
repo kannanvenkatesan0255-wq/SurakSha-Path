@@ -286,8 +286,20 @@ class RiskService:
         bottleneck_reason = None
 
         for seg in segments:
-            code = getattr(seg, "segment_code", None) or seg.get("segment_code") if isinstance(seg, dict) else str(seg)
-            length = float(getattr(seg, "length_meters", 100.0) if hasattr(seg, "length_meters") else seg.get("length_meters", 100.0) if isinstance(seg, dict) else 100.0)
+            if isinstance(seg, dict):
+                code = seg.get("segment_code") or str(seg)
+                length = float(seg.get("matched_length_meters") or seg.get("segment_length_meters") or seg.get("length_meters") or 100.0)
+            elif hasattr(seg, "segment_code"):
+                code = getattr(seg, "segment_code")
+                length = float(
+                    getattr(seg, "matched_length_meters", None)
+                    or getattr(seg, "segment_length_meters", None)
+                    or getattr(seg, "length_meters", None)
+                    or 100.0
+                )
+            else:
+                code = str(seg)
+                length = 100.0
             total_length += length
             all_lengths.append(length)
 

@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Literal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from ..core.security import sanitize_user_text
 
 class CommunityReportCreate(BaseModel):
@@ -135,8 +135,7 @@ class CommunityReportResponse(BaseModel):
     is_synthetic: bool
     how_this_contributes: Dict[str, Any]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CommunityReportsListResponse(BaseModel):

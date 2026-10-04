@@ -541,6 +541,7 @@ export function PlanRouteView({
         {/* Right Column: Cartographic Workspace Viewport (Task 10) */}
         <div className="planner-map-column" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minWidth: 0 }}>
           <MapWorkspace
+            mapId="planner-leaflet-map"
             origin={origin}
             destination={destination}
             activeCorridor="Chennai Demonstration Corridor"

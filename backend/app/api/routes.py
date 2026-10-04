@@ -830,10 +830,13 @@ def evaluate_journey_context(
 
     evaluated_segs = []
     if request.segment_codes:
-        segments = db.query(RoadSegment).filter(RoadSegment.segment_code.in_(request.segment_codes)).all()
-        for seg in segments:
-            adj = service.evaluate_segment_context(seg, journey_dt, weather=weather)
-            evaluated_segs.append(adj)
+        try:
+            segments = db.query(RoadSegment).filter(RoadSegment.segment_code.in_(request.segment_codes)).all()
+            for seg in segments:
+                adj = service.evaluate_segment_context(seg, journey_dt, weather=weather)
+                evaluated_segs.append(adj)
+        except Exception as e:
+            logger.warning(f"Error querying road segments for contextual evaluation: {e}")
 
     advisories = list(weather.active_advisories)
     if solar.is_dark:

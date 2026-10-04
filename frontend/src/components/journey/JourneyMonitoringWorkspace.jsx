@@ -1411,6 +1411,7 @@ export function JourneyMonitoringWorkspace({
         {/* Right Column: Interactive Map with Route & Commuter Pin (Step 6) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '620px', minWidth: 0 }}>
           <MapWorkspace
+            mapId="monitor-leaflet-map"
             origin={origin}
             destination={destination}
             currentLocation={activePosition}

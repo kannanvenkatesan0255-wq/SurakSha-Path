@@ -48,10 +48,14 @@ export function PrimaryNavigation({
           return (
             <button
               key={item.id}
+              id={item.id}
+              type="button"
+              data-testid={`nav-item-${item.id}`}
+              data-nav-id={item.id}
               onClick={() => handleItemClick(item.id)}
               aria-current={isActive ? 'page' : undefined}
               aria-label={item.ariaLabel}
-              className={`nav-item-btn ${isActive ? 'nav-item-active' : ''}`}
+              className={`nav-item-btn nav-item-${item.id} ${isActive ? 'nav-item-active' : ''}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -165,9 +169,12 @@ export function PrimaryNavigation({
           return (
             <button
               key={item.id}
+              id={`drawer-nav-${item.id}`}
+              type="button"
+              data-testid={`drawer-nav-${item.id}`}
               onClick={() => handleItemClick(item.id)}
               aria-current={isActive ? 'page' : undefined}
-              className="btn btn-secondary btn-multiline"
+              className={`btn btn-secondary btn-multiline drawer-nav-${item.id}`}
               style={{
                 justifyContent: 'flex-start',
                 padding: 'var(--space-3)',

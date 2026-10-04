@@ -603,11 +603,15 @@ class ContextualService:
             # Find domain model if DB available
             seg_obj = None
             if self.db:
-                seg_obj = (
-                    self.db.query(RoadSegment)
-                    .filter(RoadSegment.segment_code == seg_summary.segment_code)
-                    .first()
-                )
+                try:
+                    seg_obj = (
+                        self.db.query(RoadSegment)
+                        .filter(RoadSegment.segment_code == seg_summary.segment_code)
+                        .first()
+                    )
+                except Exception as e:
+                    logger.warning(f"Error querying RoadSegment for {seg_summary.segment_code}: {e}")
+                    seg_obj = None
 
             if not seg_obj:
                 # Fallback model representation from summary
@@ -644,13 +648,15 @@ class ContextualService:
             modifiers.append(adj.contextual_modifier)
 
         # Aggregate Route-Level Contextual Scores
+        unassessed_len = max(0.0, total_length - assessed_length)
         if weighted_adjusted_scores and assessed_length > 0:
             new_composite_score = round(sum(weighted_adjusted_scores) / assessed_length, 1)
-            new_composite_conf = round(sum(weighted_confidences) / total_length, 1)
+            total_weighted_conf = sum(weighted_confidences) + (10.0 * unassessed_len)
+            new_composite_conf = round(max(10.0, min(95.0, total_weighted_conf / total_length)), 1)
             mean_modifier = round(sum(modifiers) / len(modifiers), 2)
         else:
             new_composite_score = route.safety_score
-            new_composite_conf = round(sum(weighted_confidences) / total_length, 1) if weighted_confidences else route.confidence_score
+            new_composite_conf = max(10.0, min(95.0, route.confidence_score)) if route.confidence_score is not None else 10.0
             mean_modifier = round(sum(modifiers) / len(modifiers), 2) if modifiers else 0.0
 
         # Store pre-adjustment composite confidence to calculate delta

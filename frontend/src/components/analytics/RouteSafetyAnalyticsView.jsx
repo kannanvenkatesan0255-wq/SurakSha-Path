@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { SectionPanel } from '../common/SectionPanel';
-import { MetricDisplay } from '../common/MetricDisplay';
 import { Button } from '../common/Button';
 
 /**
@@ -13,7 +12,6 @@ export function RouteSafetyAnalyticsView({
   selectedRouteId = null,
   onSelectRoute = null,
 }) {
-  const [activeTab, setActiveTab] = useState('matrix'); // 'matrix' | 'cards'
 
   // Fallback sample Chennai routes if none currently planned
   const defaultSampleRoutes = [

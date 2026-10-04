@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any, Literal
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 
 
 EvidenceCategory = Literal[
@@ -82,8 +82,7 @@ class EvidenceResponse(BaseModel):
     verification_status: str
     is_synthetic: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class EvidenceFilterParams(BaseModel):

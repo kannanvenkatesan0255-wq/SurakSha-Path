@@ -43,6 +43,7 @@ import { CHENNAI_LOCATION_CATALOG } from '../../services/locationService';
 import { getRoadSegments } from '../../api/roadNetwork';
 
 export function InteractiveMap({
+  mapId = 'suraksha-leaflet-map',
   originLocation = null, // { name, lat, lng, address }
   destinationLocation = null, // { name, lat, lng, address }
   currentLocation = null, // Phase 14: { lat, lng, isSimulated, label }
@@ -116,6 +117,15 @@ export function InteractiveMap({
   useEffect(() => {
     if (!mapContainerRef.current) return;
     if (mapRef.current) return; // Prevent double-initialization in React 19 StrictMode
+
+    // Clean up stale leaflet identifier from previous instance if any
+    if (mapContainerRef.current._leaflet_id) {
+      delete mapContainerRef.current._leaflet_id;
+    }
+
+    let resizeTimer = null;
+    let handleResize = null;
+    let resizeObserver = null;
 
     try {
       const map = L.map(mapContainerRef.current, {
@@ -275,8 +285,7 @@ export function InteractiveMap({
       });
 
       // Debounced resize handler for smooth responsive transitions & mobile orientation flips
-      let resizeTimer = null;
-      const handleResize = () => {
+      handleResize = () => {
         if (resizeTimer) clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
           if (mapRef.current) {
@@ -285,11 +294,13 @@ export function InteractiveMap({
         }, 80);
       };
 
-      const resizeObserver = new ResizeObserver(() => {
-        handleResize();
-      });
-      if (mapContainerRef.current) {
-        resizeObserver.observe(mapContainerRef.current);
+      if (typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(() => {
+          handleResize();
+        });
+        if (mapContainerRef.current) {
+          resizeObserver.observe(mapContainerRef.current);
+        }
       }
       window.addEventListener('resize', handleResize);
       window.addEventListener('orientationchange', handleResize);
@@ -302,15 +313,33 @@ export function InteractiveMap({
     }
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
+      if (resizeTimer) {
+        clearTimeout(resizeTimer);
+      }
+      if (handleResize) {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('orientationchange', handleResize);
+      }
       if (resizeObserver) {
-        resizeObserver.disconnect();
+        try {
+          resizeObserver.disconnect();
+        } catch {
+          // ignore
+        }
+        resizeObserver = null;
       }
       if (mapRef.current) {
-        mapRef.current.remove();
+        try {
+          mapRef.current.remove();
+        } catch (e) {
+          console.warn('Failed to cleanly remove Leaflet map instance:', e);
+        }
         mapRef.current = null;
       }
+      if (mapContainerRef.current && mapContainerRef.current._leaflet_id) {
+        delete mapContainerRef.current._leaflet_id;
+      }
+      setMapReady(false);
     };
   }, []);
 
@@ -817,7 +846,7 @@ export function InteractiveMap({
     } else if (points.length === 1) {
       mapRef.current.flyTo(points[0], 14, { duration: 0.6 });
     }
-  }, [routes, selectedRouteId, originLocation, destinationLocation]);
+  }, [routes, selectedRouteId, originLocation, destinationLocation, mapReady]);
 
   const handleSelectBasemap = useCallback((basemapKey) => {
     if (basemapKey) {
@@ -974,7 +1003,7 @@ export function InteractiveMap({
           minHeight: '480px',
           cursor: clickMode === 'INSPECT' ? 'crosshair' : 'pointer',
         }}
-        id="suraksha-leaflet-map"
+        id={mapId}
       />
 
       {/* Selected Road Segment Inspector Panel (Phase 7) */}

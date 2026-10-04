@@ -42,6 +42,8 @@ export function MobileBottomNav({
       {/* 1. Home */}
       <button
         type="button"
+        id="mobile-bottom-nav-home"
+        data-testid="mobile-bottom-nav-home"
         onClick={() => onTabChange(NAV_TABS.HOME)}
         className="mobile-nav-btn"
         aria-current={activeTab === NAV_TABS.HOME ? 'page' : undefined}
@@ -57,6 +59,8 @@ export function MobileBottomNav({
       {/* 2. Routes (Plan Route) */}
       <button
         type="button"
+        id="mobile-bottom-nav-plan_route"
+        data-testid="mobile-bottom-nav-plan_route"
         onClick={() => onTabChange(NAV_TABS.PLAN_ROUTE)}
         className="mobile-nav-btn"
         aria-current={activeTab === NAV_TABS.PLAN_ROUTE ? 'page' : undefined}
@@ -72,6 +76,8 @@ export function MobileBottomNav({
       {/* 3. CENTRAL SOS BUTTON (Urgent, Prominent, Instant Call Access) */}
       <button
         type="button"
+        id="mobile-bottom-nav-sos"
+        data-testid="mobile-bottom-nav-sos"
         onClick={onOpenSosModal}
         className="mobile-nav-btn mobile-nav-sos-btn"
         style={{
@@ -102,6 +108,8 @@ export function MobileBottomNav({
       {/* 4. Monitor */}
       <button
         type="button"
+        id="mobile-bottom-nav-monitor"
+        data-testid="mobile-bottom-nav-monitor"
         onClick={() => onTabChange(NAV_TABS.MONITOR)}
         className="mobile-nav-btn"
         aria-current={activeTab === NAV_TABS.MONITOR ? 'page' : undefined}
@@ -117,6 +125,8 @@ export function MobileBottomNav({
       {/* 5. More / Menu */}
       <button
         type="button"
+        id="mobile-bottom-nav-menu"
+        data-testid="mobile-bottom-nav-menu"
         onClick={onOpenMobileMenu}
         className="mobile-nav-btn"
         style={getNavBtnStyle(false)}

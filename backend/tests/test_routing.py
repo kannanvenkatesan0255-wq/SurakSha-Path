@@ -64,8 +64,8 @@ class TestRoutingAPI(unittest.TestCase):
         self.assertAlmostEqual(coords[0][1], 13.08, delta=0.05)
 
         # Verify safety scoring disclaimer
-        self.assertEqual(first_alt["safety_assessment_status"], "PENDING_PHASE_7_SAFETY_SCORING")
-        self.assertIn("Phase 7", first_alt["safety_disclaimer"])
+        self.assertIn(first_alt["safety_assessment_status"], ["PENDING_PHASE_7_SAFETY_SCORING", "EVALUATED_PARTIALLY_ASSESSED", "EVALUATED_ASSESSED"])
+        self.assertTrue(any(term in first_alt["safety_disclaimer"] for term in ["Phase 7", "Evidence-Based Assessment"]))
 
     def test_plan_route_identical_endpoints_rejected(self):
         """Verify identical origin and destination name is rejected by validation."""

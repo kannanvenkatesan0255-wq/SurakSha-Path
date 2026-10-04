@@ -5,12 +5,14 @@ from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
+from backend.app.database import init_db
 
 
 class TestContextualAPI(unittest.TestCase):
     """Test suite for Phase 13 API endpoints."""
 
     def setUp(self):
+        init_db()
         self.client = TestClient(app)
 
     def test_get_current_context_endpoint(self):

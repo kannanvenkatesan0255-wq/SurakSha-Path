@@ -9,6 +9,7 @@ import { InteractiveMap } from './InteractiveMap';
 import { resolveLocationQuery } from '../../services/locationService';
 
 export function MapWorkspace({
+  mapId = 'suraksha-leaflet-map',
   activeCorridor = 'Chennai Metropolitan Area',
   origin = '',
   destination = '',
@@ -108,6 +109,7 @@ export function MapWorkspace({
       {/* Main Interactive Leaflet Map Canvas */}
       <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%', minWidth: 0 }}>
         <InteractiveMap
+          mapId={mapId}
           originLocation={resolvedOrigin}
           destinationLocation={resolvedDestination}
           currentLocation={currentLocation}
